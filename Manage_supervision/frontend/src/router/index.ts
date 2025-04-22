@@ -88,6 +88,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresStudent: true
         }
+      },
+      {
+        path: 'timetable',
+        name: 'StudentTimetable',
+        component: () => import('../views/student/Timetable.vue'),
+        meta: { 
+          title: '班级课表',
+          requiresAuth: true,
+          requiresStudent: true
+        }
       }
     ]
   },
@@ -169,6 +179,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'timetables',
+        name: 'TimetableManagement',
+        component: () => import('../views/admin/TimetableManagement.vue'),
+        meta: { 
+          title: '课程表管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'timetables/:id',
+        name: 'TimetableDetail',
+        component: () => import('../views/admin/TimetableDetail.vue'),
+        meta: { 
+          title: '课程表详情',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },
@@ -207,6 +237,26 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/supervisor/ClassManagement.vue'),
         meta: { 
           title: '班级管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'timetables',
+        name: 'SupervisorTimetable',
+        component: () => import('../views/supervisor/Timetable.vue'),
+        meta: { 
+          title: '班级课表',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'timetables/:id',
+        name: 'SupervisorTimetableDetail',
+        component: () => import('../views/supervisor/TimetableDetail.vue'),
+        meta: { 
+          title: '课表详情',
           requiresAuth: true,
           requiresSupervisor: true
         }

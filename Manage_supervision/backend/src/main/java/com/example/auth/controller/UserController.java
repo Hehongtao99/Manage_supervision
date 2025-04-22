@@ -3,6 +3,7 @@ package com.example.auth.controller;
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.dto.ProjectDTO;
 import com.example.auth.dto.TaskDTO;
+import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.User;
 import com.example.auth.service.ProjectService;
 import com.example.auth.service.TaskService;
@@ -512,5 +513,11 @@ public class UserController {
             logger.error("获取课题任务失败", e);
             return ResponseEntity.badRequest().body(Map.of("message", "获取课题任务失败: " + e.getMessage()));
         }
+    }
+
+    @GetMapping("/teachers")
+    public ResponseEntity<List<UserDTO>> getAllTeachers() {
+        List<UserDTO> teachers = userService.getAllUsersByRole("SUPERVISOR");
+        return ResponseEntity.ok(teachers);
     }
 }

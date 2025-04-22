@@ -11,6 +11,8 @@ public class UserDTO {
     private String nickname;
     private String email;
     private String phone;
+    private String avatar;
+    private String bio;
     private List<String> roles;
     private String status;
     private String createTime;

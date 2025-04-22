@@ -27,4 +27,7 @@ public interface UserService {
 
     // 添加获取教师学生的方法
     List<UserDTO> getStudentsByTeacher(Long teacherId);
+
+    // 根据角色获取用户
+    List<UserDTO> getAllUsersByRole(String roleName);
 } 

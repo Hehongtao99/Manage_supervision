@@ -175,23 +175,38 @@
       <div class="student-management">
         <div class="student-selection">
           <h3>可添加学生</h3>
-          <el-input
-            v-model="studentSearchKeyword"
-            placeholder="搜索学生"
-            clearable
-            @input="filterStudents"
-            style="margin-bottom: 10px"
-          />
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px">
+            <el-input
+              v-model="studentSearchKeyword"
+              placeholder="搜索学生"
+              clearable
+              @input="filterStudents"
+              style="width: 250px"
+            />
+            <el-radio-group v-model="studentFilter" size="small">
+              <el-radio-button label="all">全部</el-radio-button>
+              <el-radio-button label="unassigned">未分配</el-radio-button>
+              <el-radio-button label="assigned">已在班级</el-radio-button>
+            </el-radio-group>
+          </div>
           <el-table
             v-loading="unassignedStudentsLoading"
-            :data="filteredUnassignedStudents"
+            :data="filteredStudentsByStatus"
             border
             style="width: 100%"
             height="300px"
+            @selection-change="handleStudentSelectionChange"
           >
+            <el-table-column type="selection" width="55" />
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="userNumber" label="学号" width="100" />
             <el-table-column prop="realName" label="姓名" min-width="120" />
+            <el-table-column prop="currentClassName" label="当前班级" min-width="120">
+              <template #default="scope">
+                <span v-if="scope.row.currentClassName">{{ scope.row.currentClassName }}</span>
+                <span v-else class="text-gray">未分配</span>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="100">
               <template #default="scope">
                 <el-button
@@ -199,7 +214,7 @@
                   type="primary"
                   @click="handleAddStudent(scope.row)"
                 >
-                  添加
+                  {{ isStudentInClass(scope.row) ? '转班' : '添加' }}
                 </el-button>
               </template>
             </el-table-column>
@@ -263,7 +278,8 @@ import {
   addStudentToClass,
   addStudentsToClass,
   removeStudentFromClass,
-  getUnassignedStudentsByClassId
+  getUnassignedStudentsByClassId,
+  getAllAvailableStudentsForClass
 } from '@/api/class';
 import { getTeachers } from '@/api/teacher';
 import { formatDateTime } from '../../utils/date';
@@ -305,6 +321,9 @@ const unassignedStudentsLoading = ref(false);
 const classStudentsLoading = ref(false);
 const selectedStudents = ref<any[]>([]);
 
+// 学生筛选状态
+const studentFilter = ref('all'); // 'all', 'unassigned', 'assigned'
+
 // 计算过滤后的教师列表
 const filteredTeachers = computed(() => {
   if (!teacherSearchKeyword.value) {
@@ -330,9 +349,26 @@ const filteredUnassignedStudents = computed(() => {
   );
 });
 
+// 根据筛选条件过滤学生
+const filteredStudentsByStatus = computed(() => {
+  if (studentFilter.value === 'all') {
+    return filteredUnassignedStudents.value;
+  } else if (studentFilter.value === 'unassigned') {
+    return filteredUnassignedStudents.value.filter(student => !student.currentClassId);
+  } else if (studentFilter.value === 'assigned') {
+    return filteredUnassignedStudents.value.filter(student => student.currentClassId);
+  }
+  return filteredUnassignedStudents.value;
+});
+
 // 检查教师是否已分配到班级
 const isTeacherAssigned = (teacherId: number) => {
   return classTeachers.value.some(t => t.teacherId === teacherId);
+};
+
+// 检查学生是否已在班级中
+const isStudentInClass = (student: any) => {
+  return !!student.currentClassId;
 };
 
 // 格式化时间
@@ -483,10 +519,11 @@ const loadUnassignedStudents = async () => {
   
   unassignedStudentsLoading.value = true;
   try {
-    unassignedStudents.value = await getUnassignedStudentsByClassId(selectedClass.value.id);
+    // 使用新的API，获取所有可用学生（包括已分配班级的）
+    unassignedStudents.value = await getAllAvailableStudentsForClass(selectedClass.value.id);
   } catch (error) {
-    console.error('加载未分配学生失败:', error);
-    ElMessage.error('加载未分配学生失败，请稍后重试');
+    console.error('加载可用学生失败:', error);
+    ElMessage.error('加载可用学生失败，请稍后重试');
   } finally {
     unassignedStudentsLoading.value = false;
   }
@@ -539,19 +576,43 @@ const handleRemoveTeacher = async (relation: any) => {
 const handleAddStudent = async (student: any) => {
   if (!selectedClass.value?.id) return;
 
+  // 如果学生已经在其他班级，需要确认是否转班
+  if (student.currentClassId) {
+    try {
+      await ElMessageBox.confirm(
+        `该学生当前已在班级 [${student.currentClassName}] 中，是否将其转到 [${selectedClass.value.className}] 班级？`, 
+        '转班确认', 
+        {
+          confirmButtonText: '确认转班',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      );
+      // 用户确认后继续处理
+    } catch (e) {
+      // 用户取消操作
+      return;
+    }
+  }
+
   try {
     const result = await addStudentToClass(selectedClass.value.id, student.id);
     if (result.success) {
-      ElMessage.success('学生添加成功');
+      ElMessage.success(student.currentClassId ? '学生转班成功' : '学生添加成功');
       await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
       // 刷新班级列表中的学生数量
       loadClasses();
     } else {
-      ElMessage.error(result.message || '添加学生失败');
+      ElMessage.error(result.message || '操作失败');
     }
-  } catch (error) {
-    console.error('添加学生失败:', error);
-    ElMessage.error('添加学生失败，请稍后重试');
+  } catch (error: any) {
+    console.error('操作失败:', error);
+    // 处理后端返回的具体错误信息
+    if (error.response && error.response.data && error.response.data.error) {
+      ElMessage.error(error.response.data.error);
+    } else {
+      ElMessage.error('操作失败，请稍后重试');
+    }
   }
 };
 
@@ -559,22 +620,48 @@ const handleAddStudent = async (student: any) => {
 const handleBatchAddStudents = async () => {
   if (!selectedClass.value?.id || selectedStudents.value.length === 0) return;
 
+  // 检查是否有学生已在其他班级
+  const studentsInOtherClasses = selectedStudents.value.filter(student => student.currentClassId);
+  
+  if (studentsInOtherClasses.length > 0) {
+    try {
+      await ElMessageBox.confirm(
+        `选中的学生中有 ${studentsInOtherClasses.length} 名已在其他班级，是否确认将他们转到当前班级？`, 
+        '转班确认', 
+        {
+          confirmButtonText: '确认转班',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      );
+      // 用户确认后继续处理
+    } catch (e) {
+      // 用户取消操作
+      return;
+    }
+  }
+
   try {
     const studentIds = selectedStudents.value.map(student => student.id);
     const result = await addStudentsToClass(selectedClass.value.id, studentIds);
     
     if (result.success) {
-      ElMessage.success(`成功添加${result.count}名学生`);
+      ElMessage.success(`操作成功: ${result.message}`);
       await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
       selectedStudents.value = [];
       // 刷新班级列表中的学生数量
       loadClasses();
     } else {
-      ElMessage.error(result.message || '批量添加学生失败');
+      ElMessage.error(result.message || '批量操作失败');
     }
-  } catch (error) {
-    console.error('批量添加学生失败:', error);
-    ElMessage.error('批量添加学生失败，请稍后重试');
+  } catch (error: any) {
+    console.error('批量操作失败:', error);
+    // 处理后端返回的具体错误信息
+    if (error.response && error.response.data && error.response.data.error) {
+      ElMessage.error(error.response.data.error);
+    } else {
+      ElMessage.error('批量操作失败，请稍后重试');
+    }
   }
 };
 
@@ -660,5 +747,10 @@ h3 {
   display: flex;
   justify-content: flex-end;
   margin-top: 10px;
+}
+
+.text-gray {
+  color: #909399;
+  font-style: italic;
 }
 </style> 

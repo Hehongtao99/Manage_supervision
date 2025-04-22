@@ -110,6 +110,13 @@ public class ClassController {
         return ResponseEntity.ok(students);
     }
     
+    // 获取所有可用于分配的学生（包括已在其他班级的）
+    @GetMapping("/{classId}/students/available")
+    public ResponseEntity<List<Map<String, Object>>> getAllAvailableStudentsForClass(@PathVariable Long classId) {
+        List<Map<String, Object>> students = classService.getAllAvailableStudentsForClass(classId);
+        return ResponseEntity.ok(students);
+    }
+    
     // 添加学生到班级
     @PostMapping("/{classId}/students/{studentId}")
     public ResponseEntity<Map<String, Object>> addStudentToClass(
@@ -131,15 +138,8 @@ public class ClassController {
             @PathVariable Long classId,
             @RequestBody List<Long> studentIds) {
         
-        int successCount = classService.addStudentsToClass(classId, studentIds);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", successCount > 0);
-        response.put("count", successCount);
-        response.put("message", successCount > 0 ? 
-                "成功添加 " + successCount + " 名学生" : "添加学生失败");
-        
-        return ResponseEntity.ok(response);
+        Map<String, Object> result = classService.addStudentsToClass(classId, studentIds);
+        return ResponseEntity.ok(result);
     }
     
     // 从班级中移除学生
@@ -155,6 +155,37 @@ public class ClassController {
         response.put("message", success ? "学生移除成功" : "学生移除失败");
         
         return ResponseEntity.ok(response);
+    }
+    
+    // 获取当前教师的班级列表
+    @GetMapping("/teacher/classes")
+    public ResponseEntity<List<Map<String, Object>>> getTeacherClasses(
+            @RequestParam(required = false) Long teacherId) {
+        try {
+            Long currentUserId;
+            if (teacherId != null) {
+                // 如果提供了teacherId参数，使用该参数
+                currentUserId = teacherId;
+                System.out.println("使用请求参数提供的教师ID: " + teacherId);
+            } else {
+                // 否则尝试获取当前登录用户ID
+                try {
+                    currentUserId = classService.getCurrentUserId();
+                    System.out.println("使用当前登录用户ID: " + currentUserId);
+                } catch (RuntimeException e) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(List.of(Map.of("error", e.getMessage())));
+                }
+            }
+
+            List<Map<String, Object>> classes = classService.getClassesByTeacherId(currentUserId);
+            return ResponseEntity.ok(classes);
+        } catch (Exception e) {
+            System.err.println("获取教师班级失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body(List.of(Map.of("error", e.getMessage())));
+        }
     }
 
     @ExceptionHandler(RuntimeException.class)

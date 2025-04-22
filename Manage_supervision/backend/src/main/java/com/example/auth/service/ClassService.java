@@ -16,8 +16,9 @@ public interface ClassService {
     // 班级-学生管理
     List<UserDTO> getStudentsByClassId(Long classId);
     List<UserDTO> getUnassignedStudentsByClassId(Long classId);
+    List<Map<String, Object>> getAllAvailableStudentsForClass(Long classId);
     boolean addStudentToClass(Long classId, Long studentId);
-    int addStudentsToClass(Long classId, List<Long> studentIds);
+    Map<String, Object> addStudentsToClass(Long classId, List<Long> studentIds);
     boolean removeStudentFromClass(Long classId, Long studentId);
     
     /**
@@ -48,4 +49,10 @@ public interface ClassService {
      * @return 是否被分配
      */
     boolean isTeacherAssignedToClass(Long teacherId, Long classId);
+    
+    /**
+     * 获取当前登录用户的ID
+     * @return 当前用户ID
+     */
+    Long getCurrentUserId();
 } 

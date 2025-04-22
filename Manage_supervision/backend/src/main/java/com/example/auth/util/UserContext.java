@@ -33,18 +33,45 @@ public class UserContext {
                 HttpServletRequest request = attributes.getRequest();
                 String authHeader = request.getHeader("Authorization");
                 
+                System.out.println("当前请求头部: Authorization=" + (authHeader != null ? authHeader.substring(0, Math.min(20, authHeader.length())) + "..." : "null"));
+                
                 if (authHeader != null && authHeader.startsWith("Bearer ")) {
                     String token = authHeader.substring(7);
+                    System.out.println("提取到Token: " + token.substring(0, Math.min(20, token.length())) + "...");
+                    
                     if (jwtUtil.validateToken(token)) {
                         String username = jwtUtil.getUsernameFromToken(token);
-                        return userService.findByUsername(username);
+                        System.out.println("Token有效，提取到用户名: " + username);
+                        User user = userService.findByUsername(username);
+                        if (user != null) {
+                            System.out.println("成功获取到用户: ID=" + user.getId() + ", 用户名=" + user.getUsername());
+                        } else {
+                            System.out.println("找不到用户: " + username);
+                        }
+                        return user;
+                    } else {
+                        System.out.println("Token无效");
                     }
+                } else {
+                    System.out.println("Authorization头部格式不正确或不存在");
                 }
+            } else {
+                System.out.println("无法获取请求上下文");
             }
         } catch (Exception e) {
             // 记录错误但不抛出，返回null表示未获取到用户
             System.err.println("获取当前用户失败: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 获取当前用户ID
+     * @return 当前用户ID，如果未获取到用户则返回null
+     */
+    public Long getCurrentUserId() {
+        User user = getCurrentUser();
+        return user != null ? user.getId() : null;
     }
 } 

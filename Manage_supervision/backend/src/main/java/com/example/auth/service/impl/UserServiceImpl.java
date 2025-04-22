@@ -415,6 +415,26 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public List<UserDTO> getAllUsersByRole(String roleName) {
+        logger.info("根据角色获取用户列表: {}", roleName);
+        try {
+            Role role = roleRepository.findByName(roleName);
+            if (role == null) {
+                logger.warn("未找到角色: {}", roleName);
+                return new ArrayList<>();
+            }
+            
+            List<User> users = userRepository.findByRolesContaining(role);
+            return users.stream()
+                    .map(this::convertToUserDTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("获取角色用户列表过程中发生异常", e);
+            return new ArrayList<>();
+        }
+    }
+
     // ==================== 辅助方法 ====================
 
     /**
@@ -567,5 +587,37 @@ public class UserServiceImpl implements UserService {
         }
         
         return activities;
+    }
+
+    private UserDTO convertToUserDTO(User user) {
+        if (user == null) return null;
+        
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setRealName(user.getRealName());
+        dto.setNickname(user.getNickname());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setAvatar(user.getAvatar());
+        dto.setBio(user.getBio());
+        dto.setStatus(user.getStatus());
+        dto.setUserNumber(user.getUserNumber());
+        
+        if (user.getCreateTime() != null) {
+            dto.setCreateTime(user.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+        
+        // 转换角色列表
+        if (user.getRoles() != null) {
+            List<String> roles = user.getRoles().stream()
+                    .map(Role::getName)
+                    .collect(Collectors.toList());
+            dto.setRoles(roles);
+        } else {
+            dto.setRoles(new ArrayList<>());
+        }
+        
+        return dto;
     }
 }

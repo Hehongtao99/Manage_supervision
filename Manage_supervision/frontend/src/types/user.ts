@@ -63,4 +63,19 @@ export interface UpdateRoleRequest {
   name?: string;
   description?: string;
   permissions?: string[];
+}
+
+export interface UserDTO {
+  id: number;
+  username: string;
+  realName: string;
+  nickname: string;
+  email: string;
+  phone: string;
+  roles: string[];
+  status: string;
+  createTime: string;
+  userNumber: string;
+  avatar?: string;
+  bio?: string;
 } 

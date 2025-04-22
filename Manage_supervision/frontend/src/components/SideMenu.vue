@@ -49,6 +49,10 @@
           <el-icon><Avatar /></el-icon>
           <span>学生管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/timetables" @click="handleRoute('/admin/timetables')">
+          <el-icon><Calendar /></el-icon>
+          <span>课程表管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 
@@ -65,6 +69,13 @@
         <el-icon><List /></el-icon>
         <template #title>
           <span>班级管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/supervisor/timetables" @click="handleRoute('/supervisor/timetables')">
+        <el-icon><Calendar /></el-icon>
+        <template #title>
+          <span>班级课表</span>
         </template>
       </el-menu-item>
 
@@ -105,6 +116,13 @@
           <span>我的班级和老师</span>
         </template>
       </el-menu-item>
+      
+      <el-menu-item index="/student/timetable" @click="handleRoute('/student/timetable')">
+        <el-icon><Calendar /></el-icon>
+        <template #title>
+          <span>班级课表</span>
+        </template>
+      </el-menu-item>
 
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
@@ -131,7 +149,8 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Calendar
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
