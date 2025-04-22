@@ -110,6 +110,13 @@ public class ClassController {
         return ResponseEntity.ok(students);
     }
     
+    // 获取所有可用于分配的学生（包括已在其他班级的）
+    @GetMapping("/{classId}/students/available")
+    public ResponseEntity<List<Map<String, Object>>> getAllAvailableStudentsForClass(@PathVariable Long classId) {
+        List<Map<String, Object>> students = classService.getAllAvailableStudentsForClass(classId);
+        return ResponseEntity.ok(students);
+    }
+    
     // 添加学生到班级
     @PostMapping("/{classId}/students/{studentId}")
     public ResponseEntity<Map<String, Object>> addStudentToClass(
@@ -131,15 +138,8 @@ public class ClassController {
             @PathVariable Long classId,
             @RequestBody List<Long> studentIds) {
         
-        int successCount = classService.addStudentsToClass(classId, studentIds);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", successCount > 0);
-        response.put("count", successCount);
-        response.put("message", successCount > 0 ? 
-                "成功添加 " + successCount + " 名学生" : "添加学生失败");
-        
-        return ResponseEntity.ok(response);
+        Map<String, Object> result = classService.addStudentsToClass(classId, studentIds);
+        return ResponseEntity.ok(result);
     }
     
     // 从班级中移除学生

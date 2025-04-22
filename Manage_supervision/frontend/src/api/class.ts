@@ -73,6 +73,12 @@ export const getUnassignedStudentsByClassId = async (classId: number) => {
   return response.data;
 };
 
+// 获取所有可用于分配的学生（包括已在其他班级的）
+export const getAllAvailableStudentsForClass = async (classId: number) => {
+  const response = await axios.get(`${API_URL}/${classId}/students/available`);
+  return response.data;
+};
+
 // 添加学生到班级
 export const addStudentToClass = async (classId: number, studentId: number) => {
   const response = await axios.post(`${API_URL}/${classId}/students/${studentId}`);

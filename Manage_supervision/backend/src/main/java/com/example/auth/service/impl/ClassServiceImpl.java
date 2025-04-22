@@ -172,8 +172,11 @@ public class ClassServiceImpl implements ClassService {
         // 检查学生是否已经在其他班级中
         List<ClassStudentRelation> existingRelations = classStudentRepository.findByStudentAndStatus(student, "active");
         if (!existingRelations.isEmpty()) {
-            // 学生已经在其他班级中，不允许添加
-            return false;
+            // 学生已经在其他班级中，进行转班操作：将原班级关系设为inactive，创建新班级关系
+            for (ClassStudentRelation relation : existingRelations) {
+                relation.setStatus("inactive");
+                classStudentRepository.save(relation);
+            }
         }
         
         // 创建新的班级-学生关系
@@ -189,9 +192,13 @@ public class ClassServiceImpl implements ClassService {
     
     @Override
     @Transactional
-    public int addStudentsToClass(Long classId, List<Long> studentIds) {
+    public Map<String, Object> addStudentsToClass(Long classId, List<Long> studentIds) {
         if (studentIds == null || studentIds.isEmpty()) {
-            return 0;
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", false);
+            result.put("message", "未选择学生");
+            result.put("count", 0);
+            return result;
         }
         
         Class classEntity = classRepository.findById(classId)
@@ -199,19 +206,40 @@ public class ClassServiceImpl implements ClassService {
         
         List<User> students = userRepository.findAllById(studentIds);
         if (students.isEmpty()) {
-            return 0;
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", false);
+            result.put("message", "所选学生不存在");
+            result.put("count", 0);
+            return result;
         }
         
-        int count = 0;
+        int successCount = 0;
+        List<String> failedStudents = new ArrayList<>();
+        
         for (User student : students) {
-            // 使用更新后的addStudentToClass方法，会检查学生是否已在其他班级
-            boolean success = addStudentToClass(classId, student.getId());
-            if (success) {
-                count++;
+            try {
+                boolean success = addStudentToClass(classId, student.getId());
+                if (success) {
+                    successCount++;
+                }
+            } catch (RuntimeException e) {
+                // 收集添加失败的学生信息
+                failedStudents.add(student.getRealName() + "(" + e.getMessage() + ")");
             }
         }
         
-        return count;
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", successCount > 0);
+        result.put("count", successCount);
+        
+        if (failedStudents.isEmpty()) {
+            result.put("message", "成功添加 " + successCount + " 名学生");
+        } else {
+            result.put("message", "成功添加 " + successCount + " 名学生，" + 
+                      failedStudents.size() + " 名学生添加失败：" + String.join("，", failedStudents));
+        }
+        
+        return result;
     }
     
     @Override
@@ -368,5 +396,41 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new RuntimeException("班级不存在"));
         
         return classTeacherRelationRepository.existsByClassEntityAndTeacherAndStatus(classEntity, teacher, "active");
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllAvailableStudentsForClass(Long classId) {
+        Optional<Class> classOptional = classRepository.findById(classId);
+        if (classOptional.isEmpty()) {
+            throw new RuntimeException("班级不存在: " + classId);
+        }
+        
+        List<User> availableStudents = classStudentRepository.findAllAvailableStudentsForClass(classId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        for (User student : availableStudents) {
+            Map<String, Object> studentMap = new HashMap<>();
+            studentMap.put("id", student.getId());
+            studentMap.put("username", student.getUsername());
+            studentMap.put("realName", student.getRealName());
+            studentMap.put("nickname", student.getNickname());
+            studentMap.put("userNumber", student.getUserNumber());
+            studentMap.put("email", student.getEmail());
+            studentMap.put("phone", student.getPhone());
+            
+            // 查询学生的当前班级信息
+            Optional<Class> currentClass = classStudentRepository.findActiveClassByStudentId(student.getId());
+            if (currentClass.isPresent()) {
+                studentMap.put("currentClassId", currentClass.get().getId());
+                studentMap.put("currentClassName", currentClass.get().getClassName());
+            } else {
+                studentMap.put("currentClassId", null);
+                studentMap.put("currentClassName", null);
+            }
+            
+            result.add(studentMap);
+        }
+        
+        return result;
     }
 } 
