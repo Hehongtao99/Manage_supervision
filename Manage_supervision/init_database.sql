@@ -2,6 +2,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 删除已有表（如果存在）
+DROP TABLE IF EXISTS teacher_student_relations;
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS conversations;
 DROP TABLE IF EXISTS task_evaluations;
@@ -146,6 +147,18 @@ CREATE TABLE chat_messages (
     CONSTRAINT FK_chat_messages_recipient FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- 创建教师-学生关系表
+CREATE TABLE teacher_student_relations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
+    assign_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'active',
+    CONSTRAINT FK_teacher_student_teacher FOREIGN KEY (teacher_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT FK_teacher_student_student FOREIGN KEY (student_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT UK_teacher_student UNIQUE (teacher_id, student_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- 创建索引以提高查询性能
 CREATE INDEX idx_tasks_supervisor_id ON tasks(supervisor_id);
 CREATE INDEX idx_tasks_assignee_id ON tasks(assignee_id);
@@ -162,6 +175,8 @@ CREATE INDEX idx_conversations_user2_id ON conversations(user2_id);
 CREATE INDEX idx_chat_messages_conversation_id ON chat_messages(conversation_id);
 CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
 CREATE INDEX idx_chat_messages_recipient_id ON chat_messages(recipient_id);
+CREATE INDEX idx_teacher_student_teacher_id ON teacher_student_relations(teacher_id);
+CREATE INDEX idx_teacher_student_student_id ON teacher_student_relations(student_id);
 
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 

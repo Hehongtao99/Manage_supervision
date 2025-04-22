@@ -31,22 +31,53 @@ export interface ActivityDTO {
   time: string;
 }
 
-// 获取所有学生
-export const getStudents = async () => {
-  const response = await axios.get('/api/supervisor/students');
-  return response.data;
+// 获取学生列表（分页）
+export const getStudents = async (page = 1, size = 10, keyword?: string) => {
+  try {
+    const params: any = { page, size };
+    if (keyword) {
+      params.keyword = keyword;
+    }
+    
+    const response = await axios.get('/api/admin/students', { params });
+    return response.data;
+  } catch (error) {
+    console.error('获取学生列表失败:', error);
+    throw error;
+  }
+};
+
+// 获取未分配的学生列表
+export const getUnassignedStudents = async () => {
+  try {
+    const response = await axios.get('/api/admin/students/unassigned');
+    return response.data;
+  } catch (error) {
+    console.error('获取未分配学生列表失败:', error);
+    throw error;
+  }
 };
 
 // 获取学生详情
 export const getStudentDetail = async (studentId: number) => {
-  const response = await axios.get(`/api/supervisor/students/${studentId}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/api/admin/users/${studentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('获取学生详情失败:', error);
+    throw error;
+  }
 };
 
 // 更新学生状态
 export const updateStudentStatus = async (studentId: number, status: string) => {
-  const response = await axios.put(`/api/supervisor/students/${studentId}/status`, { status });
-  return response.data;
+  try {
+    const response = await axios.post(`/api/admin/users/${studentId}/toggle-status`);
+    return true;
+  } catch (error) {
+    console.error('更新学生状态失败:', error);
+    throw error;
+  }
 };
 
 // 删除学生
@@ -81,4 +112,19 @@ export const assignStudentToSupervisor = async (studentId: number, supervisorId:
 export const getSupervisorStudents = async (supervisorId: number) => {
   const response = await axios.get(`/api/supervisor/students/supervisor/${supervisorId}`);
   return response.data;
-}; 
+};
+
+// 接口为用户类型声明
+export interface Student {
+  id: number;
+  username: string;
+  name: string;
+  realName: string;
+  studentId: string;
+  userNumber: string;
+  email: string;
+  phone: string;
+  status: string;
+  createTime: string;
+  roles: string[];
+} 

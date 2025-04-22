@@ -26,6 +26,25 @@
           <el-icon><Avatar /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/roles" @click="handleRoute('/admin/roles')">
+          <el-icon><Lock /></el-icon>
+          <span>角色管理</span>
+        </el-menu-item>
+      </el-sub-menu>
+
+      <el-sub-menu index="teacher-student-management">
+        <template #title>
+          <el-icon><User /></el-icon>
+          <span>教学管理</span>
+        </template>
+        <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
+          <el-icon><UserFilled /></el-icon>
+          <span>教师管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
+          <el-icon><Avatar /></el-icon>
+          <span>学生管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 

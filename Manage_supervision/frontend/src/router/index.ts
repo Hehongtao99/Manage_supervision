@@ -80,6 +80,26 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'teachers',
+        name: 'TeacherManagement',
+        component: () => import('../views/admin/TeacherManagement.vue'),
+        meta: { 
+          title: '教师管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'students',
+        name: 'AdminStudentManagement',
+        component: () => import('../views/admin/StudentManagement.vue'),
+        meta: { 
+          title: '学生管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
         path: 'roles',
         name: 'RoleManagement',
         component: () => import('../views/admin/RoleManagement.vue'),
