@@ -34,15 +34,17 @@
         <el-table-column prop="className" label="班级名称" min-width="120" />
         <el-table-column prop="grade" label="年级" min-width="100" />
         <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="studentCount" label="学生数量" width="100" />
         <el-table-column prop="createTime" label="创建时间" min-width="180">
           <template #default="scope">
             {{ formatTime(scope.row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250">
+        <el-table-column label="操作" width="300">
           <template #default="scope">
             <el-button size="small" @click="showEditClassDialog(scope.row)">编辑</el-button>
             <el-button size="small" type="primary" @click="showTeacherManagementDialog(scope.row)">管理教师</el-button>
+            <el-button size="small" type="success" @click="showStudentManagementDialog(scope.row)">管理学生</el-button>
             <el-popconfirm
               title="确定要删除此班级吗？"
               @confirm="handleDeleteClass(scope.row.id)"
@@ -163,6 +165,85 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- 班级学生管理对话框 -->
+    <el-dialog
+      v-model="studentDialogVisible"
+      :title="`管理学生 - ${selectedClass?.className || ''}`"
+      width="700px"
+    >
+      <div class="student-management">
+        <div class="student-selection">
+          <h3>可添加学生</h3>
+          <el-input
+            v-model="studentSearchKeyword"
+            placeholder="搜索学生"
+            clearable
+            @input="filterStudents"
+            style="margin-bottom: 10px"
+          />
+          <el-table
+            v-loading="unassignedStudentsLoading"
+            :data="filteredUnassignedStudents"
+            border
+            style="width: 100%"
+            height="300px"
+          >
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="userNumber" label="学号" width="100" />
+            <el-table-column prop="realName" label="姓名" min-width="120" />
+            <el-table-column label="操作" width="100">
+              <template #default="scope">
+                <el-button
+                  size="small"
+                  type="primary"
+                  @click="handleAddStudent(scope.row)"
+                >
+                  添加
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="batch-actions" style="margin-top: 10px;">
+            <el-button 
+              type="primary" 
+              :disabled="selectedStudents.length === 0"
+              @click="handleBatchAddStudents"
+            >
+              批量添加选中学生 ({{ selectedStudents.length }})
+            </el-button>
+          </div>
+        </div>
+
+        <div class="class-students">
+          <h3>班级学生</h3>
+          <el-table
+            v-loading="classStudentsLoading"
+            :data="classStudents"
+            border
+            style="width: 100%"
+            height="300px"
+          >
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="userNumber" label="学号" width="100" />
+            <el-table-column prop="realName" label="姓名" min-width="120" />
+            <el-table-column label="操作" width="100">
+              <template #default="scope">
+                <el-popconfirm
+                  title="确定要将此学生从班级中移除吗？"
+                  @confirm="handleRemoveStudent(scope.row)"
+                >
+                  <template #reference>
+                    <el-button size="small" type="danger">移除</el-button>
+                  </template>
+                </el-popconfirm>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -177,7 +258,12 @@ import {
   deleteClass,
   getTeachersByClassId,
   assignTeacherToClass,
-  removeTeacherFromClass 
+  removeTeacherFromClass,
+  getStudentsByClassId,
+  addStudentToClass,
+  addStudentsToClass,
+  removeStudentFromClass,
+  getUnassignedStudentsByClassId
 } from '@/api/class';
 import { getTeachers } from '@/api/teacher';
 import { formatDateTime } from '../../utils/date';
@@ -210,6 +296,15 @@ const teachersLoading = ref(false);
 const classTeachersLoading = ref(false);
 const teacherSearchKeyword = ref('');
 
+// 学生管理状态
+const studentDialogVisible = ref(false);
+const unassignedStudents = ref<any[]>([]);
+const classStudents = ref<any[]>([]);
+const studentSearchKeyword = ref('');
+const unassignedStudentsLoading = ref(false);
+const classStudentsLoading = ref(false);
+const selectedStudents = ref<any[]>([]);
+
 // 计算过滤后的教师列表
 const filteredTeachers = computed(() => {
   if (!teacherSearchKeyword.value) {
@@ -219,6 +314,19 @@ const filteredTeachers = computed(() => {
   return teachers.value.filter(teacher => 
     teacher.realName?.toLowerCase().includes(keyword) || 
     teacher.username?.toLowerCase().includes(keyword)
+  );
+});
+
+// 计算过滤后的学生列表
+const filteredUnassignedStudents = computed(() => {
+  if (!studentSearchKeyword.value) {
+    return unassignedStudents.value;
+  }
+  const keyword = studentSearchKeyword.value.toLowerCase();
+  return unassignedStudents.value.filter(student => 
+    student.realName?.toLowerCase().includes(keyword) || 
+    student.username?.toLowerCase().includes(keyword) ||
+    student.userNumber?.toLowerCase().includes(keyword)
   );
 });
 
@@ -234,6 +342,11 @@ const formatTime = (time: string) => {
 
 // 过滤教师列表
 const filterTeachers = () => {
+  // 已在computed中实现
+};
+
+// 过滤学生列表
+const filterStudents = () => {
   // 已在computed中实现
 };
 
@@ -326,6 +439,15 @@ const showTeacherManagementDialog = async (classData: any) => {
   await Promise.all([loadTeachers(), loadClassTeachers()]);
 };
 
+// 显示学生管理对话框
+const showStudentManagementDialog = async (classData: any) => {
+  selectedClass.value = classData;
+  studentDialogVisible.value = true;
+  studentSearchKeyword.value = '';
+  selectedStudents.value = [];
+  await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
+};
+
 // 加载所有教师
 const loadTeachers = async () => {
   teachersLoading.value = true;
@@ -355,6 +477,36 @@ const loadClassTeachers = async () => {
   }
 };
 
+// 加载未分配的学生
+const loadUnassignedStudents = async () => {
+  if (!selectedClass.value?.id) return;
+  
+  unassignedStudentsLoading.value = true;
+  try {
+    unassignedStudents.value = await getUnassignedStudentsByClassId(selectedClass.value.id);
+  } catch (error) {
+    console.error('加载未分配学生失败:', error);
+    ElMessage.error('加载未分配学生失败，请稍后重试');
+  } finally {
+    unassignedStudentsLoading.value = false;
+  }
+};
+
+// 加载班级学生
+const loadClassStudents = async () => {
+  if (!selectedClass.value?.id) return;
+  
+  classStudentsLoading.value = true;
+  try {
+    classStudents.value = await getStudentsByClassId(selectedClass.value.id);
+  } catch (error) {
+    console.error('加载班级学生失败:', error);
+    ElMessage.error('加载班级学生失败，请稍后重试');
+  } finally {
+    classStudentsLoading.value = false;
+  }
+};
+
 // 分配教师到班级
 const handleAssignTeacher = async (teacher: any) => {
   if (!selectedClass.value?.id) return;
@@ -381,6 +533,74 @@ const handleRemoveTeacher = async (relation: any) => {
     console.error('移除教师失败:', error);
     ElMessage.error('移除教师失败，请稍后重试');
   }
+};
+
+// 添加学生到班级
+const handleAddStudent = async (student: any) => {
+  if (!selectedClass.value?.id) return;
+
+  try {
+    const result = await addStudentToClass(selectedClass.value.id, student.id);
+    if (result.success) {
+      ElMessage.success('学生添加成功');
+      await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
+      // 刷新班级列表中的学生数量
+      loadClasses();
+    } else {
+      ElMessage.error(result.message || '添加学生失败');
+    }
+  } catch (error) {
+    console.error('添加学生失败:', error);
+    ElMessage.error('添加学生失败，请稍后重试');
+  }
+};
+
+// 批量添加学生到班级
+const handleBatchAddStudents = async () => {
+  if (!selectedClass.value?.id || selectedStudents.value.length === 0) return;
+
+  try {
+    const studentIds = selectedStudents.value.map(student => student.id);
+    const result = await addStudentsToClass(selectedClass.value.id, studentIds);
+    
+    if (result.success) {
+      ElMessage.success(`成功添加${result.count}名学生`);
+      await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
+      selectedStudents.value = [];
+      // 刷新班级列表中的学生数量
+      loadClasses();
+    } else {
+      ElMessage.error(result.message || '批量添加学生失败');
+    }
+  } catch (error) {
+    console.error('批量添加学生失败:', error);
+    ElMessage.error('批量添加学生失败，请稍后重试');
+  }
+};
+
+// 从班级移除学生
+const handleRemoveStudent = async (student: any) => {
+  if (!selectedClass.value?.id) return;
+
+  try {
+    const result = await removeStudentFromClass(selectedClass.value.id, student.id);
+    if (result.success) {
+      ElMessage.success('学生移除成功');
+      await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
+      // 刷新班级列表中的学生数量
+      loadClasses();
+    } else {
+      ElMessage.error(result.message || '移除学生失败');
+    }
+  } catch (error) {
+    console.error('移除学生失败:', error);
+    ElMessage.error('移除学生失败，请稍后重试');
+  }
+};
+
+// 选择学生
+const handleStudentSelectionChange = (selection: any[]) => {
+  selectedStudents.value = selection;
 };
 
 // 初始化
@@ -420,13 +640,13 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.teacher-management {
+.teacher-management, .student-management {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.teacher-selection, .class-teachers {
+.teacher-selection, .class-teachers, .student-selection, .class-students {
   width: 100%;
 }
 
@@ -434,5 +654,11 @@ h3 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 16px;
+}
+
+.batch-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 </style> 

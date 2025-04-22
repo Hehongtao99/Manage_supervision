@@ -59,4 +59,34 @@ export const assignTeacherToClass = async (classId: number, teacherId: number) =
 // 从班级移除教师
 export const removeTeacherFromClass = async (classId: number, teacherId: number) => {
   return await axios.delete(`${API_URL}/${classId}/teachers/${teacherId}`);
+};
+
+// 获取班级的学生列表
+export const getStudentsByClassId = async (classId: number) => {
+  const response = await axios.get(`${API_URL}/${classId}/students`);
+  return response.data;
+};
+
+// 获取未分配到班级的学生列表
+export const getUnassignedStudentsByClassId = async (classId: number) => {
+  const response = await axios.get(`${API_URL}/${classId}/students/unassigned`);
+  return response.data;
+};
+
+// 添加学生到班级
+export const addStudentToClass = async (classId: number, studentId: number) => {
+  const response = await axios.post(`${API_URL}/${classId}/students/${studentId}`);
+  return response.data;
+};
+
+// 批量添加学生到班级
+export const addStudentsToClass = async (classId: number, studentIds: number[]) => {
+  const response = await axios.post(`${API_URL}/${classId}/students`, studentIds);
+  return response.data;
+};
+
+// 从班级移除学生
+export const removeStudentFromClass = async (classId: number, studentId: number) => {
+  const response = await axios.delete(`${API_URL}/${classId}/students/${studentId}`);
+  return response.data;
 }; 

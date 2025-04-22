@@ -120,6 +120,20 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
     }
 
     @Override
+    public List<UserDTO> getTeachersByStudentId(Long studentId) {
+        Optional<User> optionalStudent = userRepository.findById(studentId);
+        if (optionalStudent.isPresent()) {
+            User student = optionalStudent.get();
+            List<User> teachers = teacherStudentRepository.findActiveTeachersByStudent(student);
+            
+            return teachers.stream()
+                    .map(this::convertToUserDTO)
+                    .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+
+    @Override
     @Transactional
     public boolean assignStudentsToTeacher(Long teacherId, List<Long> studentIds) {
         Optional<User> optionalTeacher = userRepository.findById(teacherId);

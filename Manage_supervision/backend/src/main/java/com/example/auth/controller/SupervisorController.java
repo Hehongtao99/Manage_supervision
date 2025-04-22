@@ -8,6 +8,7 @@ import com.example.auth.service.TaskEvaluationService;
 import com.example.auth.service.TaskService;
 import com.example.auth.service.UserService;
 import com.example.auth.service.ProjectEvaluationService;
+import com.example.auth.service.ClassService;
 import com.example.auth.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Controller for handling supervisor-related requests
@@ -43,6 +45,9 @@ public class SupervisorController {
     
     @Autowired
     private ProjectEvaluationService projectEvaluationService;
+    
+    @Autowired
+    private ClassService classService;
     
     @Autowired
     private JwtUtil jwtUtil;
@@ -802,6 +807,61 @@ public class SupervisorController {
         } catch (Exception e) {
             logger.error("Failed to delete project evaluation", e);
             return ResponseEntity.badRequest().body(Map.of("message", "Failed to delete project evaluation: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 从请求中获取用户ID
+     */
+    private Long getUserIdFromRequest(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            return null;
+        }
+        
+        token = token.substring(7); // 移除"Bearer "前缀
+        try {
+            return jwtUtil.getUserIdFromToken(token);
+        } catch (Exception e) {
+            logger.error("从token中获取用户ID失败", e);
+            return null;
+        }
+    }
+
+    // 获取教师教授的班级列表
+    @GetMapping("/classes")
+    public ResponseEntity<?> getTeacherClasses(HttpServletRequest request) {
+        try {
+            Long teacherId = getUserIdFromRequest(request);
+            if (teacherId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("未授权的访问");
+            }
+            
+            List<Map<String, Object>> classes = classService.getClassesByTeacherId(teacherId);
+            return ResponseEntity.ok(classes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("获取班级列表失败：" + e.getMessage());
+        }
+    }
+
+    // 获取指定班级的学生列表
+    @GetMapping("/classes/{classId}/students")
+    public ResponseEntity<?> getClassStudents(@PathVariable Long classId, HttpServletRequest request) {
+        try {
+            Long teacherId = getUserIdFromRequest(request);
+            if (teacherId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("未授权的访问");
+            }
+            
+            // 验证教师是否有权限访问该班级
+            if (!classService.isTeacherAssignedToClass(teacherId, classId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("您没有权限访问该班级");
+            }
+            
+            List<Map<String, Object>> students = classService.getClassStudentsDetail(classId);
+            return ResponseEntity.ok(students);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("获取班级学生失败：" + e.getMessage());
         }
     }
 }

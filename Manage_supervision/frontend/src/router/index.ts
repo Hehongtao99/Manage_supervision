@@ -51,6 +51,47 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/student',
+    component: BaseLayout,
+    redirect: '/student/tasks',
+    meta: { 
+      requiresAuth: true,
+      requiresStudent: true
+    },
+    children: [
+      {
+        path: 'tasks',
+        name: 'StudentTaskList',
+        component: () => import('../views/student/TaskList.vue'),
+        meta: { 
+          title: '任务列表',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'task/:id',
+        name: 'StudentTaskView',
+        component: () => import('../views/student/TaskView.vue'),
+        meta: { 
+          title: '任务详情',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'teachers-classes',
+        name: 'MyTeachersAndClasses',
+        component: () => import('../views/student/MyTeachersAndClasses.vue'),
+        meta: { 
+          title: '我的班级和老师',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      }
+    ]
+  },
+  {
     path: '/admin',
     component: BaseLayout,
     redirect: '/admin/dashboard',
@@ -161,6 +202,16 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'classes',
+        name: 'SupervisorClassManagement',
+        component: () => import('../views/supervisor/ClassManagement.vue'),
+        meta: { 
+          title: '班级管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
         path: 'chat',
         name: 'SupervisorChat',
         component: () => import('../views/chat/ChatPage.vue'),
@@ -234,6 +285,13 @@ router.beforeEach(async (to, from, next) => {
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
       console.log('需要教师权限，但用户不是教师，重定向到首页')
+      next('/chat')
+      return
+    }
+    
+    // 检查学生权限
+    if (to.meta.requiresStudent && !userStore.isStudent) {
+      console.log('需要学生权限，但用户不是学生，重定向到首页')
       next('/chat')
       return
     }

@@ -2,6 +2,7 @@ package com.example.auth.controller;
 
 import com.example.auth.dto.ClassDTO;
 import com.example.auth.dto.ClassTeacherRelationDTO;
+import com.example.auth.dto.UserDTO;
 import com.example.auth.service.ClassService;
 import com.example.auth.service.ClassTeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,67 @@ public class ClassController {
     public ResponseEntity<List<ClassTeacherRelationDTO>> getClassesByTeacherId(@PathVariable Long teacherId) {
         List<ClassTeacherRelationDTO> classes = classTeacherService.getClassesByTeacherId(teacherId);
         return ResponseEntity.ok(classes);
+    }
+    
+    // 获取班级的学生列表
+    @GetMapping("/{classId}/students")
+    public ResponseEntity<List<UserDTO>> getStudentsByClassId(@PathVariable Long classId) {
+        List<UserDTO> students = classService.getStudentsByClassId(classId);
+        return ResponseEntity.ok(students);
+    }
+    
+    // 获取未分配到班级的学生列表
+    @GetMapping("/{classId}/students/unassigned")
+    public ResponseEntity<List<UserDTO>> getUnassignedStudentsByClassId(@PathVariable Long classId) {
+        List<UserDTO> students = classService.getUnassignedStudentsByClassId(classId);
+        return ResponseEntity.ok(students);
+    }
+    
+    // 添加学生到班级
+    @PostMapping("/{classId}/students/{studentId}")
+    public ResponseEntity<Map<String, Object>> addStudentToClass(
+            @PathVariable Long classId,
+            @PathVariable Long studentId) {
+        
+        boolean success = classService.addStudentToClass(classId, studentId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        response.put("message", success ? "学生添加成功" : "学生添加失败");
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // 批量添加学生到班级
+    @PostMapping("/{classId}/students")
+    public ResponseEntity<Map<String, Object>> addStudentsToClass(
+            @PathVariable Long classId,
+            @RequestBody List<Long> studentIds) {
+        
+        int successCount = classService.addStudentsToClass(classId, studentIds);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", successCount > 0);
+        response.put("count", successCount);
+        response.put("message", successCount > 0 ? 
+                "成功添加 " + successCount + " 名学生" : "添加学生失败");
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // 从班级中移除学生
+    @DeleteMapping("/{classId}/students/{studentId}")
+    public ResponseEntity<Map<String, Object>> removeStudentFromClass(
+            @PathVariable Long classId,
+            @PathVariable Long studentId) {
+        
+        boolean success = classService.removeStudentFromClass(classId, studentId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        response.put("message", success ? "学生移除成功" : "学生移除失败");
+        
+        return ResponseEntity.ok(response);
     }
 
     @ExceptionHandler(RuntimeException.class)

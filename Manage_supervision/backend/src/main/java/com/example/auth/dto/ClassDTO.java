@@ -10,9 +10,11 @@ public class ClassDTO {
     private String description;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    private Integer studentCount;
 
     // 无参构造函数
     public ClassDTO() {
+        this.studentCount = 0;
     }
 
     // 从实体类创建DTO的构造函数
@@ -23,6 +25,7 @@ public class ClassDTO {
         this.description = classEntity.getDescription();
         this.createTime = classEntity.getCreateTime();
         this.updateTime = classEntity.getUpdateTime();
+        this.studentCount = 0;
     }
 
     // Getters
@@ -50,6 +53,10 @@ public class ClassDTO {
         return updateTime;
     }
 
+    public Integer getStudentCount() {
+        return studentCount;
+    }
+
     // Setters
     public void setId(Long id) {
         this.id = id;
@@ -73,6 +80,10 @@ public class ClassDTO {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public void setStudentCount(Integer studentCount) {
+        this.studentCount = studentCount;
     }
 
     // 转换为实体类的方法

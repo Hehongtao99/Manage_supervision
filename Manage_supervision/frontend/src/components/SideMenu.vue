@@ -61,6 +61,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/supervisor/classes" @click="handleRoute('/supervisor/classes')">
+        <el-icon><List /></el-icon>
+        <template #title>
+          <span>班级管理</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
@@ -82,6 +89,20 @@
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
           <span>聊天</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/student/tasks" @click="handleRoute('/student/tasks')">
+        <el-icon><Document /></el-icon>
+        <template #title>
+          <span>任务列表</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/student/teachers-classes" @click="handleRoute('/student/teachers-classes')">
+        <el-icon><List /></el-icon>
+        <template #title>
+          <span>我的班级和老师</span>
         </template>
       </el-menu-item>
 

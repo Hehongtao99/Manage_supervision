@@ -28,4 +28,16 @@ export const getSupervisorDetail = async (supervisorId: number) => {
 export const getSupervisorsByDepartment = async (department: string) => {
   const response = await axios.get(`/api/user/supervisors/department/${department}`);
   return response.data;
+};
+
+// 获取教师的班级列表
+export const getTeacherClasses = async () => {
+  const response = await axios.get('/api/supervisor/classes');
+  return response.data;
+};
+
+// 获取班级的学生列表
+export const getClassStudents = async (classId: number) => {
+  const response = await axios.get('/api/supervisor/classes/' + classId + '/students');
+  return response.data;
 }; 
