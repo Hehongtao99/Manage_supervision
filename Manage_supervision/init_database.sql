@@ -2,6 +2,8 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 删除已有表（如果存在）
+DROP TABLE IF EXISTS class_teacher_relations;
+DROP TABLE IF EXISTS classes;
 DROP TABLE IF EXISTS teacher_student_relations;
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS conversations;
@@ -23,6 +25,27 @@ CREATE TABLE roles (
     description VARCHAR(255),
     permissions VARCHAR(1000),
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建班级表
+CREATE TABLE classes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    class_name VARCHAR(100) NOT NULL,
+    grade VARCHAR(50),
+    description VARCHAR(500),
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建班级-教师关联表
+CREATE TABLE class_teacher_relations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    class_id BIGINT NOT NULL,
+    teacher_id BIGINT NOT NULL,
+    assign_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'active',
+    CONSTRAINT UK_class_teacher UNIQUE (class_id, teacher_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 创建用户表
@@ -177,6 +200,9 @@ CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
 CREATE INDEX idx_chat_messages_recipient_id ON chat_messages(recipient_id);
 CREATE INDEX idx_teacher_student_teacher_id ON teacher_student_relations(teacher_id);
 CREATE INDEX idx_teacher_student_student_id ON teacher_student_relations(student_id);
+CREATE INDEX idx_classes_status ON classes(status);
+CREATE INDEX idx_class_teacher_class_id ON class_teacher_relations(class_id);
+CREATE INDEX idx_class_teacher_teacher_id ON class_teacher_relations(teacher_id);
 
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 

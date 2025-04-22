@@ -41,6 +41,10 @@
           <el-icon><UserFilled /></el-icon>
           <span>教师管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/classes" @click="handleRoute('/admin/classes')">
+          <el-icon><List /></el-icon>
+          <span>班级管理</span>
+        </el-menu-item>
         <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
           <el-icon><Avatar /></el-icon>
           <span>学生管理</span>
