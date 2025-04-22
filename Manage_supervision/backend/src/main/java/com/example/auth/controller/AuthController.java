@@ -79,6 +79,7 @@ public class AuthController {
         userData.put("email", user.getEmail());
         userData.put("phone", user.getPhone());
         userData.put("bio", user.getBio());
+        userData.put("userNumber", user.getUserNumber());
         
         response.put("user", userData);
 
@@ -86,27 +87,46 @@ public class AuthController {
     }
 
     @GetMapping("/info")
-    @RequireRole("USER")
     public ResponseEntity<?> getUserInfo(@RequestHeader("Authorization") String auth) {
-        String token = auth.substring(7);
-        String username = jwtUtil.getUsernameFromToken(token);
-        User user = userService.findByUsername(username);
+        try {
+            String token = auth.substring(7);
+            // 验证token是否有效
+            if (!jwtUtil.validateToken(token)) {
+                return ResponseEntity.status(401).body(Map.of(
+                    "message", "无效的token或token已过期"
+                ));
+            }
+            
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "message", "用户不存在"
+                ));
+            }
 
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("id", user.getId());
-        userData.put("username", user.getUsername());
-        userData.put("avatar", user.getAvatar());
-        userData.put("roles", user.getRoles().stream().map(role -> role.getName()).toList());
-        
-        userData.put("realName", user.getRealName());
-        userData.put("nickname", user.getNickname());
-        userData.put("email", user.getEmail());
-        userData.put("phone", user.getPhone());
-        userData.put("bio", user.getBio());
-        
-        return ResponseEntity.ok(Map.of(
-            "user", userData
-        ));
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("username", user.getUsername());
+            userData.put("avatar", user.getAvatar());
+            userData.put("roles", user.getRoles().stream().map(role -> role.getName()).toList());
+            
+            userData.put("realName", user.getRealName());
+            userData.put("nickname", user.getNickname());
+            userData.put("email", user.getEmail());
+            userData.put("phone", user.getPhone());
+            userData.put("bio", user.getBio());
+            userData.put("userNumber", user.getUserNumber());
+            
+            return ResponseEntity.ok(Map.of(
+                "user", userData
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of(
+                "message", "获取用户信息失败: " + e.getMessage()
+            ));
+        }
     }
 
     @PostMapping("/change-password")

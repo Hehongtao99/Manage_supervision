@@ -14,4 +14,5 @@ public class UserDTO {
     private List<String> roles;
     private String status;
     private String createTime;
+    private String userNumber;
 }

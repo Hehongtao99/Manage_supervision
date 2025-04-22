@@ -56,13 +56,13 @@
                 </el-dropdown-item>
                 
                 <!-- 管理员可以直接进入管理页面 -->
-                <el-dropdown-item v-if="userStore.isAdmin" @click="$router.push('/dashboard')">
+                <el-dropdown-item v-if="userStore.isAdmin" @click="$router.push('/admin/dashboard')">
                   <el-icon><Setting /></el-icon>管理控制台
                 </el-dropdown-item>
                 
-                <!-- 督导员可以直接进入督导页面 -->
-                <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/dashboard')">
-                  <el-icon><Monitor /></el-icon>督导控制台
+                <!-- 教师可以直接进入教师页面 -->
+                <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/students')">
+                  <el-icon><Monitor /></el-icon>学生管理
                 </el-dropdown-item>
                 
                 <el-dropdown-item divided @click="handleLogout">
@@ -118,7 +118,7 @@ const roleName = computed(() => {
   if (userStore.isAdmin) {
     return '管理员'
   } else if (userStore.isSupervisor) {
-    return '督导员'
+    return '教师'
   } else {
     return '学生'
   }

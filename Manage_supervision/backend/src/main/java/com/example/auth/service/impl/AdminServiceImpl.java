@@ -9,6 +9,7 @@ import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.service.AdminService;
 import com.example.auth.util.PasswordUtils;
+import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,9 @@ public class AdminServiceImpl implements AdminService {
     
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private UserNumberGenerator userNumberGenerator;
     
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
@@ -69,6 +73,13 @@ public class AdminServiceImpl implements AdminService {
         List<Role> roles = roleRepository.findByNameIn(userDTO.getRoles());
         user.setRoles(new HashSet<>(roles));
         
+        // 根据角色生成用户编号
+        String role = userDTO.getRoles() != null && !userDTO.getRoles().isEmpty() 
+                ? userDTO.getRoles().get(0) 
+                : "USER";
+        String userNumber = userNumberGenerator.generateUserNumberByRole(role);
+        user.setUserNumber(userNumber);
+        
         User savedUser = userRepository.save(user);
         return convertToUserDTO(savedUser);
     }
@@ -84,12 +95,18 @@ public class AdminServiceImpl implements AdminService {
             user.setEmail(userDTO.getEmail());
             user.setPhone(userDTO.getPhone());
             
-            // 更新角色 - 确保只设置一个角色
+            // 更新角色
             if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
-                // 只取第一个角色
-                String roleName = userDTO.getRoles().get(0);
-                List<Role> roles = roleRepository.findByNameIn(Collections.singletonList(roleName));
+                String newRoleName = userDTO.getRoles().get(0);
+                List<Role> roles = roleRepository.findByNameIn(Collections.singletonList(newRoleName));
                 user.setRoles(new HashSet<>(roles));
+                
+                // 检查是否需要更新用户编号
+                if (userNumberGenerator.needsNumberUpdate(user.getUserNumber(), newRoleName)) {
+                    // 生成新的用户编号
+                    String newUserNumber = userNumberGenerator.generateUserNumberByRole(newRoleName);
+                    user.setUserNumber(newUserNumber);
+                }
             }
             
             User updatedUser = userRepository.save(user);
@@ -198,9 +215,38 @@ public class AdminServiceImpl implements AdminService {
         if (hasChanges) {
             roleRepository.saveAll(roles);
         }
+        
+        // 为没有用户编号的用户生成对应的编号
+        generateMissingUserNumbers();
     }
     
-    // 辅助方法
+    /**
+     * 为没有用户编号的用户生成编号
+     */
+    private void generateMissingUserNumbers() {
+        List<User> users = userRepository.findAll();
+        boolean hasChanges = false;
+        
+        for (User user : users) {
+            if (user.getUserNumber() == null || user.getUserNumber().isEmpty()) {
+                // 获取用户的主要角色
+                String roleName = user.getRoles().stream()
+                        .findFirst()
+                        .map(Role::getName)
+                        .orElse("USER");
+                
+                // 生成对应的用户编号
+                String userNumber = userNumberGenerator.generateUserNumberByRole(roleName);
+                user.setUserNumber(userNumber);
+                hasChanges = true;
+            }
+        }
+        
+        if (hasChanges) {
+            userRepository.saveAll(users);
+        }
+    }
+    
     private UserDTO convertToUserDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
@@ -210,12 +256,14 @@ public class AdminServiceImpl implements AdminService {
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());
         dto.setStatus(user.getStatus());
+        dto.setUserNumber(user.getUserNumber());
+        
+        // 格式化创建时间
         if (user.getCreateTime() != null) {
             dto.setCreateTime(user.getCreateTime().format(formatter));
-        } else {
-            dto.setCreateTime("");
         }
         
+        // 获取角色名称列表
         List<String> roleNames = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toList());
@@ -230,19 +278,13 @@ public class AdminServiceImpl implements AdminService {
         dto.setName(role.getName());
         dto.setDescription(role.getDescription());
         
-        List<String> permissions;
-        if (role.getPermissions() != null) {
-            permissions = List.of(role.getPermissions().split(","));
+        // 将权限字符串转换为列表
+        if (role.getPermissions() != null && !role.getPermissions().isEmpty()) {
+            dto.setPermissions(List.of(role.getPermissions().split(",")));
         } else {
-            permissions = List.of();
+            dto.setPermissions(new ArrayList<>());
         }
-        dto.setPermissions(permissions);
         
-        if (role.getCreateTime() != null) {
-            dto.setCreateTime(role.getCreateTime().format(formatter));
-        } else {
-            dto.setCreateTime(""); // 设置一个默认值避免前端处理空值问题
-        }
         return dto;
     }
 } 

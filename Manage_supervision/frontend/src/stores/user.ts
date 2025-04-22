@@ -16,6 +16,7 @@ interface UserState {
   user: {
     id: number | null
     name: string
+    username?: string
     email: string
     roles: string[]
     realName?: string
@@ -23,6 +24,7 @@ interface UserState {
     phone?: string
     bio?: string
     avatar?: string
+    userNumber?: string
   }
   token: string | null
   initialized: boolean
@@ -37,8 +39,10 @@ export const useUserStore = defineStore('user', {
     user: {
       id: null,
       name: '',
+      username: '',
       email: '',
-      roles: []
+      roles: [],
+      userNumber: ''
     },
     initialized: false,
     error: null,
@@ -57,7 +61,7 @@ export const useUserStore = defineStore('user', {
       return false
     },
     isSupervisor: (state) => {
-      console.log('检查督导员权限，当前角色:', state.user.roles)
+      console.log('检查教师权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
         role === 'SUPERVISOR' || role === 'supervisor'
       )
@@ -96,8 +100,8 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async initializeAuth(): Promise<void> {
-      if (this.initialized) return
+    async initializeAuth(): Promise<boolean> {
+      if (this.initialized) return true
 
       const token = localStorage.getItem('token')
       if (token) {
@@ -106,17 +110,28 @@ export const useUserStore = defineStore('user', {
         this.setAxiosAuthHeader()
         
         try {
-          await this.fetchUserInfo()
-          console.log('获取用户信息成功:', this.user)
+          const success = await this.fetchUserInfo()
+          if (success) {
+            console.log('获取用户信息成功:', this.user)
+            this.initialized = true
+            return true
+          } else {
+            this.handleAuthError()
+            this.initialized = true
+            return false
+          }
         } catch (error) {
           console.error('获取用户信息失败:', error)
           this.handleAuthError()
+          this.initialized = true
+          return false
         }
       } else {
         console.log('初始化认证，未找到token')
       }
       
       this.initialized = true
+      return false
     },
 
     handleAuthError() {
@@ -126,7 +141,8 @@ export const useUserStore = defineStore('user', {
         id: null,
         name: '',
         email: '',
-        roles: []
+        roles: [],
+        userNumber: ''
       }
       localStorage.removeItem('token')
       this.setAxiosAuthHeader()
@@ -167,13 +183,15 @@ export const useUserStore = defineStore('user', {
         this.user = {
           id: response.data.user.id || null,
           name: response.data.user.realName || response.data.user.username || '',
+          username: response.data.user.username || '',
           email: response.data.user.email || '',
           roles: Array.isArray(response.data.user.roles) ? response.data.user.roles : [],
           realName: response.data.user.realName,
           nickname: response.data.user.nickname,
           phone: response.data.user.phone,
           bio: response.data.user.bio,
-          avatar: response.data.user.avatar || ''
+          avatar: response.data.user.avatar || '',
+          userNumber: response.data.user.userNumber || ''
         }
         
         // 同时更新userInfo
@@ -223,8 +241,8 @@ export const useUserStore = defineStore('user', {
         console.log('用户是管理员，重定向到管理员仪表盘')
         router.push('/admin/dashboard')
       } else if (this.isSupervisor) {
-        console.log('用户是督导员，重定向到督导控制台')
-        router.push('/supervisor/dashboard')
+        console.log('用户是教师，重定向到教师控制台')
+        router.push('/supervisor/students')
       } else {
         console.log('用户是普通用户，重定向到普通仪表盘')
         router.push('/dashboard')
@@ -265,11 +283,39 @@ export const useUserStore = defineStore('user', {
         const timestamp = forceRefresh ? `?_t=${Date.now()}` : ''
         const response = await axios.get(`/api/auth/info${timestamp}`)
         
-        this.user = response.data.user
-        console.log('获取用户信息成功:', this.user.name, '角色:', this.user.roles)
+        if (response.data && response.data.user) {
+          // 确保所有用户数据被正确设置
+          this.user = {
+            ...this.user,
+            id: response.data.user.id || this.user.id,
+            name: response.data.user.realName || response.data.user.username || this.user.name,
+            username: response.data.user.username || this.user.username,
+            realName: response.data.user.realName || this.user.realName,
+            nickname: response.data.user.nickname || this.user.nickname,
+            email: response.data.user.email || this.user.email,
+            phone: response.data.user.phone || this.user.phone,
+            bio: response.data.user.bio || this.user.bio,
+            avatar: response.data.user.avatar || this.user.avatar,
+            userNumber: response.data.user.userNumber || this.user.userNumber,
+            roles: Array.isArray(response.data.user.roles) ? response.data.user.roles : this.user.roles
+          }
+        } else {
+          this.user = response.data.user
+        }
+        
+        console.log('获取用户信息成功:', this.user.name, '角色:', this.user.roles, '用户编号:', this.user.userNumber)
         return true
       } catch (error: any) {
         console.error('获取用户信息失败:', error.message || error)
+        
+        // 判断是否为401错误
+        if (error.response?.status === 401) {
+          // 如果在非登录页面且不是自动初始化，尝试重定向到登录页
+          if (forceRefresh && window.location.pathname !== '/login') {
+            console.warn('用户未登录或登录已过期，正在重定向到登录页...')
+            this.handleAuthError()
+          }
+        }
         
         if (error.response?.status !== 401 || forceRefresh) {
           throw error
@@ -378,7 +424,8 @@ export const useUserStore = defineStore('user', {
         id: null,
         name: '',
         email: '',
-        roles: []
+        roles: [],
+        userNumber: ''
       }
       this.userInfo = null
       localStorage.removeItem('token')

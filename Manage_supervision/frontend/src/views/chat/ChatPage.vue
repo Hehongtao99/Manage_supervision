@@ -70,7 +70,7 @@
       </el-table>
     </el-dialog>
 
-    <!-- 督导员选择对话框 -->
+    <!-- 教师选择对话框 -->
     <el-dialog
       v-model="showSupervisorDialog"
       title="Select Supervisor"
@@ -127,14 +127,14 @@ const students = ref<any[]>([]);
 const filteredStudents = ref<any[]>([]);
 const loadingStudents = ref(false);
 
-// 督导员选择对话框
+// 教师选择对话框
 const showSupervisorDialog = ref(false);
 const supervisorSearchKeyword = ref('');
 const supervisors = ref<any[]>([]);
 const filteredSupervisors = ref<any[]>([]);
 const loadingSupervisors = ref(false);
 
-// 检查当前用户是否是督导员
+// 检查当前用户是否是教师
 const isSupervisor = computed(() => userStore.isSupervisor);
 
 // 下拉菜单命令处理
@@ -177,7 +177,7 @@ const loadStudents = async () => {
   }
 };
 
-// 加载督导员列表
+// 加载教师列表
 const loadSupervisors = async () => {
   loadingSupervisors.value = true;
   
@@ -221,7 +221,7 @@ const handleSearch = () => {
   );
 };
 
-// 搜索督导员
+// 搜索教师
 const handleSupervisorSearch = () => {
   const keyword = supervisorSearchKeyword.value.toLowerCase();
   
@@ -251,7 +251,7 @@ const startChatWithStudent = async (student: any) => {
   }
 };
 
-// 开始与督导员聊天
+// 开始与教师聊天
 const startChatWithSupervisor = async (supervisor: any) => {
   if (!supervisor || !supervisor.id) {
     console.error('Supervisor data incomplete, cannot start chat:', supervisor);

@@ -10,6 +10,7 @@ export interface UserProfile {
   roles: string[];
   createTime: string;
   status: 'active' | 'inactive';
+  userNumber: string;
 }
 
 export interface Role {

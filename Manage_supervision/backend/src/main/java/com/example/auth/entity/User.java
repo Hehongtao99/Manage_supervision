@@ -40,6 +40,9 @@ public class User {
     
     @Column(name = "status")
     private String status;
+    
+    @Column(name = "user_number", unique = true)
+    private String userNumber;
 
     @PrePersist
     protected void onCreate() {
@@ -102,6 +105,10 @@ public class User {
     public String getStatus() {
         return status;
     }
+    
+    public String getUserNumber() {
+        return userNumber;
+    }
 
     // Setters
     public void setId(Long id) {
@@ -150,5 +157,9 @@ public class User {
     
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public void setUserNumber(String userNumber) {
+        this.userNumber = userNumber;
     }
 }

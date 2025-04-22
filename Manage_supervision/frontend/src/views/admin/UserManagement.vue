@@ -63,6 +63,7 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="userNumber" label="用户编号" width="120" />
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="realName" label="真实姓名" width="120" />
         <el-table-column prop="nickname" label="昵称" width="120" />
@@ -76,7 +77,7 @@
               :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
               class="role-tag"
             >
-              {{ role === 'ADMIN' ? '管理员' : role === 'SUPERVISOR' ? '督导员' : role === 'USER' ? '学生' : role }}
+              {{ role === 'ADMIN' ? '管理员' : role === 'SUPERVISOR' ? '教师' : role === 'USER' ? '学生' : role }}
             </el-tag>
           </template>
         </el-table-column>
@@ -163,6 +164,13 @@
             type="password"
             placeholder="请输入密码"
             show-password
+          />
+        </el-form-item>
+        <el-form-item label="用户编号" v-if="dialogType === 'edit'">
+          <el-input
+            v-model="form.userNumber"
+            placeholder="系统自动生成"
+            disabled
           />
         </el-form-item>
         <el-form-item label="真实姓名" prop="realName">

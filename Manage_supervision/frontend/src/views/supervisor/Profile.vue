@@ -2,7 +2,7 @@
   <div class="supervisor-profile">
     <el-card class="profile-card">
       <template #header>
-        <span>督导员个人信息</span>
+        <span>教师个人信息</span>
       </template>
       <el-row :gutter="24">
         <el-col :span="6">
@@ -27,7 +27,7 @@
             </div>
             <div class="user-info">
               <h3>{{ userStore.user.realName || userStore.user.username }}</h3>
-              <el-tag type="success">督导员</el-tag>
+              <el-tag type="success">教师</el-tag>
             </div>
             <el-divider />
           </el-card>
@@ -44,6 +44,9 @@
               >
                 <el-form-item label="用户名" prop="username">
                   <el-input v-model="formModel.username" disabled />
+                </el-form-item>
+                <el-form-item label="教师编号" prop="userNumber">
+                  <el-input v-model="userStore.user.userNumber" disabled />
                 </el-form-item>
                 <el-form-item label="真实姓名" prop="realName">
                   <el-input v-model="formModel.realName" placeholder="请输入真实姓名" />
@@ -120,7 +123,7 @@ import { ElMessage, ElLoading } from 'element-plus';
 import { useUserStore } from '../../stores/user';
 import axios from '../../utils/axios';
 
-// 督导员仪表盘数据接口
+// 教师仪表盘数据接口
 interface SupervisorDashboardDTO {
   studentCount: number;
   activeToday: number;
@@ -143,6 +146,7 @@ const userStats = reactive({
 // 表单数据
 const formModel = ref({
   username: userStore.user.username || '',
+  userNumber: userStore.user.userNumber || '',
   realName: userStore.user.realName || '',
   nickname: userStore.user.nickname || '',
   email: userStore.user.email || '',
@@ -212,12 +216,35 @@ const passwordFormRef = ref(null);
 // 初始化加载用户数据
 onMounted(async () => {
   try {
-    // 获取督导员仪表盘数据，包括真实学生数量
-    await fetchSupervisorStats();
+    // 强制刷新用户信息
+    const success = await userStore.fetchUserInfo(true)
+    
+    if (success) {
+      console.log('用户信息已更新，教师编号:', userStore.user.userNumber)
+      
+      // 更新表单数据
+      formModel.value.username = userStore.user.username || ''
+      formModel.value.userNumber = userStore.user.userNumber || ''
+      formModel.value.realName = userStore.user.realName || ''
+      formModel.value.nickname = userStore.user.nickname || ''
+      formModel.value.email = userStore.user.email || ''
+      formModel.value.phone = userStore.user.phone || ''
+      formModel.value.bio = userStore.user.bio || ''
+      
+      // 获取教师仪表盘数据，包括真实学生数量
+      await fetchSupervisorStats()
+    } else {
+      // 不要显示错误消息，避免多次显示
+      console.warn('获取用户信息未成功，可能需要重新登录')
+    }
   } catch (error) {
-    ElMessage.error('加载设置失败，请稍后重试');
+    console.error('获取用户信息失败:', error)
+    // 只在不是认证错误时显示提示
+    if (!(error as any).response || (error as any).response.status !== 401) {
+      ElMessage.error('加载设置失败，请稍后重试')
+    }
   }
-});
+})
 
 // 处理头像上传
 const handleAvatarUpload = () => {
@@ -322,16 +349,16 @@ const handlePasswordChange = () => {
   });
 };
 
-// 获取督导员仪表盘数据
+// 获取教师仪表盘数据
 const fetchSupervisorStats = async () => {
   statsLoading.value = true;
   try {
     const response = await axios.get<SupervisorDashboardDTO>('/api/dashboard/supervisor/stats');
     // 更新学生数量
     userStats.studentCount = response.data.studentCount;
-    console.log('获取督导员学生数量成功:', response.data.studentCount);
+    console.log('获取教师学生数量成功:', response.data.studentCount);
   } catch (error) {
-    console.error('获取督导员数据失败:', error);
+    console.error('获取教师数据失败:', error);
     ElMessage.error('获取统计数据失败，请稍后重试');
   } finally {
     statsLoading.value = false;

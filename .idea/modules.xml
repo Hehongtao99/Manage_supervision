@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Manage_supervision.iml" filepath="$PROJECT_DIR$/.idea/Manage_supervision.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Manage_supervision/backend/backend.iml" filepath="$PROJECT_DIR$/Manage_supervision/backend/backend.iml" />
       <module fileurl="file://$PROJECT_DIR$/Manage_supervision/uploads/task_submissions/task_submissions.iml" filepath="$PROJECT_DIR$/Manage_supervision/uploads/task_submissions/task_submissions.iml" />
       <module fileurl="file://$PROJECT_DIR$/Manage_supervision/uploads/uploads.iml" filepath="$PROJECT_DIR$/Manage_supervision/uploads/uploads.iml" />
     </modules>

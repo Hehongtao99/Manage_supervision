@@ -19,17 +19,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: BaseLayout,
-    redirect: '/dashboard',
+    redirect: '/chat',
     children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('../views/Home.vue'),
-        meta: { 
-          title: '仪表盘',
-          requiresAuth: true 
-        }
-      },
       {
         path: 'profile',
         name: 'Profile',
@@ -45,33 +36,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/Settings.vue'),
         meta: {
           title: '账号设置',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'task-list',
-        name: 'TaskList',
-        component: () => import('../views/student/TaskList.vue'),
-        meta: {
-          title: '我的任务',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'task-view',
-        name: 'TaskView',
-        component: () => import('../views/student/TaskView.vue'),
-        meta: {
-          title: '我的任务',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'project-view',
-        name: 'ProjectView',
-        component: () => import('../views/student/ProjectView.vue'),
-        meta: {
-          title: '我的课题',
           requiresAuth: true
         }
       },
@@ -140,22 +104,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/supervisor',
     component: BaseLayout,
-    redirect: '/supervisor/dashboard',
+    redirect: '/supervisor/students',
     meta: { 
       requiresAuth: true,
       requiresSupervisor: true
     },
     children: [
-      {
-        path: 'dashboard',
-        name: 'SupervisorDashboard',
-        component: () => import('../views/supervisor/Dashboard.vue'),
-        meta: { 
-          title: '督导控制台',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
       {
         path: 'students',
         name: 'StudentManagement',
@@ -167,31 +121,11 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'tasks',
-        name: 'SupervisorTasks',
-        component: () => import('../views/supervisor/ProjectManagement.vue'),
-        meta: {
-          title: '课题管理',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
-      {
-        path: 'assignments',
-        name: 'SupervisorAssignments',
-        component: () => import('../views/supervisor/TaskManagement.vue'),
-        meta: {
-          title: '任务管理',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
-      {
         path: 'profile',
         name: 'SupervisorProfile',
         component: () => import('../views/supervisor/Profile.vue'),
         meta: { 
-          title: '督导信息',
+          title: '教师信息',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -248,7 +182,7 @@ router.beforeEach(async (to, from, next) => {
           console.log('需要管理员权限但当前不是管理员，尝试强制刷新')
           needsForceRefresh = true
         } else if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-          console.log('需要督导员权限但当前不是督导员，尝试强制刷新')
+          console.log('需要教师权限但当前不是教师，尝试强制刷新')
           needsForceRefresh = true
         }
         
@@ -263,23 +197,16 @@ router.beforeEach(async (to, from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/')
+      next('/chat')
       return
     }
     
-    // 检查督导员权限
+    // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-      console.log('需要督导员权限，但用户不是督导员，重定向到首页')
-      next('/')
+      console.log('需要教师权限，但用户不是教师，重定向到首页')
+      next('/chat')
       return
     }
-  }
-  
-  // 特殊处理：督导员访问/dashboard时重定向到/supervisor/dashboard
-  if (to.path === '/dashboard' && userStore.isSupervisor) {
-    console.log('督导员访问/dashboard，重定向到督导控制台')
-    next('/supervisor/dashboard')
-    return
   }
   
   // 设置页面标题

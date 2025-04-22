@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { useUserStore } from './stores/user';
+import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import { useUserStore } from './stores/user'
 
-const userStore = useUserStore();
+const userStore = useUserStore()
+
+onMounted(async () => {
+  try {
+    // 确保在应用启动时初始化认证
+    const success = await userStore.initializeAuth()
+    if (success) {
+      console.log('认证初始化完成，用户编号:', userStore.user.userNumber)
+    } else {
+      console.log('认证初始化失败或用户未登录')
+    }
+  } catch (error) {
+    console.error('认证初始化过程中发生错误:', error)
+  }
+})
 </script>
 
 <template>
-  <router-view></router-view>
+  <RouterView />
 </template>
 
 <style>

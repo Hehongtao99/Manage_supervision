@@ -53,7 +53,7 @@
                   </div>
                   <div class="info-content">
                     <div class="info-value">{{ studentStats.totalTasks }}</div>
-                    <div class="info-label">项目总数</div>
+                    <div class="info-label">任务总数</div>
                   </div>
                 </div>
               </el-col>
@@ -64,7 +64,7 @@
                   </div>
                   <div class="info-content">
                     <div class="info-value">{{ studentStats.completedTasks }}</div>
-                    <div class="info-label">已完成项目</div>
+                    <div class="info-label">已完成任务</div>
                   </div>
                 </div>
               </el-col>
@@ -94,7 +94,7 @@
                   :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
                   style="margin-right: 5px"
                 >
-                  {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '督导员' }}
+                  {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -110,37 +110,37 @@
         <el-card class="task-card">
           <template #header>
             <div class="card-header">
-              <h3>我的项目</h3>
-              <el-button type="primary" size="small" @click="$router.push('/project-view')">查看所有项目</el-button>
+              <h3>我的任务</h3>
+              <el-button type="primary" size="small" @click="$router.push('/task-list')">查看所有任务</el-button>
             </div>
           </template>
-          <div class="task-list" v-loading="projectsLoading">
-            <div v-if="myProjects.length === 0" class="empty-tasks">
-              <el-empty description="没有分配给您的项目" :image-size="80">
+          <div class="task-list" v-loading="tasksLoading">
+            <div v-if="myTasks.length === 0" class="empty-tasks">
+              <el-empty description="没有分配给您的任务" :image-size="80">
                 <template #description>
-                  <p>暂无分配给您的项目</p>
-                  <p class="sub-text">项目将由督导员分配，请耐心等待</p>
+                  <p>暂无分配给您的任务</p>
+                  <p class="sub-text">任务将由教师分配，请耐心等待</p>
                 </template>
               </el-empty>
             </div>
             <div v-else>
-              <div v-for="(project, index) in myProjects" :key="index" class="task-item">
+              <div v-for="(task, index) in myTasks" :key="index" class="task-item">
                 <div class="task-header">
-                  <h4>{{ project.title }}</h4>
-                  <el-tag :type="getStatusType(project.status)" size="small">{{ getChineseStatus(project.status) }}</el-tag>
+                  <h4>{{ task.title }}</h4>
+                  <el-tag :type="getStatusType(task.status)" size="small">{{ getChineseStatus(task.status) }}</el-tag>
                 </div>
                 <div class="task-info">
-                  <span class="task-supervisor">督导员: {{ project.supervisorName || '未分配' }}</span>
-                  <span class="task-priority" v-if="project.category">
+                  <span class="task-supervisor">教师: {{ task.supervisorName || '未分配' }}</span>
+                  <span class="task-priority" v-if="task.category">
                     类别: 
-                    <el-tag type="info" size="small">{{ project.category }}</el-tag>
+                    <el-tag type="info" size="small">{{ task.category }}</el-tag>
                   </span>
                 </div>
                 <div class="task-time">
-                  <span v-if="project.endTime">截止日期: {{ project.endTime }}</span>
+                  <span v-if="task.endTime">截止日期: {{ task.endTime }}</span>
                 </div>
                 <div class="task-actions">
-                  <el-button type="primary" size="small" @click="$router.push('/project-view')">查看详情</el-button>
+                  <el-button type="primary" size="small" @click="$router.push('/task-list')">查看详情</el-button>
                 </div>
               </div>
             </div>
@@ -185,7 +185,7 @@ import {
   Calendar, 
   Document
 } from '@element-plus/icons-vue'
-import { getStudentProjects } from '../api/project'
+import { getMyTasks } from '../api/task'
 
 // 注册ECharts组件
 use([
@@ -206,9 +206,9 @@ const studentStats = ref({
   completedTasks: 0
 })
 
-// 学生课题数据
-const myProjects = ref([])
-const projectsLoading = ref(false)
+// 学生任务数据
+const myTasks = ref([])
+const tasksLoading = ref(false)
 
 // 根据用户角色获取仪表盘标题
 const getDashboardTitle = computed(() => {
@@ -217,7 +217,7 @@ const getDashboardTitle = computed(() => {
   } else if (userStore.isSupervisor) {
     return '督导工作台'
   } else {
-    return '学习工作台'
+    return '学生首页'
   }
 })
 
@@ -238,29 +238,29 @@ const fetchDashboardData = async () => {
   }
 }
 
-// 获取学生课题数据
-const fetchMyProjects = async () => {
+// 获取学生任务数据
+const fetchMyTasks = async () => {
   if (userStore.isStudent) {
-    projectsLoading.value = true
+    tasksLoading.value = true
     try {
-      const projects = await getStudentProjects()
-      myProjects.value = projects.slice(0, 3) // 只显示前3个课题
-      updateProjectStats(projects) // 更新课题统计数据
+      const tasks = await getMyTasks()
+      myTasks.value = tasks.slice(0, 3) // 只显示前3个任务
+      updateTaskStats(tasks) // 更新任务统计数据
     } catch (error) {
-      console.error('Failed to get project data:', error)
+      console.error('Failed to get task data:', error)
     } finally {
-      projectsLoading.value = false
+      tasksLoading.value = false
     }
   }
 }
 
-// 更新课题统计数据
-const updateProjectStats = (projects: any[]) => {
-  if (projects && projects.length > 0) {
-    studentStats.value.totalTasks = projects.length
-    studentStats.value.completedTasks = projects.filter(project => project.status === '已完成').length
+// 更新任务统计数据
+const updateTaskStats = (tasks: any[]) => {
+  if (tasks && tasks.length > 0) {
+    studentStats.value.totalTasks = tasks.length
+    studentStats.value.completedTasks = tasks.filter(task => task.status === '已完成').length
   } else {
-    // 如果没有课题数据，设置为0
+    // 如果没有任务数据，设置为0
     studentStats.value.totalTasks = 0
     studentStats.value.completedTasks = 0
   }
@@ -348,7 +348,7 @@ const getChineseStatus = (status: string) => {
 
 onMounted(() => {
   fetchDashboardData()
-  fetchMyProjects()
+  fetchMyTasks()
 })
 
 const handleLogout = () => {

@@ -10,6 +10,7 @@ import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.service.UserService;
 import com.example.auth.util.PasswordUtils;
+import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -35,6 +36,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private UserNumberGenerator userNumberGenerator;
 
     @Override
     public User register(String username, String password) {
@@ -88,9 +92,13 @@ public class UserServiceImpl implements UserService {
                 roleRepository.save(userRole);
             }
             user.setRoles(Collections.singleton(userRole));
+            
+            // 生成学生编号(默认注册用户为学生)
+            String userNumber = userNumberGenerator.generateStudentNumber();
+            user.setUserNumber(userNumber);
 
             User savedUser = userRepository.save(user);
-            logger.info("用户 {} 注册成功", username);
+            logger.info("用户 {} 注册成功，学号: {}", username, userNumber);
             return savedUser;
         } catch (Exception e) {
             logger.error("用户注册过程中发生异常", e);

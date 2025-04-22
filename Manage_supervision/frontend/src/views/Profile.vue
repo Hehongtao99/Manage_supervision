@@ -44,6 +44,10 @@
             <el-input v-model="userStore.user.username" disabled />
           </el-form-item>
 
+          <el-form-item label="用户编号">
+            <el-input v-model="userStore.user.userNumber" disabled />
+          </el-form-item>
+
           <el-form-item label="真实姓名" prop="realName">
             <el-input v-model="form.realName" placeholder="请输入真实姓名" />
           </el-form-item>
@@ -141,7 +145,7 @@
           :type="role === 'ADMIN' ? 'danger' : 'success'"
           class="role-tag"
         >
-          {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '督导员' }}
+          {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
         </el-tag>
       </div>
     </el-card>
@@ -149,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, UploadProps } from 'element-plus'
@@ -169,6 +173,35 @@ const form = reactive<UpdateProfileRequest & { avatar?: string }>({
   phone: userStore.user.phone || '',
   bio: userStore.user.bio || '',
   avatar: userStore.user.avatar || ''
+})
+
+// 页面加载时确保用户信息已更新
+onMounted(async () => {
+  try {
+    // 强制刷新用户信息
+    const success = await userStore.fetchUserInfo(true)
+    
+    if (success) {
+      console.log('用户信息已更新，学号:', userStore.user.userNumber)
+      
+      // 更新表单数据
+      form.realName = userStore.user.realName || ''
+      form.nickname = userStore.user.nickname || ''
+      form.email = userStore.user.email || ''
+      form.phone = userStore.user.phone || ''
+      form.bio = userStore.user.bio || ''
+      form.avatar = userStore.user.avatar || ''
+    } else {
+      // 不要显示错误消息，避免多次显示
+      console.warn('获取用户信息未成功，可能需要重新登录')
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+    // 只在不是认证错误时显示提示
+    if (!(error as any).response || (error as any).response.status !== 401) {
+      ElMessage.error('获取用户信息失败，请刷新页面重试')
+    }
+  }
 })
 
 // 修改密码表单

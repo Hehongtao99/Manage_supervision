@@ -37,7 +37,7 @@
         v-loading="loading"
       >
         <el-table-column prop="title" label="任务标题" min-width="200" />
-        <el-table-column prop="supervisorName" label="督导" width="120" />
+        <el-table-column prop="supervisorName" label="教师" width="120" />
         <el-table-column prop="status" label="状态" width="120">
           <template #default="scope">
             <el-tag :type="getTaskStatusType(scope.row.status)">
@@ -69,7 +69,7 @@
             <el-empty description="暂无任务分配给您" :image-size="120">
               <template #description>
                 <p>暂时没有任务分配给您</p>
-                <p class="sub-text">任务将由督导员分配，请耐心等待</p>
+                <p class="sub-text">任务将由教师分配，请耐心等待</p>
               </template>
             </el-empty>
           </div>
@@ -107,7 +107,7 @@
             {{ currentTask.status }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="督导">{{ currentTask.supervisorName }}</el-descriptions-item>
+        <el-descriptions-item label="教师">{{ currentTask.supervisorName }}</el-descriptions-item>
         <el-descriptions-item label="优先级">
           <el-tag :type="getPriorityType(currentTask.priority)">
             {{ currentTask.priority || '中' }}
@@ -123,12 +123,12 @@
       <!-- 任务评价部分 -->
       <div v-if="currentTask && currentTask.completed" class="task-evaluation-section">
         <div class="section-header">
-          <h3>督导评价</h3>
+          <h3>教师评价</h3>
         </div>
         <div v-loading="evaluationLoading">
           <el-empty v-if="!currentEvaluation" description="暂无评价" :image-size="80">
             <template #description>
-              <p>督导尚未对此任务进行评价</p>
+              <p>教师尚未对此任务进行评价</p>
             </template>
           </el-empty>
           
@@ -158,7 +158,7 @@
                     </div>
                   </template>
                   <div class="comment-content">
-                    {{ currentEvaluation.comment || '督导未留下评语' }}
+                    {{ currentEvaluation.comment || '教师未留下评语' }}
                   </div>
                   <div class="evaluator-info">
                     <el-tag size="small" type="success">评价人: {{ currentEvaluation.evaluatorName }}</el-tag>
@@ -460,7 +460,7 @@ const uploadTaskFile = async (task: Task) => {
     
     // 检查任务是否分配给当前用户
     if (taskDetail.assigneeId !== currentUserId) {
-      uploadError.value = '此任务可能不是分配给您的，或者任务分配状态已变更。请联系督导员确认。';
+      uploadError.value = '此任务可能不是分配给您的，或者任务分配状态已变更。请联系教师确认。';
       ElMessage.warning(uploadError.value);
       return;
     }
@@ -538,16 +538,16 @@ const handleUploadError = (error: any) => {
       
       // 针对常见错误提供更友好的提示
       if (errorMessage.includes('无权提交该任务')) {
-        errorMessage = '您没有权限提交此任务。可能是因为该任务不是分配给您的，或者督导对任务进行了修改。请联系您的督导员确认任务分配状态。';
+        errorMessage = '您没有权限提交此任务。可能是因为该任务不是分配给您的，或者教师对任务进行了修改。请联系您的教师确认任务分配状态。';
       } else if (errorMessage.includes('任务不存在')) {
-        errorMessage = '任务不存在或已被删除。请刷新页面或联系督导员确认任务状态。';
+        errorMessage = '任务不存在或已被删除。请刷新页面或联系教师确认任务状态。';
       }
     } else if (error.response.status === 400) {
       errorMessage = '请求错误 (400): 您可能没有权限上传文件、任务ID无效或任务状态已变更';
     } else if (error.response.status === 401) {
       errorMessage = '未授权 (401): 您的登录已过期，请重新登录后再试';
     } else if (error.response.status === 403) {
-      errorMessage = '禁止访问 (403): 您没有权限执行此操作，请联系您的督导员';
+      errorMessage = '禁止访问 (403): 您没有权限执行此操作，请联系您的教师';
     } else if (error.response.status === 500) {
       errorMessage = '服务器错误 (500): 服务器处理请求时出错，请稍后再试或联系管理员';
     }
@@ -661,7 +661,7 @@ const beforeUpload = (file: File) => {
   
   // 额外确认任务分配状态
   if (currentTask.value.assigneeId !== currentUserId) {
-    uploadError.value = '此任务可能不是分配给您的，请刷新页面或联系督导员确认';
+    uploadError.value = '此任务可能不是分配给您的，请刷新页面或联系教师确认';
     ElMessage.error(uploadError.value);
     return false;
   }

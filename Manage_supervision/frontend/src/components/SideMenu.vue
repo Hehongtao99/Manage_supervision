@@ -10,7 +10,7 @@
   >
     <!-- 管理员菜单 -->
     <template v-if="userStore.isAdmin">
-      <el-menu-item index="/dashboard" @click="handleRoute('/dashboard')">
+      <el-menu-item index="/admin/dashboard" @click="handleRoute('/admin/dashboard')">
         <el-icon><Monitor /></el-icon>
         <template #title>
           <span>管理控制台</span>
@@ -31,24 +31,10 @@
 
     <!-- 督导员菜单 -->
     <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/dashboard" @click="handleRoute('/supervisor/dashboard')">
-        <el-icon><Monitor /></el-icon>
-        <template #title>
-          <span>督导控制台</span>
-        </template>
-      </el-menu-item>
-
       <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
         <el-icon><User /></el-icon>
         <template #title>
           <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/tasks" @click="handleRoute('/supervisor/tasks')">
-        <el-icon><Document /></el-icon>
-        <template #title>
-          <span>项目管理</span>
         </template>
       </el-menu-item>
 
@@ -62,27 +48,13 @@
       <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
-          <span>督导信息</span>
+          <span>教师信息</span>
         </template>
       </el-menu-item>
     </template>
 
     <!-- 学生菜单 -->
     <template v-else>
-      <el-menu-item index="/" @click="handleRoute('/')">
-        <el-icon><Monitor /></el-icon>
-        <template #title>
-          <span>学生控制台</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/project-view" @click="handleRoute('/project-view')">
-        <el-icon><Folder /></el-icon>
-        <template #title>
-          <span>我的项目</span>
-        </template>
-      </el-menu-item>
-
       <el-menu-item index="/chat" @click="handleRoute('/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>

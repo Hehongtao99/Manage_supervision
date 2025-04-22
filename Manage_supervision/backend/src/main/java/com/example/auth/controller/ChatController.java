@@ -38,6 +38,10 @@ public class ChatController {
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationDTO>> getConversations() {
         User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.ok(List.of());
+        }
         List<ConversationDTO> conversations = chatService.getConversationsForUser(currentUser);
         return ResponseEntity.ok(conversations);
     }
@@ -48,7 +52,16 @@ public class ChatController {
     @GetMapping("/conversations/{userId}")
     public ResponseEntity<ConversationDTO> getConversationWithUser(@PathVariable Long userId) {
         User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.status(401).body(null);
+        }
+        
         User otherUser = userService.findById(userId);
+        if (otherUser == null) {
+            // 目标用户不存在
+            return ResponseEntity.notFound().build();
+        }
         
         ConversationDTO conversation = chatService.getOrCreateConversation(currentUser, otherUser);
         return ResponseEntity.ok(conversation);
@@ -63,6 +76,13 @@ public class ChatController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
+        // 检查用户认证
+        User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.status(401).body(List.of());
+        }
+        
         List<ChatMessageDTO> messages = chatService.getMessagesForConversation(conversationId, page, size);
         return ResponseEntity.ok(messages);
     }
@@ -76,6 +96,13 @@ public class ChatController {
             @PathVariable Long messageId,
             @RequestParam(defaultValue = "20") int size
     ) {
+        // 检查用户认证
+        User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.status(401).body(List.of());
+        }
+        
         List<ChatMessageDTO> messages = chatService.getMessagesBeforeId(conversationId, messageId, size);
         return ResponseEntity.ok(messages);
     }
@@ -86,6 +113,10 @@ public class ChatController {
     @PostMapping("/conversations/{conversationId}/read")
     public ResponseEntity<Map<String, Integer>> markConversationAsRead(@PathVariable Long conversationId) {
         User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.status(401).body(Map.of("updatedCount", 0));
+        }
         int updatedCount = chatService.markConversationAsRead(conversationId, currentUser.getId());
         return ResponseEntity.ok(Map.of("updatedCount", updatedCount));
     }
@@ -96,6 +127,10 @@ public class ChatController {
     @GetMapping("/unread/count")
     public ResponseEntity<Map<String, Integer>> getUnreadMessageCount() {
         User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.ok(Map.of("count", 0));
+        }
         int count = chatService.getUnreadMessageCount(currentUser.getId());
         return ResponseEntity.ok(Map.of("count", count));
     }
@@ -106,6 +141,10 @@ public class ChatController {
     @GetMapping("/unread/conversations/count")
     public ResponseEntity<Map<String, Integer>> getUnreadConversationCount() {
         User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.ok(Map.of("count", 0));
+        }
         int count = chatService.getUnreadConversationCount(currentUser.getId());
         return ResponseEntity.ok(Map.of("count", count));
     }
@@ -221,6 +260,11 @@ public class ChatController {
             @RequestBody Map<String, Object> payload
     ) {
         User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.status(401).build();
+        }
+        
         Long recipientId = Long.valueOf(payload.get("recipientId").toString());
         String content = payload.get("content") != null ? payload.get("content").toString() : "";
         

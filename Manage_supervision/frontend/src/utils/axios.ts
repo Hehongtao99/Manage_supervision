@@ -64,11 +64,18 @@ instance.interceptors.response.use(
         console.log(`授权失败 (${requestUrl}):`, errorMessage)
         console.log('当前token:', localStorage.getItem('token'))
         
-        if (!requestUrl.includes('/api/auth/info')) {
+        // 忽略用户信息API和登录API的401错误，防止循环重定向
+        if (!requestUrl.includes('/api/auth/info') && !requestUrl.includes('/api/auth/login')) {
+          // 如果不是刷新或获取用户信息，重置登录状态
           const userStore = useUserStore()
-          userStore.handleAuthError()
+          
+          // 判断是否需要重定向到登录页
+          if (!window.location.pathname.includes('/login')) {
+            ElMessage.error('登录已过期，请重新登录')
+            userStore.handleAuthError()
+          }
         } else {
-          console.log('忽略用户信息API的401错误，防止循环重定向')
+          console.log('忽略认证相关API的401错误，防止循环重定向')
         }
         break
       case 403:

@@ -25,18 +25,19 @@ CREATE TABLE roles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 创建用户表
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     avatar VARCHAR(255),
-    real_name VARCHAR(255),
-    nickname VARCHAR(255),
-    email VARCHAR(255),
-    phone VARCHAR(255),
-    bio VARCHAR(500),
-    status VARCHAR(255) DEFAULT 'active'
+    real_name VARCHAR(50),
+    nickname VARCHAR(50),
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    bio TEXT,
+    status VARCHAR(20) DEFAULT 'active',
+    user_number VARCHAR(20) UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 创建用户-角色关联表
