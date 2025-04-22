@@ -2,6 +2,7 @@ package com.example.auth.service;
 
 import com.example.auth.dto.StudentDTO;
 import com.example.auth.dto.StudentDetailDTO;
+import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.User;
 import java.util.List;
 import java.util.Map;
@@ -23,4 +24,7 @@ public interface UserService {
     
     // 督导员管理相关方法
     List<User> getAllSupervisors();
+
+    // 添加获取教师学生的方法
+    List<UserDTO> getStudentsByTeacher(Long teacherId);
 } 

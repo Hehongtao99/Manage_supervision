@@ -4,11 +4,13 @@ import com.example.auth.dto.ActivityDTO;
 import com.example.auth.dto.CourseDTO;
 import com.example.auth.dto.StudentDTO;
 import com.example.auth.dto.StudentDetailDTO;
+import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.User;
 import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.service.UserService;
+import com.example.auth.service.TeacherStudentService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserNumberGenerator userNumberGenerator;
+    
+    @Autowired
+    private TeacherStudentService teacherStudentService;
 
     @Override
     public User register(String username, String password) {
@@ -390,18 +395,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllSupervisors() {
-        // 获取SUPERVISOR角色
         Role supervisorRole = roleRepository.findByName("SUPERVISOR");
         if (supervisorRole == null) {
             logger.warn("未找到SUPERVISOR角色");
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         
-        // 查找所有拥有SUPERVISOR角色的用户
-        List<User> allUsers = userRepository.findAll();
-        return allUsers.stream()
-                .filter(user -> user.getRoles().contains(supervisorRole))
-                .collect(Collectors.toList());
+        return userRepository.findByRolesContaining(supervisorRole);
+    }
+
+    @Override
+    public List<UserDTO> getStudentsByTeacher(Long teacherId) {
+        logger.info("获取教师ID为{}的学生列表", teacherId);
+        try {
+            return teacherStudentService.getStudentsByTeacher(teacherId);
+        } catch (Exception e) {
+            logger.error("获取教师学生列表失败", e);
+            return new ArrayList<>();
+        }
     }
 
     // ==================== 辅助方法 ====================

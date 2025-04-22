@@ -64,6 +64,33 @@ public class SupervisorController {
     }
 
     /**
+     * Get students assigned to supervisor
+     */
+    @GetMapping("/students/assigned")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getAssignedStudents(@RequestHeader("Authorization") String auth) {
+        try {
+            String token = auth.replace("Bearer ", "");
+            Long supervisorId = jwtUtil.getUserIdFromToken(token);
+            logger.info("Supervisor requested their assigned students list, ID: {}", supervisorId);
+            
+            List<UserDTO> students = userService.getStudentsByTeacher(supervisorId);
+            if (!students.isEmpty()) {
+                logger.info("学生数据示例: id={}, name={}, userNumber={}", 
+                            students.get(0).getId(), 
+                            students.get(0).getRealName(), 
+                            students.get(0).getUserNumber());
+            } else {
+                logger.info("未找到分配给督导员ID: {}的学生", supervisorId);
+            }
+            return ResponseEntity.ok(students);
+        } catch (Exception e) {
+            logger.error("Failed to get assigned students list", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get assigned students list: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Get student details
      */
     @GetMapping("/students/{id}")

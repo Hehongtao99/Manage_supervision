@@ -145,6 +145,7 @@ export const useUserStore = defineStore('user', {
         userNumber: ''
       }
       localStorage.removeItem('token')
+      localStorage.removeItem('userRoles')
       this.setAxiosAuthHeader()
       
       if (router.currentRoute.value.meta.requiresAuth) {
@@ -207,6 +208,8 @@ export const useUserStore = defineStore('user', {
         }
         
         localStorage.setItem('token', response.data.token)
+        // 保存用户角色到localStorage
+        localStorage.setItem('userRoles', JSON.stringify(this.user.roles))
         this.setAxiosAuthHeader()
         
         console.log('登录成功，用户角色:', this.user.roles)
@@ -419,6 +422,7 @@ export const useUserStore = defineStore('user', {
     },
 
     logout() {
+      console.log('执行登出操作，清除认证状态')
       this.token = null
       this.user = {
         id: null,
@@ -429,11 +433,10 @@ export const useUserStore = defineStore('user', {
       }
       this.userInfo = null
       localStorage.removeItem('token')
+      localStorage.removeItem('userRoles')
       this.setAxiosAuthHeader()
       
-      // 导入webSocket服务中的方法会造成循环依赖
-      // 直接让App.vue中的watch监听器处理断开连接
-      
+      // 跳转到登录页
       router.push('/login')
     },
 

@@ -9,11 +9,16 @@ export const getAllStudents = _getStudents;
 export interface Student {
   id: number;
   name: string;
-  studentId: string;
-  class: string; // 注意：这里用class而不是className，与StudentManagement.vue中使用一致
+  studentId?: string;
+  userNumber: string; // 添加userNumber字段作为学号
+  class?: string; // 注意：这里用class而不是className，与StudentManagement.vue中使用一致
   email: string;
   phone: string;
   status: string;
   lastLogin?: string;
   progress?: number;
+  username?: string;
+  realName?: string;
+  roles?: string[];
+  createTime?: string;
 } 
