@@ -40,6 +40,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 获取token
         String token = request.getHeader("Authorization");
+        System.out.println("请求头 Authorization: " + token);
+        
         if (token == null || !token.startsWith("Bearer ")) {
             System.out.println("认证失败: Token为空或格式错误");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

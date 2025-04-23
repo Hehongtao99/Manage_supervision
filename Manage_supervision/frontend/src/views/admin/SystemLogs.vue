@@ -1,35 +1,73 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive, watch } from 'vue'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 interface LogEntry {
   id: number
   timestamp: string
-  level: 'info' | 'warning' | 'error'
+  level: string
   message: string
   source: string
+  threadName?: string
+  logger?: string
 }
 
 const logs = ref<LogEntry[]>([])
 const loading = ref(false)
 
-onMounted(async () => {
+// 日志过滤参数
+const filters = reactive({
+  level: 'all',
+  timeRange: '24h'
+})
+
+// 监听过滤条件变化重新加载日志
+watch(filters, () => {
+  fetchLogs()
+})
+
+// 从后端获取日志数据
+const fetchLogs = async () => {
   loading.value = true
   try {
-    // TODO: 从后端获取实际日志数据
-    logs.value = [
-      {
-        id: 1,
-        timestamp: new Date().toISOString(),
-        level: 'info',
-        message: '系统启动成功',
-        source: 'System'
+    const token = localStorage.getItem('token')
+    if (!token) {
+      ElMessage.error('您需要登录才能查看系统日志')
+      return
+    }
+
+    const response = await axios.get('/api/logs/system', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        level: filters.level,
+        timeRange: filters.timeRange
       }
-    ]
-  } catch (error) {
+    })
+
+    // 转换日志格式
+    logs.value = response.data.map((log: any) => ({
+      id: log.id,
+      timestamp: log.timestamp,
+      level: log.level.toLowerCase(),
+      message: log.message,
+      source: log.source,
+      threadName: log.threadName,
+      logger: log.logger
+    }))
+  } catch (error: any) {
     console.error('获取日志失败:', error)
+    ElMessage.error(error.response?.data?.message || '获取日志失败')
+    logs.value = []
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  fetchLogs()
 })
 </script>
 
@@ -40,7 +78,7 @@ onMounted(async () => {
     <div class="filters">
       <div class="filter-group">
         <label>日志级别：</label>
-        <select>
+        <select v-model="filters.level">
           <option value="all">全部</option>
           <option value="info">信息</option>
           <option value="warning">警告</option>
@@ -50,7 +88,7 @@ onMounted(async () => {
       
       <div class="filter-group">
         <label>时间范围：</label>
-        <select>
+        <select v-model="filters.timeRange">
           <option value="1h">最近1小时</option>
           <option value="24h">最近24小时</option>
           <option value="7d">最近7天</option>
@@ -146,7 +184,7 @@ onMounted(async () => {
   border-left: 4px solid #4caf50;
 }
 
-.log-entry.warning {
+.log-entry.warning, .log-entry.warn {
   border-left: 4px solid #ff9800;
 }
 

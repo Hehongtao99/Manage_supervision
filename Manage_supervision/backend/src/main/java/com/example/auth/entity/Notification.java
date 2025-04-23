@@ -32,12 +32,18 @@ public class Notification {
 
     @Column(name = "status", nullable = false)
     private String status; // "active" or "inactive"
+    
+    @Column(name = "is_global", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean isGlobal = false;
 
     @PrePersist
     protected void onCreate() {
         createTime = LocalDateTime.now();
         if (status == null) {
             status = "active";
+        }
+        if (isGlobal == null) {
+            isGlobal = false;
         }
     }
 
@@ -73,6 +79,10 @@ public class Notification {
     public String getStatus() {
         return status;
     }
+    
+    public Boolean getIsGlobal() {
+        return isGlobal;
+    }
 
     // Setters
     public void setId(Long id) {
@@ -105,5 +115,9 @@ public class Notification {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public void setIsGlobal(Boolean isGlobal) {
+        this.isGlobal = isGlobal;
     }
 } 

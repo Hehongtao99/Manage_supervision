@@ -19,6 +19,11 @@ public interface ClassStudentRepository extends JpaRepository<ClassStudentRelati
     
     List<ClassStudentRelation> findByStudentAndStatus(User student, String status);
     
+    /**
+     * 查找指定学生的所有班级关系(无论状态)
+     */
+    List<ClassStudentRelation> findByStudent(User student);
+    
     Optional<ClassStudentRelation> findByClassEntityAndStudent(Class classEntity, User student);
     
     boolean existsByClassEntityAndStudent(Class classEntity, User student);

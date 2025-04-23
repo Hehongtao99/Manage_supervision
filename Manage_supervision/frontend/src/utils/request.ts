@@ -16,7 +16,11 @@ service.interceptors.request.use(
     const token = localStorage.getItem('token');
     // 如果token存在，添加到请求头
     if (token) {
+      // 使用方括号形式设置请求头，确保兼容性
       config.headers['Authorization'] = `Bearer ${token}`;
+      console.log('request.ts: 设置Authorization头:', token.substring(0, 10) + '...');
+    } else {
+      console.log('request.ts: 未找到token，不设置Authorization头');
     }
     
     // 获取用户ID

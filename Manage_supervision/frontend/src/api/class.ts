@@ -152,9 +152,27 @@ export const getClassesByTeacher = async () => {
         'userId': userId
       }
     });
+    
+    // 检查返回数据格式，确保返回合适的格式给调用者
+    if (!response.data.hasOwnProperty('success')) {
+      // 如果后端返回的是数组或其他格式，封装成标准格式
+      return {
+        data: {
+          success: true,
+          data: response.data
+        }
+      };
+    }
+    
     return response;
   } catch (error) {
     console.error('获取教师班级列表失败:', error);
-    throw error;
+    return {
+      data: {
+        success: false,
+        message: '获取班级列表失败',
+        data: []
+      }
+    };
   }
 }; 

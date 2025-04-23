@@ -1,23 +1,34 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { onMounted } from 'vue'
+import { onMounted, provide } from 'vue'
 import { useUserStore } from './stores/user'
+import axios from 'axios'
 
-const userStore = useUserStore()
-
+// Token 刷新初始化
 onMounted(async () => {
+  // 设置全局axios默认值
+  setupAxiosDefaults()
+  
+  // 初始化用户认证状态
+  const userStore = useUserStore()
   try {
-    // 确保在应用启动时初始化认证
-    const success = await userStore.initializeAuth()
-    if (success) {
-      console.log('认证初始化完成，用户编号:', userStore.user.userNumber)
-    } else {
-      console.log('认证初始化失败或用户未登录')
-    }
+    await userStore.initializeAuth()
   } catch (error) {
-    console.error('认证初始化过程中发生错误:', error)
+    console.error('初始化认证状态失败:', error)
   }
 })
+
+// 设置axios全局默认值
+const setupAxiosDefaults = () => {
+  // 从localStorage获取token
+  const token = localStorage.getItem('token')
+  if (token) {
+    console.log('App.vue: 初始化设置全局Authorization头')
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  } else {
+    console.log('App.vue: 初始化时未找到token')
+  }
+}
 </script>
 
 <template>

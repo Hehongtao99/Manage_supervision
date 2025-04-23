@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -88,45 +87,6 @@ public class NotificationController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                 .body(new ApiResponse<>(false, "获取所有通知失败: " + e.getMessage(), null));
-        }
-    }
-
-    /**
-     * 标记通知为已读
-     */
-    @PutMapping("/{notificationId}/read")
-    public ResponseEntity<ApiResponse<NotificationResponse>> markNotificationAsRead(
-            @RequestHeader(value = "userId", required = false) Long userId,
-            @PathVariable Long notificationId) {
-        try {
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(false, "用户未认证", null));
-            }
-            NotificationResponse notification = notificationService.markNotificationAsRead(userId, notificationId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "标记通知为已读成功", notification));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(new ApiResponse<>(false, "标记通知为已读失败: " + e.getMessage(), null));
-        }
-    }
-
-    /**
-     * 获取未读通知数量
-     */
-    @GetMapping("/unread/count")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> getUnreadNotificationCount(
-            @RequestHeader(value = "userId", required = false) Long userId) {
-        try {
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse<>(false, "用户未认证", null));
-            }
-            Long count = notificationService.getUnreadNotificationCount(userId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "获取未读通知数量成功", Map.of("count", count)));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(new ApiResponse<>(false, "获取未读通知数量失败: " + e.getMessage(), null));
         }
     }
 } 

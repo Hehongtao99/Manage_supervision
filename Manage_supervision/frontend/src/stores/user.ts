@@ -439,12 +439,27 @@ export const useUserStore = defineStore('user', {
     },
 
     logout() {
-      this.clearUserInfo()
-      try {
-        router.push('/login')
-      } catch (error) {
-        window.location.href = '/login'
+      // 移除token和用户信息
+      this.token = null
+      this.user = {
+        id: null,
+        name: '',
+        email: '',
+        roles: [],
+        userNumber: ''
       }
+      localStorage.removeItem('token')
+      localStorage.removeItem('userRoles')
+      localStorage.removeItem('userId')
+      localStorage.removeItem('userStore')
+      
+      // 清除全局axios头
+      this.setAxiosAuthHeader()
+      // 同时清除全局axios实例的Authorization头
+      axios.defaults.headers.common['Authorization'] = null
+      delete axios.defaults.headers.common['Authorization']
+      
+      router.push('/login')
     },
 
     setToken(token: string) {

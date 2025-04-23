@@ -45,6 +45,13 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setSender(sender);
         notification.setRecipientType(request.getRecipientType());
         notification.setStatus("active");
+        
+        // 设置是否为全局通知
+        if ("ALL".equals(request.getRecipientType())) {
+            notification.setIsGlobal(true);
+        } else {
+            notification.setIsGlobal(false);
+        }
 
         // 如果是班级通知，设置班级
         if ("CLASS".equals(request.getRecipientType())) {
@@ -66,7 +73,15 @@ public class NotificationServiceImpl implements NotificationService {
             recipients = userRepository.findAll();
         } else if ("CLASS".equals(request.getRecipientType())) {
             // 只有班级内的学生收到通知
-            List<ClassStudentRelation> relations = classStudentRelationRepository.findByClassEntityId(request.getClassId());
+            List<ClassStudentRelation> relations = classStudentRelationRepository.findByClassEntityAndStatus(
+                    notification.getClassEntity(), "active");
+            
+            if (relations.isEmpty()) {
+                System.out.println("警告: 班级 " + request.getClassId() + " 没有活跃学生");
+            } else {
+                System.out.println("为班级 " + request.getClassId() + " 的 " + relations.size() + " 名学生创建通知关系");
+            }
+            
             recipients = relations.stream()
                     .map(ClassStudentRelation::getStudent)
                     .collect(Collectors.toList());
@@ -77,7 +92,6 @@ public class NotificationServiceImpl implements NotificationService {
             UserNotification userNotification = new UserNotification();
             userNotification.setUser(recipient);
             userNotification.setNotification(notification);
-            userNotification.setIsRead(false);
             userNotificationRepository.save(userNotification);
         }
 
@@ -86,31 +100,39 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationResponse> getNotificationsForUser(Long userId) {
-        List<UserNotification> userNotifications = userNotificationRepository.findByUserId(userId);
-        return userNotifications.stream()
-                .map(un -> convertToDto(un.getNotification(), un))
+        // 获取用户对象
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在: " + userId));
+        
+        // 获取用户当前所在的班级(只获取active状态的班级)
+        List<ClassStudentRelation> activeClassRelations = classStudentRelationRepository.findByStudentAndStatus(user, "active");
+        List<Long> activeClassIds = activeClassRelations.stream()
+                .map(relation -> relation.getClassEntity().getId())
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Long getUnreadNotificationCount(Long userId) {
-        return userNotificationRepository.countUnreadNotificationsByUserId(userId);
-    }
-
-    @Override
-    @Transactional
-    public NotificationResponse markNotificationAsRead(Long userId, Long notificationId) {
-        UserNotification userNotification = userNotificationRepository.findByUserIdAndNotificationId(userId, notificationId)
-                .orElseThrow(() -> new RuntimeException("通知不存在或不属于当前用户"));
-
-        if (!userNotification.getIsRead()) {
-            userNotification.setIsRead(true);
-            userNotification.setReadTime(LocalDateTime.now());
-            userNotification = userNotificationRepository.save(userNotification);
+        
+        List<UserNotification> userNotifications = userNotificationRepository.findByUserId(userId);
+        List<NotificationResponse> result = new ArrayList<>();
+        
+        for (UserNotification un : userNotifications) {
+            Notification notification = un.getNotification();
+            
+            // 过滤通知：
+            // 1. 如果是全局通知(ALL)，则显示
+            // 2. 如果是班级通知(CLASS)且用户当前在该班级，则显示
+            // 3. 其他情况不显示
+            boolean shouldShow = "ALL".equals(notification.getRecipientType()) || 
+                    ("CLASS".equals(notification.getRecipientType()) && 
+                     notification.getClassEntity() != null && 
+                     activeClassIds.contains(notification.getClassEntity().getId()));
+            
+            if (shouldShow) {
+                result.add(convertToDto(notification, un));
+            }
         }
-
-        return convertToDto(userNotification.getNotification(), userNotification);
+        
+        return result;
     }
+    
 
     @Override
     public List<NotificationResponse> getSentNotifications(Long teacherId) {
@@ -142,19 +164,12 @@ public class NotificationServiceImpl implements NotificationService {
         
         response.setRecipientType(notification.getRecipientType());
         response.setCreateTime(notification.getCreateTime());
+        response.setIsGlobal(notification.getIsGlobal());
         
         // 如果是班级通知，设置班级信息
         if ("CLASS".equals(notification.getRecipientType()) && notification.getClassEntity() != null) {
             response.setClassId(notification.getClassEntity().getId());
             response.setClassName(notification.getClassEntity().getClassName());
-        }
-        
-        // 如果有用户通知关系信息，设置已读状态和已读时间
-        if (userNotification != null) {
-            response.setIsRead(userNotification.getIsRead());
-            response.setReadTime(userNotification.getReadTime());
-        } else {
-            response.setIsRead(false);
         }
         
         return response;

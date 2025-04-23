@@ -19,7 +19,7 @@ instance.interceptors.request.use(
     if (token) {
       // 添加调试日志
       console.log('发送请求携带token:', token.substring(0, 10) + '...')
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers['Authorization'] = `Bearer ${token}`
     } else {
       console.log('请求未携带token，用户可能未登录')
     }

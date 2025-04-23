@@ -1,6 +1,6 @@
 <template>
   <div class="notification-icon" @click="showNotificationDrawer">
-    <el-badge :value="unreadCount > 0 ? unreadCount : ''" :max="99" class="notification-badge">
+    <el-badge class="notification-badge">
       <el-icon :size="22"><Bell /></el-icon>
     </el-badge>
   </div>
@@ -13,10 +13,7 @@
   >
     <div class="notification-container">
       <div class="notification-header">
-        <span>共 {{ notifications.length }} 条通知，{{ unreadCount }} 条未读</span>
-        <el-button v-if="notifications.length > 0" type="primary" link @click="readAllNotifications">
-          全部标记为已读
-        </el-button>
+        <span>共 {{ notifications.length }} 条通知</span>
       </div>
       
       <el-empty v-if="notifications.length === 0" description="暂无通知"></el-empty>
@@ -26,8 +23,6 @@
           v-for="item in notifications"
           :key="item.id"
           class="notification-item"
-          :class="{ 'is-read': item.isRead }"
-          @click="readNotification(item)"
         >
           <div class="notification-avatar">
             <el-avatar :size="40" :src="item.senderAvatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
@@ -35,7 +30,6 @@
           <div class="notification-content">
             <div class="notification-title">
               <span>{{ item.title }}</span>
-              <div v-if="!item.isRead" class="unread-dot"></div>
             </div>
             <div class="notification-message">{{ item.content }}</div>
             <div class="notification-footer">
@@ -52,12 +46,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Bell } from '@element-plus/icons-vue';
-import { getReceivedNotifications, markNotificationAsRead, getUnreadNotificationCount } from '@/api/notification';
+import { getReceivedNotifications } from '@/api/notification';
 import { ElMessage } from 'element-plus';
 import type { NotificationResponse } from '@/api/notification';
 
 const notifications = ref<NotificationResponse[]>([]);
-const unreadCount = ref(0);
 const drawerVisible = ref(false);
 let pollingTimer: any = null;
 
@@ -67,74 +60,16 @@ const loadNotifications = async () => {
     const res = await getReceivedNotifications();
     if (res.data.success) {
       notifications.value = res.data.data;
-      countUnread();
     }
   } catch (error) {
     console.error('加载通知失败', error);
   }
 };
 
-// 加载未读通知数量
-const loadUnreadCount = async () => {
-  try {
-    const res = await getUnreadNotificationCount();
-    if (res.data.success) {
-      unreadCount.value = res.data.data.count;
-    }
-  } catch (error) {
-    console.error('获取未读通知数量失败', error);
-  }
-};
-
-// 统计未读通知数量
-const countUnread = () => {
-  unreadCount.value = notifications.value.filter(item => !item.isRead).length;
-};
-
 // 显示通知抽屉
 const showNotificationDrawer = () => {
   drawerVisible.value = true;
   loadNotifications();
-};
-
-// 标记通知为已读
-const readNotification = async (notification: NotificationResponse) => {
-  if (notification.isRead) return;
-  
-  try {
-    const res = await markNotificationAsRead(notification.id);
-    if (res.data.success) {
-      const index = notifications.value.findIndex(item => item.id === notification.id);
-      if (index !== -1) {
-        notifications.value[index].isRead = true;
-        notifications.value[index].readTime = new Date().toISOString();
-        countUnread();
-      }
-    }
-  } catch (error) {
-    console.error('标记通知已读失败', error);
-  }
-};
-
-// 标记所有通知为已读
-const readAllNotifications = async () => {
-  const unreadNotifications = notifications.value.filter(item => !item.isRead);
-  if (unreadNotifications.length === 0) return;
-  
-  try {
-    for (const notification of unreadNotifications) {
-      await markNotificationAsRead(notification.id);
-    }
-    
-    notifications.value = notifications.value.map(item => {
-      return { ...item, isRead: true, readTime: new Date().toISOString() };
-    });
-    
-    unreadCount.value = 0;
-    ElMessage.success('已全部标记为已读');
-  } catch (error) {
-    console.error('标记全部已读失败', error);
-  }
 };
 
 // 格式化时间
@@ -165,15 +100,16 @@ const formatTime = (time: string) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-// 启动轮询
+// 定时刷新通知
 const startPolling = () => {
   pollingTimer = setInterval(() => {
-    loadUnreadCount();
+    if (drawerVisible.value) {
+      loadNotifications();
+    }
   }, 30000); // 每30秒轮询一次
 };
 
 onMounted(() => {
-  loadUnreadCount();
   startPolling();
 });
 
@@ -229,10 +165,6 @@ onUnmounted(() => {
   background-color: #f5f7fa;
 }
 
-.notification-item.is-read {
-  opacity: 0.7;
-}
-
 .notification-avatar {
   margin-right: 12px;
 }
@@ -247,13 +179,6 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.unread-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #409eff;
-  border-radius: 50%;
 }
 
 .notification-message {

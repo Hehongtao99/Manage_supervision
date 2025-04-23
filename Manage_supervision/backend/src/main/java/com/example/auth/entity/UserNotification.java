@@ -18,21 +18,12 @@ public class UserNotification {
     @JoinColumn(name = "notification_id", nullable = false)
     private Notification notification;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead;
-
-    @Column(name = "read_time")
-    private LocalDateTime readTime;
-
     @Column(name = "create_time", nullable = false)
     private LocalDateTime createTime;
 
     @PrePersist
     protected void onCreate() {
         createTime = LocalDateTime.now();
-        if (isRead == null) {
-            isRead = false;
-        }
     }
 
     // Getters
@@ -46,14 +37,6 @@ public class UserNotification {
 
     public Notification getNotification() {
         return notification;
-    }
-
-    public Boolean getIsRead() {
-        return isRead;
-    }
-
-    public LocalDateTime getReadTime() {
-        return readTime;
     }
 
     public LocalDateTime getCreateTime() {
@@ -71,14 +54,6 @@ public class UserNotification {
 
     public void setNotification(Notification notification) {
         this.notification = notification;
-    }
-
-    public void setIsRead(Boolean isRead) {
-        this.isRead = isRead;
-    }
-
-    public void setReadTime(LocalDateTime readTime) {
-        this.readTime = readTime;
     }
 
     public void setCreateTime(LocalDateTime createTime) {

@@ -19,8 +19,7 @@ export interface NotificationResponse {
   classId?: number;
   className?: string;
   createTime: string;
-  isRead: boolean;
-  readTime?: string;
+  isGlobal: boolean;
 }
 
 /**
@@ -69,32 +68,6 @@ export function getSentNotifications() {
 export function getAllNotifications() {
   return request({
     url: '/api/notifications/all',
-    method: 'get',
-    headers: {
-      'userId': getCurrentUserId()
-    }
-  });
-}
-
-/**
- * 标记通知为已读
- */
-export function markNotificationAsRead(notificationId: number) {
-  return request({
-    url: `/api/notifications/${notificationId}/read`,
-    method: 'put',
-    headers: {
-      'userId': getCurrentUserId()
-    }
-  });
-}
-
-/**
- * 获取未读通知数量
- */
-export function getUnreadNotificationCount() {
-  return request({
-    url: '/api/notifications/unread/count',
     method: 'get',
     headers: {
       'userId': getCurrentUserId()

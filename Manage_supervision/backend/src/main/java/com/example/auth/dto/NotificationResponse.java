@@ -13,8 +13,7 @@ public class NotificationResponse {
     private Long classId;
     private String className;
     private LocalDateTime createTime;
-    private Boolean isRead;
-    private LocalDateTime readTime;
+    private Boolean isGlobal;
 
     // Getters
     public Long getId() {
@@ -56,13 +55,9 @@ public class NotificationResponse {
     public LocalDateTime getCreateTime() {
         return createTime;
     }
-
-    public Boolean getIsRead() {
-        return isRead;
-    }
-
-    public LocalDateTime getReadTime() {
-        return readTime;
+    
+    public Boolean getIsGlobal() {
+        return isGlobal;
     }
 
     // Setters
@@ -105,12 +100,8 @@ public class NotificationResponse {
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
-
-    public void setIsRead(Boolean isRead) {
-        this.isRead = isRead;
-    }
-
-    public void setReadTime(LocalDateTime readTime) {
-        this.readTime = readTime;
+    
+    public void setIsGlobal(Boolean isGlobal) {
+        this.isGlobal = isGlobal;
     }
 } 

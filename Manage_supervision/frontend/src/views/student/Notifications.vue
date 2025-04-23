@@ -21,11 +21,6 @@
               <el-option label="全体通知" value="ALL" />
               <el-option label="班级通知" value="CLASS" />
             </el-select>
-            <el-select v-model="readStatus" placeholder="状态" style="width: 120px; margin-left: 10px;">
-              <el-option label="全部" value="" />
-              <el-option label="未读" value="unread" />
-              <el-option label="已读" value="read" />
-            </el-select>
           </div>
         </div>
       </template>
@@ -34,43 +29,33 @@
 
       <div v-else>
         <el-table :data="filteredNotifications" style="width: 100%">
-          <el-table-column width="40">
-            <template #default="{ row }">
-              <el-badge is-dot :hidden="row.isRead" type="danger" />
-            </template>
-          </el-table-column>
-
           <el-table-column prop="title" label="标题" min-width="200">
             <template #default="{ row }">
-              <div class="notification-title" :class="{ 'unread': !row.isRead }">{{ row.title }}</div>
+              <span class="notification-title" @click="viewNotificationDetail(row)">
+                {{ row.title }}
+              </span>
             </template>
           </el-table-column>
           
-          <el-table-column prop="senderName" label="发送人" width="120">
-            <template #default="{ row }">
-              {{ row.senderName }}
-            </template>
-          </el-table-column>
+          <el-table-column prop="senderName" label="发送人" width="120" />
           
           <el-table-column prop="recipientType" label="类型" width="100">
             <template #default="{ row }">
-              <el-tag :type="row.recipientType === 'ALL' ? 'danger' : 'primary'">
+              <el-tag :type="row.recipientType === 'ALL' ? 'danger' : 'primary'" size="small">
                 {{ row.recipientType === 'ALL' ? '全体' : '班级' }}
               </el-tag>
             </template>
           </el-table-column>
           
-          <el-table-column prop="createTime" label="发送时间" width="180">
+          <el-table-column prop="createTime" label="时间" width="180">
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
           </el-table-column>
           
-          <el-table-column label="操作" width="120" fixed="right">
+          <el-table-column label="操作" width="80" fixed="right">
             <template #default="{ row }">
-              <el-button type="primary" link @click="viewNotificationDetail(row)">
-                查看
-              </el-button>
+              <el-button type="primary" link @click="viewNotificationDetail(row)">查看</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -82,7 +67,6 @@
       v-model="detailDialogVisible"
       title="通知详情"
       width="500px"
-      @open="handleDialogOpen"
     >
       <div v-if="selectedNotification" class="notification-detail">
         <h3 class="detail-title">{{ selectedNotification.title }}</h3>
@@ -109,7 +93,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { getReceivedNotifications, markNotificationAsRead, NotificationResponse } from '@/api/notification';
+import { getReceivedNotifications, NotificationResponse } from '@/api/notification';
 
 // 数据列表
 const notifications = ref<NotificationResponse[]>([]);
@@ -118,7 +102,6 @@ const selectedNotification = ref<NotificationResponse | null>(null);
 // 过滤和搜索
 const searchKeyword = ref('');
 const filterType = ref('');
-const readStatus = ref('');
 
 // 对话框控制
 const detailDialogVisible = ref(false);
@@ -130,13 +113,6 @@ const filteredNotifications = computed(() => {
   // 按类型筛选
   if (filterType.value) {
     result = result.filter(item => item.recipientType === filterType.value);
-  }
-  
-  // 按读取状态筛选
-  if (readStatus.value === 'read') {
-    result = result.filter(item => item.isRead);
-  } else if (readStatus.value === 'unread') {
-    result = result.filter(item => !item.isRead);
   }
   
   // 按关键词搜索
@@ -174,27 +150,6 @@ const loadNotifications = async () => {
 const viewNotificationDetail = (notification: NotificationResponse) => {
   selectedNotification.value = notification;
   detailDialogVisible.value = true;
-};
-
-// 对话框打开时标记通知为已读
-const handleDialogOpen = async () => {
-  if (selectedNotification.value && !selectedNotification.value.isRead) {
-    try {
-      const res = await markNotificationAsRead(selectedNotification.value.id);
-      if (res.data.success) {
-        // 更新本地通知状态
-        selectedNotification.value.isRead = true;
-        
-        // 更新列表中对应的通知状态
-        const index = notifications.value.findIndex(item => item.id === selectedNotification.value?.id);
-        if (index !== -1) {
-          notifications.value[index].isRead = true;
-        }
-      }
-    } catch (error) {
-      console.error('标记通知为已读失败', error);
-    }
-  }
 };
 
 // 格式化时间显示
@@ -236,9 +191,6 @@ const formatTime = (timestamp: string) => {
 
 .notification-title {
   cursor: pointer;
-  &.unread {
-    font-weight: bold;
-  }
 }
 
 .notification-detail {

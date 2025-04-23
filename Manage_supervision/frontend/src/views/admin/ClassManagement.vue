@@ -599,6 +599,7 @@ const handleAddStudent = async (student: any) => {
     const result = await addStudentToClass(selectedClass.value.id, student.id);
     if (result.success) {
       ElMessage.success(student.currentClassId ? '学生转班成功' : '学生添加成功');
+      // 重新加载所有数据，确保界面同步更新
       await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
       // 刷新班级列表中的学生数量
       loadClasses();
@@ -647,6 +648,7 @@ const handleBatchAddStudents = async () => {
     
     if (result.success) {
       ElMessage.success(`操作成功: ${result.message}`);
+      // 重新加载所有数据，确保界面同步更新
       await Promise.all([loadUnassignedStudents(), loadClassStudents()]);
       selectedStudents.value = [];
       // 刷新班级列表中的学生数量
