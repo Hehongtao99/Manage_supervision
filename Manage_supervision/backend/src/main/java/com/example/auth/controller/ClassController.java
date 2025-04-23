@@ -160,6 +160,7 @@ public class ClassController {
     // 获取当前教师的班级列表
     @GetMapping("/teacher/classes")
     public ResponseEntity<List<Map<String, Object>>> getTeacherClasses(
+            @RequestHeader(value = "userId", required = false) Long headerUserId,
             @RequestParam(required = false) Long teacherId) {
         try {
             Long currentUserId;
@@ -167,6 +168,10 @@ public class ClassController {
                 // 如果提供了teacherId参数，使用该参数
                 currentUserId = teacherId;
                 System.out.println("使用请求参数提供的教师ID: " + teacherId);
+            } else if (headerUserId != null) {
+                // 使用请求头中的userId
+                currentUserId = headerUserId;
+                System.out.println("使用请求头提供的用户ID: " + headerUserId);
             } else {
                 // 否则尝试获取当前登录用户ID
                 try {

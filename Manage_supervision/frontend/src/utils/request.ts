@@ -18,6 +18,13 @@ service.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    
+    // 获取用户ID
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      config.headers['userId'] = userId;
+    }
+    
     return config;
   },
   error => {
@@ -29,21 +36,7 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    const res = response.data;
-    
-    // 如果响应状态码不是200范围，说明请求有问题
-    if (response.status < 200 || response.status >= 300) {
-      ElMessage.error(res.message || '请求失败');
-      
-      // 如果是未授权或token过期
-      if (response.status === 401 || response.status === 403) {
-        handleTokenExpiration();
-      }
-      
-      return Promise.reject(new Error(res.message || '请求失败'));
-    } else {
-      return res;
-    }
+    return response;
   },
   error => {
     console.error('响应错误:', error);

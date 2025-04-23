@@ -33,6 +33,9 @@
             </el-badge>
           </div>
           
+          <!-- 通知图标 -->
+          <notification-icon v-if="userStore.isLoggedIn" class="notification-item" />
+          
           <!-- 角色标识 -->
           <div class="role-indicator">
             <el-tag :type="roleTagType" effect="dark">
@@ -93,6 +96,7 @@ import { useUserStore } from '../stores/user'
 import { useChatStore } from '../stores/chat'
 import SideMenu from '../components/SideMenu.vue'
 import Breadcrumb from '../components/Breadcrumb.vue'
+import NotificationIcon from '../components/NotificationIcon.vue'
 import { ElMessageBox } from 'element-plus'
 import {
   Fold,

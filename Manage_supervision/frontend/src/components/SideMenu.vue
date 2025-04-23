@@ -53,6 +53,10 @@
           <el-icon><Calendar /></el-icon>
           <span>课程表管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/notifications" @click="handleRoute('/admin/notifications')">
+          <el-icon><Bell /></el-icon>
+          <span>通知管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 
@@ -76,6 +80,13 @@
         <el-icon><Calendar /></el-icon>
         <template #title>
           <span>班级课表</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/supervisor/notifications" @click="handleRoute('/supervisor/notifications')">
+        <el-icon><Bell /></el-icon>
+        <template #title>
+          <span>通知管理</span>
         </template>
       </el-menu-item>
 
@@ -124,6 +135,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/student/notifications" @click="handleRoute('/student/notifications')">
+        <el-icon><Bell /></el-icon>
+        <template #title>
+          <span>我的通知</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
@@ -150,7 +168,8 @@ import {
   List,
   Folder,
   ChatDotRound,
-  Calendar
+  Calendar,
+  Bell
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

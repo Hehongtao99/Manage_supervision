@@ -98,6 +98,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresStudent: true
         }
+      },
+      {
+        path: 'notifications',
+        name: 'StudentNotifications',
+        component: () => import('../views/student/Notifications.vue'),
+        meta: { 
+          title: '我的通知',
+          requiresAuth: true,
+          requiresStudent: true
+        }
       }
     ]
   },
@@ -176,6 +186,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/admin/SystemLogs.vue'),
         meta: { 
           title: '系统日志',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'AdminNotificationManagement',
+        component: () => import('../views/admin/NotificationManagement.vue'),
+        meta: { 
+          title: '通知管理',
           requiresAuth: true,
           requiresAdmin: true
         }
@@ -270,6 +290,27 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresSupervisor: true
         }
+      },
+      {
+        path: 'projects/:id',
+        name: 'ProjectDetail',
+        component: () => import('../views/supervisor/ProjectManagement.vue'),
+        props: route => ({ projectId: Number(route.params.id) }),
+        meta: { 
+          title: '项目详情',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'SupervisorNotificationManagement',
+        component: () => import('../views/supervisor/NotificationManagement.vue'),
+        meta: { 
+          title: '通知管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
       }
     ]
   }
@@ -334,7 +375,31 @@ router.beforeEach(async (to, from, next) => {
     
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-      console.log('需要教师权限，但用户不是教师，重定向到首页')
+      console.log('需要教师权限，但用户不是教师，角色:', userStore.user.roles)
+      console.log('isSupervisor返回值:', userStore.isSupervisor)
+      
+      // 尝试从localStorage获取角色信息进行二次验证
+      try {
+        const rolesStr = localStorage.getItem('userRoles')
+        if (rolesStr) {
+          const roles = JSON.parse(rolesStr)
+          const hasSupervisorRole = roles.some((role: string) => 
+            role === 'SUPERVISOR' || role === 'supervisor' || 
+            role === 'TEACHER' || role === 'teacher'
+          )
+          console.log('从localStorage检查教师角色:', roles, '结果:', hasSupervisorRole)
+          
+          if (hasSupervisorRole) {
+            console.log('localStorage中存在教师角色，允许访问')
+            next()
+            return
+          }
+        }
+      } catch (e) {
+        console.error('解析localStorage中的角色信息失败:', e)
+      }
+      
+      console.log('权限验证失败，重定向到聊天页面')
       next('/chat')
       return
     }

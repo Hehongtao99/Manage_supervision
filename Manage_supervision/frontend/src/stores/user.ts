@@ -63,7 +63,8 @@ export const useUserStore = defineStore('user', {
     isSupervisor: (state) => {
       console.log('检查教师权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
-        role === 'SUPERVISOR' || role === 'supervisor'
+        role === 'SUPERVISOR' || role === 'supervisor' || 
+        role === 'TEACHER' || role === 'teacher'
       )
     },
     isStudent: (state) => {
@@ -210,6 +211,13 @@ export const useUserStore = defineStore('user', {
         localStorage.setItem('token', response.data.token)
         // 保存用户角色到localStorage
         localStorage.setItem('userRoles', JSON.stringify(this.user.roles))
+        // 保存用户ID到localStorage，用于API请求
+        localStorage.setItem('userId', this.user.id?.toString() || '')
+        // 保存userStore到localStorage
+        localStorage.setItem('userStore', JSON.stringify({
+          user: this.user,
+          userInfo: this.userInfo
+        }))
         this.setAxiosAuthHeader()
         
         console.log('登录成功，用户角色:', this.user.roles)
@@ -299,31 +307,40 @@ export const useUserStore = defineStore('user', {
             phone: response.data.user.phone || this.user.phone,
             bio: response.data.user.bio || this.user.bio,
             avatar: response.data.user.avatar || this.user.avatar,
-            userNumber: response.data.user.userNumber || this.user.userNumber,
-            roles: Array.isArray(response.data.user.roles) ? response.data.user.roles : this.user.roles
+            roles: response.data.user.roles || this.user.roles,
+            userNumber: response.data.user.userNumber || this.user.userNumber
           }
+          
+          this.userInfo = {
+            id: response.data.user.id || 0,
+            username: response.data.user.username || '',
+            name: response.data.user.realName || response.data.user.username || '',
+            role: Array.isArray(response.data.user.roles) && response.data.user.roles.length > 0 
+              ? response.data.user.roles[0] 
+              : 'USER',
+            avatar: response.data.user.avatar || '',
+            email: response.data.user.email || ''
+          }
+          
+          // 保存用户角色到localStorage
+          localStorage.setItem('userRoles', JSON.stringify(this.user.roles))
+          // 保存用户ID到localStorage，用于API请求
+          localStorage.setItem('userId', this.user.id?.toString() || '')
+          // 保存userStore到localStorage
+          localStorage.setItem('userStore', JSON.stringify({
+            user: this.user,
+            userInfo: this.userInfo
+          }))
+          
+          console.log('用户信息获取成功:', this.user)
+          console.log('用户角色:', this.user.roles)
+          return true
         } else {
-          this.user = response.data.user
+          console.error('服务器返回的用户数据格式不正确:', response.data)
+          return false
         }
-        
-        console.log('获取用户信息成功:', this.user.name, '角色:', this.user.roles, '用户编号:', this.user.userNumber)
-        return true
-      } catch (error: any) {
-        console.error('获取用户信息失败:', error.message || error)
-        
-        // 判断是否为401错误
-        if (error.response?.status === 401) {
-          // 如果在非登录页面且不是自动初始化，尝试重定向到登录页
-          if (forceRefresh && window.location.pathname !== '/login') {
-            console.warn('用户未登录或登录已过期，正在重定向到登录页...')
-            this.handleAuthError()
-          }
-        }
-        
-        if (error.response?.status !== 401 || forceRefresh) {
-          throw error
-        }
-        
+      } catch (error) {
+        console.error('获取用户信息失败:', error)
         return false
       }
     },
@@ -422,22 +439,12 @@ export const useUserStore = defineStore('user', {
     },
 
     logout() {
-      console.log('执行登出操作，清除认证状态')
-      this.token = null
-      this.user = {
-        id: null,
-        name: '',
-        email: '',
-        roles: [],
-        userNumber: ''
+      this.clearUserInfo()
+      try {
+        router.push('/login')
+      } catch (error) {
+        window.location.href = '/login'
       }
-      this.userInfo = null
-      localStorage.removeItem('token')
-      localStorage.removeItem('userRoles')
-      this.setAxiosAuthHeader()
-      
-      // 跳转到登录页
-      router.push('/login')
     },
 
     setToken(token: string) {
@@ -454,10 +461,20 @@ export const useUserStore = defineStore('user', {
     },
     
     clearUserInfo() {
-      this.userInfo = null;
-      this.token = '';
-      this.permissions = [];
-      localStorage.removeItem('token');
+      this.token = null
+      this.user = {
+        id: null,
+        name: '',
+        email: '',
+        roles: [],
+        userNumber: ''
+      }
+      this.userInfo = null
+      localStorage.removeItem('token')
+      localStorage.removeItem('userRoles')
+      localStorage.removeItem('userId')
+      localStorage.removeItem('userStore')
+      this.setAxiosAuthHeader()
     },
     
     // 直接设置用户头像URL
