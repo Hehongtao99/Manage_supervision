@@ -58,6 +58,21 @@
           <span>通知管理</span>
         </el-menu-item>
       </el-sub-menu>
+      
+      <el-sub-menu index="bill-management">
+        <template #title>
+          <el-icon><Money /></el-icon>
+          <span>账单管理</span>
+        </template>
+        <el-menu-item index="/admin/fee-standards" @click="handleRoute('/admin/fee-standards')">
+          <el-icon><List /></el-icon>
+          <span>费用标准管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/bills" @click="handleRoute('/admin/bills')">
+          <el-icon><Tickets /></el-icon>
+          <span>账单管理</span>
+        </el-menu-item>
+      </el-sub-menu>
     </template>
 
     <!-- 督导员菜单 -->
@@ -76,7 +91,7 @@
         </template>
       </el-menu-item>
       
-      <el-menu-item index="/supervisor/timetables" @click="handleRoute('/supervisor/timetables')">
+      <el-menu-item index="/supervisor/timetable" @click="handleRoute('/supervisor/timetable')">
         <el-icon><Calendar /></el-icon>
         <template #title>
           <span>班级课表</span>
@@ -87,6 +102,13 @@
         <el-icon><Bell /></el-icon>
         <template #title>
           <span>通知管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/supervisor/bills" @click="handleRoute('/supervisor/bills')">
+        <el-icon><Money /></el-icon>
+        <template #title>
+          <span>账单管理</span>
         </template>
       </el-menu-item>
 
@@ -142,6 +164,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/student/bills" @click="handleRoute('/student/bills')">
+        <el-icon><Money /></el-icon>
+        <template #title>
+          <span>我的账单</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
@@ -169,7 +198,9 @@ import {
   Folder,
   ChatDotRound,
   Calendar,
-  Bell
+  Bell,
+  Money,
+  Tickets
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

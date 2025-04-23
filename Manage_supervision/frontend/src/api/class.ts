@@ -113,7 +113,7 @@ export const addTeacherToClass = async (classId: number, teacherId: number): Pro
 };
 
 // 获取当前教师的所有班级
-export const getTeacherClasses = async (teacherId?: number): Promise<ClassDTO[]> => {
+export const getTeacherClasses = async (teacherId?: number) => {
   let url = `${API_URL}/teacher/classes`;
   if (teacherId) {
     url += `?teacherId=${teacherId}`;
@@ -124,20 +124,31 @@ export const getTeacherClasses = async (teacherId?: number): Promise<ClassDTO[]>
     console.log('当前用户ID:', userId);
     
     const response = await axios.get(url);
-    // 后端返回Map<String, Object>形式的数据，需要转换为ClassDTO
-    return response.data.map((classObj: any) => ({
-      id: classObj.id,
-      className: classObj.className,
-      grade: classObj.grade,
-      description: classObj.description,
-      createTime: classObj.createTime,
-      updateTime: classObj.updateTime,
-      status: classObj.status,
-      studentCount: classObj.studentCount || 0
-    }));
+    console.log('从后端获取到的班级数据:', response.data);
+    
+    // 确保返回的数据是数组
+    if (Array.isArray(response.data)) {
+      // 将后端返回的 className 映射到前端需要的 name 属性
+      return {
+        data: response.data.map((classObj: any) => ({
+          id: classObj.id,
+          name: classObj.className || classObj.name || '未命名班级',
+          grade: classObj.grade,
+          description: classObj.description,
+          createTime: classObj.createTime,
+          updateTime: classObj.updateTime,
+          status: classObj.status,
+          studentCount: classObj.studentCount || 0
+        }))
+      };
+    }
+    
+    // 如果无法处理，返回空数组
+    console.warn('后端返回的班级数据格式不是预期的数组:', response.data);
+    return { data: [] };
   } catch (error) {
     console.error('获取教师班级列表失败:', error);
-    throw error;
+    return { data: [] };
   }
 };
 

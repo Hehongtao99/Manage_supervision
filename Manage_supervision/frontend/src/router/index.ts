@@ -108,6 +108,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresStudent: true
         }
+      },
+      {
+        path: 'bills',
+        name: 'StudentBills',
+        component: () => import('../views/student/StudentBills.vue'),
+        meta: { 
+          title: '我的账单',
+          requiresAuth: true,
+          requiresStudent: true
+        }
       }
     ]
   },
@@ -219,6 +229,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'fee-standards',
+        name: 'FeeStandardManagement',
+        component: () => import('../views/admin/FeeStandardList.vue'),
+        meta: { 
+          title: '费用标准管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'bills',
+        name: 'BillManagement',
+        component: () => import('../views/admin/BillManagement.vue'),
+        meta: { 
+          title: '账单管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },
@@ -233,7 +263,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'students',
-        name: 'StudentManagement',
+        name: 'SupervisorStudentManagement',
         component: () => import('../views/supervisor/StudentManagement.vue'),
         meta: { 
           title: '学生管理',
@@ -246,7 +276,7 @@ const routes: RouteRecordRaw[] = [
         name: 'SupervisorProfile',
         component: () => import('../views/supervisor/Profile.vue'),
         meta: { 
-          title: '教师信息',
+          title: '个人信息',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -262,7 +292,7 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'timetables',
+        path: 'timetable',
         name: 'SupervisorTimetable',
         component: () => import('../views/supervisor/Timetable.vue'),
         meta: { 
@@ -272,11 +302,11 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'timetables/:id',
+        path: 'timetable/:id',
         name: 'SupervisorTimetableDetail',
         component: () => import('../views/supervisor/TimetableDetail.vue'),
         meta: { 
-          title: '课表详情',
+          title: '课程表详情',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -285,19 +315,18 @@ const routes: RouteRecordRaw[] = [
         path: 'chat',
         name: 'SupervisorChat',
         component: () => import('../views/chat/ChatPage.vue'),
-        meta: {
+        meta: { 
           title: '聊天',
           requiresAuth: true,
           requiresSupervisor: true
         }
       },
       {
-        path: 'projects/:id',
-        name: 'ProjectDetail',
+        path: 'projects',
+        name: 'ProjectManagement',
         component: () => import('../views/supervisor/ProjectManagement.vue'),
-        props: route => ({ projectId: Number(route.params.id) }),
         meta: { 
-          title: '项目详情',
+          title: '项目管理',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -308,6 +337,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/supervisor/NotificationManagement.vue'),
         meta: { 
           title: '通知管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'bills',
+        name: 'SupervisorBillManagement',
+        component: () => import('../views/supervisor/BillManagement.vue'),
+        meta: { 
+          title: '账单管理',
           requiresAuth: true,
           requiresSupervisor: true
         }

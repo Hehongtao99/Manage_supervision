@@ -1,0 +1,7 @@
+2025-04-23 15:56:58.318 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 开始生成账单，参数: BillGenerateDTO(feeStandardId=2, studentIds=null, classId=null, dueDate=2025-04-29T16:00)
+2025-04-23 15:56:58.367 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 找到费用标准: 范德萨发大水, 金额: 500.00
+2025-04-23 15:56:58.523 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 已有该费用账单的学生数量: 0
+2025-04-23 15:56:58.573 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 为所有学生生成账单，学生总数: 0
+2025-04-23 15:56:58.573 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 去除已有账单的学生后，需生成账单的学生数量从0减少到0
+2025-04-23 15:56:58.582 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 即将保存的账单数量: 0
+2025-04-23 15:56:58.582 [http-nio-8081-exec-6] INFO  c.e.a.service.impl.BillServiceImpl - 没有需要生成的账单

@@ -11,11 +11,31 @@
  Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 23/04/2025 10:58:07
+ Date: 23/04/2025 14:34:41
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for bill
+-- ----------------------------
+DROP TABLE IF EXISTS `bill`;
+CREATE TABLE `bill`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `student_id` bigint NOT NULL COMMENT '学生ID',
+  `fee_standard_id` bigint NOT NULL COMMENT '费用标准ID',
+  `amount` decimal(10, 2) NOT NULL COMMENT '账单金额',
+  `status` tinyint(1) NULL DEFAULT 0 COMMENT '支付状态：0未支付，1已支付',
+  `payment_time` datetime NULL DEFAULT NULL COMMENT '支付时间',
+  `payment_method` varchar(20) NULL DEFAULT NULL COMMENT '支付方式：WECHAT微信，ALIPAY支付宝',
+  `payment_message` varchar(255) NULL DEFAULT NULL COMMENT '支付消息',
+  `due_date` datetime NOT NULL COMMENT '截止日期',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '是否删除',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for chat_messages
@@ -54,27 +74,12 @@ CREATE TABLE `class_student_relations`  (
   `student_id` bigint NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_class_id`(`class_id` ASC) USING BTREE,
-  UNIQUE INDEX `UK_student_id`(`student_id` ASC) USING BTREE COMMENT '确保学生只能属于一个班级',
-  INDEX `idx_student_id`(`student_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for student_class_history
--- ----------------------------
-DROP TABLE IF EXISTS `student_class_history`;
-CREATE TABLE `student_class_history` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `student_id` bigint NOT NULL,
-  `class_id` bigint NOT NULL,
-  `operation_type` varchar(20) NOT NULL COMMENT '操作类型：join(加入)、leave(离开)',
-  `operation_time` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  `operator_id` bigint NOT NULL COMMENT '操作人ID',
-  `remark` varchar(500) DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`id`),
   INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
-  INDEX `idx_class_id`(`class_id` ASC) USING BTREE,
-  INDEX `idx_operation_time`(`operation_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '学生班级变更历史' ROW_FORMAT = DYNAMIC;
+  UNIQUE INDEX `UK_student_id`(`student_id` ASC) USING BTREE COMMENT '确保学生只能属于一个班级',
+  UNIQUE INDEX `UK9p4hgv380mflpmtsrkf3tmtaw`(`class_id` ASC, `student_id` ASC) USING BTREE,
+  CONSTRAINT `FK5xl5efgeplpwfe2b7106oi96j` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `FKlt3w4wsdui1mhlj6psbc54s6p` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for class_teacher_relations
@@ -91,7 +96,7 @@ CREATE TABLE `class_teacher_relations`  (
   INDEX `FKa5uni18h2a6b60jlh0r2grgkp`(`teacher_id` ASC) USING BTREE,
   CONSTRAINT `FKa5uni18h2a6b60jlh0r2grgkp` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FKs9q1w24esrnjuc5j5sf9o6fqu` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for classes
@@ -126,6 +131,21 @@ CREATE TABLE `conversations`  (
   CONSTRAINT `FK8wv0rmd8jb3cqcbyng15ubrmk` FOREIGN KEY (`user1_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FKe7w0k1xem21pp85wxh5moodnk` FOREIGN KEY (`user2_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for fee_standard
+-- ----------------------------
+DROP TABLE IF EXISTS `fee_standard`;
+CREATE TABLE `fee_standard`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `fee_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '费用名称',
+  `amount` decimal(10, 2) NOT NULL COMMENT '费用金额',
+  `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '费用说明',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `is_deleted` tinyint(1) NULL DEFAULT 0 COMMENT '是否删除',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for notification_class_relations
@@ -213,6 +233,27 @@ CREATE TABLE `roles`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `UK_ofx66keruapi6vyqpv6f2or37`(`name` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for student_class_history
+-- ----------------------------
+DROP TABLE IF EXISTS `student_class_history`;
+CREATE TABLE `student_class_history`  (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `operation_time` datetime(6) NOT NULL,
+  `operation_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `class_id` bigint NOT NULL,
+  `operator_id` bigint NOT NULL,
+  `student_id` bigint NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `FKqo878lje713cy81v5e9epvwql`(`class_id` ASC) USING BTREE,
+  INDEX `FKrmgtckvg8jbxtadca6wix4kqa`(`operator_id` ASC) USING BTREE,
+  INDEX `FKdtuj61hdqtuabnwj7637rxnj7`(`student_id` ASC) USING BTREE,
+  CONSTRAINT `FKdtuj61hdqtuabnwj7637rxnj7` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `FKqo878lje713cy81v5e9epvwql` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `FKrmgtckvg8jbxtadca6wix4kqa` FOREIGN KEY (`operator_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for task_evaluations
@@ -318,7 +359,7 @@ CREATE TABLE `timetables`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_timetables_class_id`(`class_id` ASC) USING BTREE,
   INDEX `idx_timetables_week_number`(`week_number` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user_notifications
@@ -394,16 +435,3 @@ END
 delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;
-
--- ----------------------------
--- 修复学生多班级问题的SQL
--- ----------------------------
-
--- 为每个学生保留最新分配的班级记录，删除旧记录
-DELETE r1 FROM class_student_relations r1
-JOIN class_student_relations r2 ON r1.student_id = r2.student_id
-AND r1.id < r2.id;
-
--- 添加新的唯一索引确保学生只能属于一个班级
-ALTER TABLE class_student_relations
-ADD UNIQUE INDEX UK_student_id (student_id) COMMENT '确保学生只能属于一个班级';

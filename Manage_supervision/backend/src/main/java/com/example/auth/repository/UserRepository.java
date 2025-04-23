@@ -25,4 +25,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
             Pageable pageable);
     
     List<User> findByRolesContaining(Role role);
+    
+    /**
+     * 根据角色名称查找用户列表
+     */
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    List<User> findByRoleName(@Param("roleName") String roleName);
+    
+    /**
+     * 根据班级ID获取该班级所有学生的ID列表
+     */
+    @Query("SELECT csr.student.id FROM ClassStudentRelation csr WHERE csr.classEntity.id = :classId AND csr.status = 'ACTIVE'")
+    List<Long> findStudentIdsByClassId(@Param("classId") Long classId);
 } 

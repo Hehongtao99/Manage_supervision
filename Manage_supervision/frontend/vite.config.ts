@@ -12,6 +12,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',  // 支持所有IP地址访问，包括localhost和127.0.0.1
+    port: 5173,      // 显式指定端口
     proxy: {
       '/api': {
         target: 'http://localhost:8081',

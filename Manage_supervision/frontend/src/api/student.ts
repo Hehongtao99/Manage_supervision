@@ -33,8 +33,8 @@ export interface ActivityDTO {
 
 // 获取所有学生
 export const getStudentsAll = async (): Promise<StudentType[]> => {
-  const response = await axios.get('/api/students');
-  return response.data;
+  const response = await axios.get('/api/admin/students');
+  return response.data.content; // 后端可能返回分页数据结构，所以获取content字段
 };
 
 // 根据ID获取学生详情

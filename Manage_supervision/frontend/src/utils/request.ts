@@ -29,6 +29,9 @@ service.interceptors.request.use(
       config.headers['userId'] = userId;
     }
     
+    // 添加请求日志
+    console.log(`请求URL: ${config.url}, 方法: ${config.method}`, config);
+    
     return config;
   },
   error => {
@@ -40,45 +43,27 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
+    console.log('API响应成功:', response.config.url, response.status);
     return response;
   },
   error => {
-    console.error('响应错误:', error);
+    const status = error.response?.status;
+    const url = error.config?.url || '未知';
+    const method = error.config?.method || '未知';
+    console.error(`API请求失败: [${method.toUpperCase()}] ${url}, 状态码: ${status}`, error);
     
-    // 处理网络错误或服务器错误
-    if (error.response) {
-      // 服务器响应错误
-      const status = error.response.status;
-      let message = '服务器错误';
-      
-      switch (status) {
-        case 400:
-          message = '请求参数错误';
-          break;
-        case 401:
-          message = '未授权，请重新登录';
-          handleTokenExpiration();
-          break;
-        case 403:
-          message = '拒绝访问';
-          break;
-        case 404:
-          message = '请求的资源不存在';
-          break;
-        case 500:
-          message = '服务器内部错误';
-          break;
-        default:
-          message = `请求错误(${status})`;
-      }
-      
-      ElMessage.error(error.response.data?.message || message);
-    } else if (error.request) {
-      // 请求已发送但未收到响应
-      ElMessage.error('服务器未响应，请检查网络连接');
-    } else {
-      // 请求设置有问题
-      ElMessage.error('请求配置错误');
+    // 提取具体的错误信息
+    let errorMessage = '请求失败，服务器异常';
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    // 统一处理401未授权的情况
+    if (status === 401) {
+      console.warn('未授权访问，请重新登录');
+      // 这里可以添加重定向到登录页面或清除token的逻辑
     }
     
     return Promise.reject(error);
