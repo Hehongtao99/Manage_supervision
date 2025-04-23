@@ -126,7 +126,6 @@
             
             <el-form-item label="账单生成方式">
               <el-radio-group v-model="generateType">
-                <el-radio :label="'all'">所有学生</el-radio>
                 <el-radio :label="'class'">按班级</el-radio>
                 <el-radio :label="'students'">选择学生</el-radio>
               </el-radio-group>
@@ -232,7 +231,7 @@ const totalElements = ref(0);
 const statusFilter = ref<boolean | null>(null);
 
 // 账单生成相关
-const generateType = ref('all');
+const generateType = ref('class');
 const generateForm = reactive({
   feeStandardId: undefined as number | undefined,
   classId: undefined as number | undefined,
@@ -264,10 +263,7 @@ const rules = reactive<FormRules>({
 
 // 监听生成类型变化，重置相关字段
 watch(generateType, (newVal) => {
-  if (newVal === 'all') {
-    generateForm.classId = undefined;
-    generateForm.studentIds = [];
-  } else if (newVal === 'class') {
+  if (newVal === 'class') {
     generateForm.studentIds = [];
     if (classes.value.length === 0) {
       loadClasses();
@@ -476,9 +472,6 @@ const submitGenerateBill = async () => {
         } else if (generateType.value === 'students' && generateForm.studentIds.length > 0) {
           params.studentIds = generateForm.studentIds;
           console.log('按学生列表生成账单', params);
-        } else {
-          // 所有学生生成账单，不需要额外参数
-          console.log('为所有学生生成账单', params);
         }
         
         const response = await billApi.generateBills(params);
@@ -492,10 +485,7 @@ const submitGenerateBill = async () => {
             generateFormRef.value.resetFields();
           } else {
             // 未生成任何账单的情况
-            if (generateType.value === 'all') {
-              // 为所有学生生成账单
-              ElMessage.warning('没有生成任何账单。可能是因为所有学生已有此费用标准的账单，或系统中没有学生账号。');
-            } else if (generateType.value === 'class') {
+            if (generateType.value === 'class') {
               // 按班级生成账单
               ElMessage.warning(`没有生成任何账单。可能是班级中的学生已有此费用标准的账单，或该班级没有学生。`);
             } else {
