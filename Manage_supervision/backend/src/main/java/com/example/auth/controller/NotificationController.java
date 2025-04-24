@@ -89,4 +89,85 @@ public class NotificationController {
                 .body(new ApiResponse<>(false, "获取所有通知失败: " + e.getMessage(), null));
         }
     }
+    
+    /**
+     * 管理员给所有家长发送通知
+     */
+    @PostMapping("/send-to-all-parents")
+    public ResponseEntity<ApiResponse<NotificationResponse>> sendToAllParents(
+            @RequestHeader(value = "userId", required = false) Long userId,
+            @RequestBody NotificationRequest request) {
+        try {
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "用户未认证", null));
+            }
+            
+            // 检查当前用户是否为管理员
+            if (!notificationService.isUserAdmin(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponse<>(false, "只有管理员才能执行此操作", null));
+            }
+            
+            NotificationResponse notification = notificationService.sendNotificationToAllParents(userId, request);
+            return ResponseEntity.ok(new ApiResponse<>(true, "通知已成功发送给所有家长", notification));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(false, "发送通知失败: " + e.getMessage(), null));
+        }
+    }
+    
+    /**
+     * 管理员给所有学生发送通知
+     */
+    @PostMapping("/send-to-all-students")
+    public ResponseEntity<ApiResponse<NotificationResponse>> sendToAllStudents(
+            @RequestHeader(value = "userId", required = false) Long userId,
+            @RequestBody NotificationRequest request) {
+        try {
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "用户未认证", null));
+            }
+            
+            // 检查当前用户是否为管理员
+            if (!notificationService.isUserAdmin(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponse<>(false, "只有管理员才能执行此操作", null));
+            }
+            
+            NotificationResponse notification = notificationService.sendNotificationToAllStudents(userId, request);
+            return ResponseEntity.ok(new ApiResponse<>(true, "通知已成功发送给所有学生", notification));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(false, "发送通知失败: " + e.getMessage(), null));
+        }
+    }
+    
+    /**
+     * 管理员给所有教师发送通知
+     */
+    @PostMapping("/send-to-all-teachers")
+    public ResponseEntity<ApiResponse<NotificationResponse>> sendToAllTeachers(
+            @RequestHeader(value = "userId", required = false) Long userId,
+            @RequestBody NotificationRequest request) {
+        try {
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "用户未认证", null));
+            }
+            
+            // 检查当前用户是否为管理员
+            if (!notificationService.isUserAdmin(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponse<>(false, "只有管理员才能执行此操作", null));
+            }
+            
+            NotificationResponse notification = notificationService.sendNotificationToAllTeachers(userId, request);
+            return ResponseEntity.ok(new ApiResponse<>(true, "通知已成功发送给所有教师", notification));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(false, "发送通知失败: " + e.getMessage(), null));
+        }
+    }
 } 

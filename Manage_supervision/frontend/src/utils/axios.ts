@@ -2,6 +2,16 @@ import axios from 'axios'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 
+// 添加类型定义，便于项目中统一使用
+export interface AxiosResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: any;
+  request?: any;
+}
+
 // 创建axios实例
 const instance = axios.create({
   // 移除baseURL，使用相对路径

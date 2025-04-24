@@ -2,6 +2,7 @@
   <div class="notification-management-container">
     <div class="page-header">
       <h2>通知管理</h2>
+      <el-button type="primary" @click="showSendNotificationDialog">发送通知</el-button>
     </div>
 
     <el-card class="notification-list">
@@ -20,6 +21,9 @@
               <el-option label="全部" value="" />
               <el-option label="全体通知" value="ALL" />
               <el-option label="班级通知" value="CLASS" />
+              <el-option label="家长通知" value="PARENT" />
+              <el-option label="学生通知" value="STUDENT" />
+              <el-option label="教师通知" value="TEACHER" />
             </el-select>
           </div>
         </div>
@@ -45,8 +49,8 @@
           
           <el-table-column prop="recipientType" label="接收者" width="120">
             <template #default="{ row }">
-              <el-tag :type="row.recipientType === 'ALL' ? 'danger' : 'primary'">
-                {{ row.recipientType === 'ALL' ? '全体' : row.className }}
+              <el-tag :type="getTagType(row.recipientType)">
+                {{ getRecipientTypeText(row.recipientType) }}
               </el-tag>
             </template>
           </el-table-column>
@@ -87,8 +91,8 @@
           
           <div class="notification-info">
             <span class="recipient">
-              <el-tag :type="selectedNotification.recipientType === 'ALL' ? 'danger' : 'primary'" size="small">
-                {{ selectedNotification.recipientType === 'ALL' ? '全体通知' : '班级通知: ' + selectedNotification.className }}
+              <el-tag :type="getTagType(selectedNotification.recipientType)" size="small">
+                {{ getRecipientTypeText(selectedNotification.recipientType) }}
               </el-tag>
             </span>
             <span class="time">发送时间: {{ formatTime(selectedNotification.createTime) }}</span>
@@ -100,6 +104,58 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- 发送通知对话框 -->
+    <el-dialog
+      v-model="sendDialogVisible"
+      title="发送通知"
+      width="600px"
+    >
+      <el-form :model="notificationForm" label-width="80px" label-position="top">
+        <el-form-item label="接收对象" required>
+          <el-radio-group v-model="notificationForm.recipientGroup">
+            <el-radio label="ALL">全体用户</el-radio>
+            <el-radio label="PARENT">所有家长</el-radio>
+            <el-radio label="STUDENT">所有学生</el-radio>
+            <el-radio label="TEACHER">所有教师</el-radio>
+            <el-radio label="CLASS">指定班级</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="班级" v-if="notificationForm.recipientGroup === 'CLASS'" required>
+          <el-select v-model="notificationForm.classId" placeholder="请选择班级">
+            <el-option 
+              v-for="item in classList" 
+              :key="item.id" 
+              :label="item.className" 
+              :value="item.id" 
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="标题" required>
+          <el-input v-model="notificationForm.title" placeholder="请输入通知标题"></el-input>
+        </el-form-item>
+
+        <el-form-item label="内容" required>
+          <el-input
+            v-model="notificationForm.content"
+            type="textarea"
+            :rows="6"
+            placeholder="请输入通知内容"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="sendDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="sendNotification" :loading="sendingNotification">
+            发送通知
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -107,11 +163,21 @@
 import { ref, computed, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { getAllNotifications, NotificationResponse } from '@/api/notification';
+import { 
+  getAllNotifications, 
+  NotificationResponse, 
+  NotificationRequest, 
+  createNotification,
+  sendToAllParents,
+  sendToAllStudents,
+  sendToAllTeachers
+} from '@/api/notification';
+import { getClassesByTeacher } from '@/api/class';
 
 // 数据列表
 const notifications = ref<NotificationResponse[]>([]);
 const selectedNotification = ref<NotificationResponse | null>(null);
+const classList = ref<any[]>([]);
 
 // 过滤和搜索
 const searchKeyword = ref('');
@@ -119,6 +185,16 @@ const filterType = ref('');
 
 // 对话框控制
 const detailDialogVisible = ref(false);
+const sendDialogVisible = ref(false);
+const sendingNotification = ref(false);
+
+// 通知表单
+const notificationForm = ref({
+  recipientGroup: 'ALL',
+  classId: undefined as number | undefined,
+  title: '',
+  content: ''
+});
 
 // 过滤通知列表
 const filteredNotifications = computed(() => {
@@ -145,6 +221,7 @@ const filteredNotifications = computed(() => {
 // 初始化数据
 onMounted(async () => {
   await loadAllNotifications();
+  await loadClasses();
 });
 
 // 加载所有通知
@@ -160,10 +237,120 @@ const loadAllNotifications = async () => {
   }
 };
 
+// 加载班级列表
+const loadClasses = async () => {
+  try {
+    const res = await getClassesByTeacher();
+    if (res.data.success) {
+      classList.value = res.data.data;
+    }
+  } catch (error) {
+    console.error('获取班级列表失败', error);
+  }
+};
+
+// 显示发送通知对话框
+const showSendNotificationDialog = () => {
+  notificationForm.value = {
+    recipientGroup: 'ALL',
+    classId: undefined,
+    title: '',
+    content: ''
+  };
+  sendDialogVisible.value = true;
+};
+
+// 发送通知
+const sendNotification = async () => {
+  // 表单验证
+  if (!notificationForm.value.title.trim()) {
+    ElMessage.warning('请输入通知标题');
+    return;
+  }
+  if (!notificationForm.value.content.trim()) {
+    ElMessage.warning('请输入通知内容');
+    return;
+  }
+  if (notificationForm.value.recipientGroup === 'CLASS' && !notificationForm.value.classId) {
+    ElMessage.warning('请选择班级');
+    return;
+  }
+
+  try {
+    sendingNotification.value = true;
+    
+    const request: NotificationRequest = {
+      title: notificationForm.value.title,
+      content: notificationForm.value.content,
+      recipientType: notificationForm.value.recipientGroup === 'CLASS' ? 'CLASS' : 'ALL'
+    };
+    
+    if (notificationForm.value.recipientGroup === 'CLASS') {
+      request.classId = notificationForm.value.classId;
+    }
+    
+    let response;
+    switch (notificationForm.value.recipientGroup) {
+      case 'ALL':
+        response = await createNotification(request);
+        break;
+      case 'PARENT':
+        response = await sendToAllParents(request);
+        break;
+      case 'STUDENT':
+        response = await sendToAllStudents(request);
+        break;
+      case 'TEACHER':
+        response = await sendToAllTeachers(request);
+        break;
+      case 'CLASS':
+        response = await createNotification(request);
+        break;
+    }
+    
+    if (response.data.success) {
+      ElMessage.success('通知发送成功');
+      sendDialogVisible.value = false;
+      loadAllNotifications();
+    } else {
+      ElMessage.error(response.data.message || '通知发送失败');
+    }
+  } catch (error: any) {
+    console.error('发送通知失败', error);
+    ElMessage.error(error.message || '发送通知失败');
+  } finally {
+    sendingNotification.value = false;
+  }
+};
+
 // 查看通知详情
 const viewNotificationDetail = (notification: NotificationResponse) => {
   selectedNotification.value = notification;
   detailDialogVisible.value = true;
+};
+
+// 获取接收者类型对应的文字
+const getRecipientTypeText = (type: string) => {
+  switch (type) {
+    case 'ALL': return '全体用户';
+    case 'CLASS': return '班级';
+    case 'PARENT': return '所有家长';
+    case 'STUDENT': return '所有学生';
+    case 'TEACHER': return '所有教师';
+    default: return type;
+  }
+};
+
+// 获取接收者类型对应的标签类型
+const getTagType = (type: string) => {
+  switch (type) {
+    case 'ALL': return 'danger';
+    case 'CLASS': return 'primary';
+    case 'PARENT': return 'success';
+    case 'STUDENT': return 'warning';
+    case 'TEACHER': return 'info';
+    default: return '';
+  }
 };
 
 // 格式化时间
@@ -257,5 +444,10 @@ const formatTime = (timeStr: string) => {
   background-color: #f8f8f8;
   border-radius: 4px;
   min-height: 100px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
 }
 </style> 

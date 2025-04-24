@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -301,14 +302,10 @@ public class ParentServiceImpl implements ParentService {
         // 获取家长的所有已确认子女
         List<User> children = parentChildRepository.findConfirmedChildrenByParentId(parentId);
         
-        // 如果没有确认的子女，返回空列表
-        if (children.isEmpty()) {
-            return Collections.emptyList();
-        }
-        
         // 获取每个子女关联的通知
         List<Map<String, Object>> allNotifications = new ArrayList<>();
         
+        // 1. 获取发送给子女的通知
         for (User child : children) {
             // 通过用户通知关联表查找学生的通知
             List<UserNotification> userNotifications = userNotificationRepository.findByUserId(child.getId());
@@ -357,10 +354,54 @@ public class ParentServiceImpl implements ParentService {
             }
         }
         
+        // 2. 获取直接发送给家长的通知
+        List<UserNotification> parentNotifications = userNotificationRepository.findByUserId(parentId);
+        for (UserNotification userNotification : parentNotifications) {
+            Notification notification = userNotification.getNotification();
+            
+            if (notification != null) {
+                Map<String, Object> notificationInfo = new HashMap<>();
+                notificationInfo.put("id", notification.getId());
+                notificationInfo.put("title", notification.getTitle());
+                notificationInfo.put("content", notification.getContent());
+                notificationInfo.put("publishTime", notification.getCreateTime());
+                notificationInfo.put("status", notification.getStatus());
+                
+                // 获取发送者信息
+                User sender = notification.getSender();
+                if (sender != null) {
+                    notificationInfo.put("sender", sender.getRealName() != null 
+                            ? sender.getRealName() : sender.getUsername());
+                    
+                    // 判断发送者角色，设置通知类型
+                    Set<Role> roles = sender.getRoles();
+                    if (roles.stream().anyMatch(role -> "ADMIN".equals(role.getName()))) {
+                        notificationInfo.put("type", "system");
+                    } else if (roles.stream().anyMatch(role -> "SUPERVISOR".equals(role.getName()))) {
+                        notificationInfo.put("type", "teacher");
+                    } else {
+                        notificationInfo.put("type", "other");
+                    }
+                } else {
+                    notificationInfo.put("sender", "未知");
+                    notificationInfo.put("type", "other");
+                }
+                
+                // 标记为直接发送给家长的通知
+                notificationInfo.put("isDirectToParent", true);
+                
+                // 设置为已读状态
+                notificationInfo.put("isRead", true);
+                
+                // 添加到结果列表
+                allNotifications.add(notificationInfo);
+            }
+        }
+        
         // 按发布时间排序
         allNotifications.sort((n1, n2) -> {
-            Date date1 = (Date) n1.get("publishTime");
-            Date date2 = (Date) n2.get("publishTime");
+            LocalDateTime date1 = (LocalDateTime) n1.get("publishTime");
+            LocalDateTime date2 = (LocalDateTime) n2.get("publishTime");
             return date2.compareTo(date1); // 降序排列，最新的在前
         });
         

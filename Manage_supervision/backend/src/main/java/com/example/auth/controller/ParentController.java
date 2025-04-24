@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.example.auth.dto.ApiResponse;
 import com.example.auth.dto.ParentChildRelationDTO;
 import com.example.auth.entity.ClassStudentRelation;
 import com.example.auth.entity.ParentChildRelation;
@@ -264,25 +265,29 @@ public class ParentController {
      * 获取家长相关通知
      */
     @GetMapping("/notifications")
-    public ResponseEntity<?> getNotifications(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getNotifications(HttpServletRequest request) {
         try {
             Long parentId = getUserIdFromRequest(request);
             if (parentId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "用户未登录", null));
             }
             
             Optional<User> userOpt = userRepository.findById(parentId);
             
             if (userOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>(false, "用户未登录", null));
             }
             
             User parent = userOpt.get();
             List<Map<String, Object>> notifications = parentService.getParentNotifications(parent.getId());
-            return ResponseEntity.ok(Map.of("notifications", notifications));
+            System.out.println("家长ID: " + parent.getId() + " 获取到 " + notifications.size() + " 条通知");
+            return ResponseEntity.ok(new ApiResponse<>(true, "获取通知成功", notifications));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "获取通知失败: " + e.getMessage()));
+                    .body(new ApiResponse<>(false, "获取通知失败: " + e.getMessage(), null));
         }
     }
     

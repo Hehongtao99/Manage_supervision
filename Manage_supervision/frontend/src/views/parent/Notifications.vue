@@ -1,5 +1,15 @@
 <template>
   <div class="parent-notifications">
+    <!-- 管理员发送通知按钮 -->
+    <el-button 
+      v-if="isAdmin" 
+      type="primary" 
+      @click="openSendDialog" 
+      style="position: absolute; top: 20px; right: 20px;"
+    >
+      发送通知给所有家长
+    </el-button>
+
     <el-card>
       <template #header>
         <div class="card-header">
@@ -15,16 +25,32 @@
 
         <el-tabs v-else v-model="activeTab" @tab-click="handleTabClick">
           <el-tab-pane label="全部通知" name="all">
-            <notification-list :notifications="filteredNotifications" @view="viewNotification" @refresh="fetchNotifications" />
+            <notification-table 
+              :notifications="filteredNotifications" 
+              @view="viewNotification" 
+              @refresh="fetchNotifications" 
+            />
           </el-tab-pane>
           <el-tab-pane label="未读通知" name="unread">
-            <notification-list :notifications="filteredNotifications" @view="viewNotification" @refresh="fetchNotifications" />
+            <notification-table 
+              :notifications="filteredNotifications" 
+              @view="viewNotification" 
+              @refresh="fetchNotifications" 
+            />
           </el-tab-pane>
           <el-tab-pane label="系统通知" name="system">
-            <notification-list :notifications="filteredNotifications" @view="viewNotification" @refresh="fetchNotifications" />
+            <notification-table 
+              :notifications="filteredNotifications" 
+              @view="viewNotification" 
+              @refresh="fetchNotifications" 
+            />
           </el-tab-pane>
           <el-tab-pane label="教师通知" name="teacher">
-            <notification-list :notifications="filteredNotifications" @view="viewNotification" @refresh="fetchNotifications" />
+            <notification-table 
+              :notifications="filteredNotifications" 
+              @view="viewNotification" 
+              @refresh="fetchNotifications" 
+            />
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -51,17 +77,60 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- 管理员发送通知对话框 -->
+    <el-dialog v-if="isAdmin" v-model="sendDialogVisible" title="发送通知给所有家长" width="50%">
+      <el-form :model="notificationForm" label-width="100px">
+        <el-form-item label="通知标题" required>
+          <el-input v-model="notificationForm.title" placeholder="请输入通知标题"></el-input>
+        </el-form-item>
+        <el-form-item label="通知类型">
+          <el-select v-model="notificationForm.type" placeholder="请选择通知类型">
+            <el-option label="系统通知" value="system"></el-option>
+            <el-option label="教师通知" value="teacher"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="通知内容" required>
+          <el-input v-model="notificationForm.content" type="textarea" rows="10" placeholder="请输入通知内容"></el-input>
+        </el-form-item>
+        <el-form-item label="附件">
+          <el-upload
+            action="/api/upload"
+            :on-remove="handleFileRemove"
+            :on-success="handleFileSuccess"
+            :file-list="fileList"
+            multiple
+          >
+            <el-button type="primary">选择文件</el-button>
+            <template #tip>
+              <div class="el-upload__tip">支持任意类型文件，单个文件不超过10MB</div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="sendDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="sendNotificationToAllParents">发送</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, computed, onMounted, h, defineComponent } from 'vue'
+import { ElMessage, ElTable, ElTableColumn, ElTag, ElButton, ElBadge } from 'element-plus'
+import { useUserStore } from '@/stores/user'
 
-// 通知列表组件
-const NotificationList = defineComponent({
+// 使用普通函数组件替代JSX
+const NotificationTable = defineComponent({
+  name: 'NotificationTable',
   props: {
-    notifications: Array
+    notifications: {
+      type: Array,
+      default: () => []
+    }
   },
   emits: ['view', 'refresh'],
   setup(props, { emit }) {
@@ -75,45 +144,49 @@ const NotificationList = defineComponent({
       emit('refresh')
     }
     
-    return () => (
-      <el-table data={props.notifications} style="width: 100%" border>
-        <el-table-column width="50">
-          {{
-            default: ({ row }) => (
-              <div class="read-status">
-                {!row.isRead && <el-badge is-dot />}
-              </div>
-            )
-          }}
-        </el-table-column>
-        <el-table-column prop="title" label="标题" />
-        <el-table-column prop="sender" label="发送者" width="150" />
-        <el-table-column prop="type" label="类型" width="120">
-          {{
-            default: ({ row }) => (
-              <el-tag type={row.type === 'system' ? 'danger' : row.type === 'teacher' ? 'primary' : 'info'}>
-                {row.type === 'system' ? '系统通知' : row.type === 'teacher' ? '教师通知' : '其他通知'}
-              </el-tag>
-            )
-          }}
-        </el-table-column>
-        <el-table-column prop="createdAt" label="发送时间" width="180" />
-        <el-table-column label="操作" width="180">
-          {{
-            default: ({ row }) => (
-              <div>
-                <el-button type="primary" link onClick={() => viewNotification(row)}>查看</el-button>
-                {!row.isRead && (
-                  <el-button type="success" link onClick={() => markAsRead(row)}>标为已读</el-button>
-                )}
-              </div>
-            )
-          }}
-        </el-table-column>
-      </el-table>
-    )
+    return () => {
+      return h(ElTable, { 
+        data: props.notifications, 
+        style: 'width: 100%',
+        border: true 
+      }, {
+        default: () => [
+          h(ElTableColumn, { width: 50 }, {
+            default: ({ row }) => h('div', { class: 'read-status' }, [
+              !row.isRead ? h(ElBadge, { isDot: true }) : null
+            ])
+          }),
+          h(ElTableColumn, { prop: 'title', label: '标题' }),
+          h(ElTableColumn, { prop: 'sender', label: '发送者', width: 150 }),
+          h(ElTableColumn, { prop: 'type', label: '类型', width: 120 }, {
+            default: ({ row }) => h(ElTag, { 
+              type: row.type === 'system' ? 'danger' : row.type === 'teacher' ? 'primary' : 'info' 
+            }, () => row.type === 'system' ? '系统通知' : row.type === 'teacher' ? '教师通知' : '其他通知')
+          }),
+          h(ElTableColumn, { prop: 'createdAt', label: '发送时间', width: 180 }),
+          h(ElTableColumn, { label: '操作', width: 180 }, {
+            default: ({ row }) => h('div', {}, [
+              h(ElButton, { 
+                type: 'primary', 
+                link: true,
+                onClick: () => viewNotification(row)
+              }, () => '查看'),
+              !row.isRead ? h(ElButton, { 
+                type: 'success', 
+                link: true,
+                onClick: () => markAsRead(row)
+              }, () => '标为已读') : null
+            ])
+          })
+        ]
+      })
+    }
   }
 })
+
+// 用户store，用于获取当前用户角色
+const userStore = useUserStore()
+const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
 
 // 示例通知数据
 const notifications = ref([
@@ -147,6 +220,15 @@ const notifications = ref([
 const activeTab = ref('all')
 const dialogVisible = ref(false)
 const selectedNotification = ref(null)
+
+// 新增：发送通知对话框
+const sendDialogVisible = ref(false)
+const notificationForm = ref({
+  title: '',
+  content: '',
+  type: 'system',
+  attachments: []
+})
 
 // 计算属性：根据当前选择的标签页筛选通知
 const filteredNotifications = computed(() => {
@@ -183,22 +265,138 @@ const viewNotification = (notification) => {
 
 // 标记所有为已读
 const markAllAsRead = async () => {
-  // 这里调用实际的标记全部已读API
-  ElMessage.info('标记全部已读功能尚未实现')
-  
-  // 模拟全部标记为已读
-  notifications.value.forEach(n => n.isRead = true)
+  try {
+    const response = await fetch('/api/notifications/mark-all-read', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'userId': userStore.userInfo.id
+      }
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      ElMessage.success('所有通知已标记为已读');
+      // 刷新通知列表
+      fetchNotifications();
+    } else {
+      ElMessage.error(result.message || '标记已读失败');
+    }
+  } catch (error) {
+    console.error('标记已读出错:', error);
+    ElMessage.error('标记已读失败，请稍后重试');
+  }
 }
 
 // 加载通知数据
 const fetchNotifications = async () => {
-  // 这里调用实际的通知API
-  console.log('获取通知列表')
+  try {
+    // 根据用户角色调用不同的API端点
+    let url = '/api/parent/notifications';
+    
+    if (isAdmin.value) {
+      // 管理员可以查看所有通知
+      url = '/api/notifications/all';
+    }
+    
+    // 使用Axios发送请求时添加认证头
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'userId': localStorage.getItem('userId') || userStore.userInfo?.id?.toString() || ''
+      }
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      notifications.value = result.data || [];
+    } else {
+      ElMessage.warning(result.message || '获取通知失败');
+      notifications.value = [];
+    }
+  } catch (error) {
+    console.error('获取通知列表出错:', error);
+    ElMessage.error('获取通知列表失败，请稍后重试');
+    notifications.value = [];
+  }
 }
 
 // 格式化日期
 const formatDate = (dateString) => {
   return dateString
+}
+
+// 新增：管理员发送通知给所有家长
+const openSendDialog = () => {
+  sendDialogVisible.value = true
+}
+
+// 新增：发送通知给所有家长
+const sendNotificationToAllParents = async () => {
+  // 表单验证
+  if (!notificationForm.value.title.trim()) {
+    ElMessage.error('请输入通知标题');
+    return;
+  }
+  
+  if (!notificationForm.value.content.trim()) {
+    ElMessage.error('请输入通知内容');
+    return;
+  }
+  
+  try {
+    // 调用API发送通知
+    const response = await fetch('/api/notifications/send-to-all-parents', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'userId': userStore.userInfo.id // 从用户store中获取ID
+      },
+      body: JSON.stringify({
+        title: notificationForm.value.title,
+        content: notificationForm.value.content,
+        recipientType: notificationForm.value.type,
+        attachments: notificationForm.value.attachments
+      })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      ElMessage.success('通知已成功发送给所有家长');
+      sendDialogVisible.value = false;
+      // 重置表单
+      notificationForm.value = {
+        title: '',
+        content: '',
+        type: 'system',
+        attachments: []
+      };
+      fileList.value = [];
+      // 刷新通知列表
+      fetchNotifications();
+    } else {
+      ElMessage.error(result.message || '发送通知失败');
+    }
+  } catch (error) {
+    console.error('发送通知出错:', error);
+    ElMessage.error('发送通知失败，请稍后重试');
+  }
+}
+
+// 文件上传相关
+const fileList = ref([])
+const handleFileRemove = (file) => {
+  fileList.value = fileList.value.filter(f => f.uid !== file.uid)
+}
+
+const handleFileSuccess = (response, file, fileList) => {
+  notificationForm.value.attachments.push({
+    name: file.name,
+    url: response.url
+  })
 }
 
 onMounted(() => {

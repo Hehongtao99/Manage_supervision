@@ -1,5 +1,6 @@
 import http from '@/utils/axios'
-import type { 
+import type { AxiosResponse } from '@/utils/axios'
+import type {
   ParentChildRelationData,
   ParentData,
   PagedResponse

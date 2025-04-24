@@ -33,6 +33,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private ClassStudentRelationRepository classStudentRelationRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Override
     @Transactional
     public NotificationResponse createNotification(Long senderId, NotificationRequest request) {
@@ -104,6 +107,10 @@ public class NotificationServiceImpl implements NotificationService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在: " + userId));
         
+        // 检查用户角色
+        boolean isParent = user.getRoles().stream()
+                .anyMatch(role -> "PARENT".equals(role.getName()));
+        
         // 获取用户当前所在的班级(只获取active状态的班级)
         List<ClassStudentRelation> activeClassRelations = classStudentRelationRepository.findByStudentAndStatus(user, "active");
         List<Long> activeClassIds = activeClassRelations.stream()
@@ -119,11 +126,13 @@ public class NotificationServiceImpl implements NotificationService {
             // 过滤通知：
             // 1. 如果是全局通知(ALL)，则显示
             // 2. 如果是班级通知(CLASS)且用户当前在该班级，则显示
-            // 3. 其他情况不显示
+            // 3. 如果是家长通知(PARENT)且用户是家长，则显示
+            // 4. 其他情况不显示
             boolean shouldShow = "ALL".equals(notification.getRecipientType()) || 
                     ("CLASS".equals(notification.getRecipientType()) && 
                      notification.getClassEntity() != null && 
-                     activeClassIds.contains(notification.getClassEntity().getId()));
+                     activeClassIds.contains(notification.getClassEntity().getId())) ||
+                    ("PARENT".equals(notification.getRecipientType()) && isParent);
             
             if (shouldShow) {
                 result.add(convertToDto(notification, un));
@@ -148,6 +157,170 @@ public class NotificationServiceImpl implements NotificationService {
         return notifications.stream()
                 .map(n -> convertToDto(n, null))
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional
+    public NotificationResponse sendNotificationToAllParents(Long adminId, NotificationRequest request) {
+        // 验证用户是否为管理员
+        if (!isUserAdmin(adminId)) {
+            throw new RuntimeException("只有管理员才能执行此操作");
+        }
+        
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("管理员不存在"));
+        
+        // 创建通知
+        Notification notification = new Notification();
+        notification.setTitle(request.getTitle());
+        notification.setContent(request.getContent());
+        notification.setSender(admin);
+        notification.setRecipientType("PARENT");  // 专门为家长设置类型
+        notification.setStatus("active");
+        notification.setIsGlobal(false);  // 只发给家长，不是全局通知
+        
+        // 保存通知
+        notification = notificationRepository.save(notification);
+        
+        // 查找家长角色
+        Role parentRole = roleRepository.findByName("PARENT");
+        if (parentRole == null) {
+            throw new RuntimeException("家长角色不存在");
+        }
+        
+        // 获取所有家长用户
+        List<User> parents = userRepository.findByRolesContaining(parentRole);
+        
+        if (parents.isEmpty()) {
+            System.out.println("警告: 系统中没有家长用户");
+        } else {
+            System.out.println("为 " + parents.size() + " 名家长创建通知关系");
+        }
+        
+        // 为所有家长创建通知关系
+        for (User parent : parents) {
+            UserNotification userNotification = new UserNotification();
+            userNotification.setUser(parent);
+            userNotification.setNotification(notification);
+            userNotificationRepository.save(userNotification);
+        }
+        
+        return convertToDto(notification, null);
+    }
+    
+    @Override
+    @Transactional
+    public NotificationResponse sendNotificationToAllStudents(Long adminId, NotificationRequest request) {
+        // 验证用户是否为管理员
+        if (!isUserAdmin(adminId)) {
+            throw new RuntimeException("只有管理员才能执行此操作");
+        }
+        
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("管理员不存在"));
+        
+        // 创建通知
+        Notification notification = new Notification();
+        notification.setTitle(request.getTitle());
+        notification.setContent(request.getContent());
+        notification.setSender(admin);
+        notification.setRecipientType("USER");  // 专门为学生设置类型
+        notification.setStatus("active");
+        notification.setIsGlobal(false);  // 只发给学生，不是全局通知
+        
+        // 保存通知
+        notification = notificationRepository.save(notification);
+        
+        // 查找学生角色
+        Role studentRole = roleRepository.findByName("USER");
+        if (studentRole == null) {
+            throw new RuntimeException("学生角色不存在");
+        }
+        
+        // 获取所有学生用户
+        List<User> students = userRepository.findByRolesContaining(studentRole);
+        
+        if (students.isEmpty()) {
+            System.out.println("警告: 系统中没有学生用户");
+        } else {
+            System.out.println("为 " + students.size() + " 名学生创建通知关系");
+        }
+        
+        // 为所有学生创建通知关系
+        for (User student : students) {
+            UserNotification userNotification = new UserNotification();
+            userNotification.setUser(student);
+            userNotification.setNotification(notification);
+            userNotificationRepository.save(userNotification);
+        }
+        
+        return convertToDto(notification, null);
+    }
+    
+    @Override
+    @Transactional
+    public NotificationResponse sendNotificationToAllTeachers(Long adminId, NotificationRequest request) {
+        // 验证用户是否为管理员
+        if (!isUserAdmin(adminId)) {
+            throw new RuntimeException("只有管理员才能执行此操作");
+        }
+        
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("管理员不存在"));
+        
+        // 创建通知
+        Notification notification = new Notification();
+        notification.setTitle(request.getTitle());
+        notification.setContent(request.getContent());
+        notification.setSender(admin);
+        notification.setRecipientType("TEACHER");  // 专门为教师设置类型
+        notification.setStatus("active");
+        notification.setIsGlobal(false);  // 只发给教师，不是全局通知
+        
+        // 保存通知
+        notification = notificationRepository.save(notification);
+        
+        // 查找教师角色（这里假设角色名为supervisor，实际中需要根据系统中定义的角色名进行调整）
+        Role teacherRole = roleRepository.findByName("SUPERVISOR");
+        if (teacherRole == null) {
+            throw new RuntimeException("教师角色不存在");
+        }
+        
+        // 获取所有教师用户
+        List<User> teachers = userRepository.findByRolesContaining(teacherRole);
+        
+        if (teachers.isEmpty()) {
+            System.out.println("警告: 系统中没有教师用户");
+        } else {
+            System.out.println("为 " + teachers.size() + " 名教师创建通知关系");
+        }
+        
+        // 为所有教师创建通知关系
+        for (User teacher : teachers) {
+            UserNotification userNotification = new UserNotification();
+            userNotification.setUser(teacher);
+            userNotification.setNotification(notification);
+            userNotificationRepository.save(userNotification);
+        }
+        
+        return convertToDto(notification, null);
+    }
+    
+    @Override
+    public boolean isUserAdmin(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return false;
+        }
+        
+        // 检查用户角色是否包含admin
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            return false;
+        }
+        
+        // 遍历用户的角色集合，检查是否包含admin角色
+        return user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
     }
 
     private NotificationResponse convertToDto(Notification notification, UserNotification userNotification) {

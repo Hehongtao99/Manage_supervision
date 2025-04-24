@@ -73,4 +73,46 @@ export function getAllNotifications() {
       'userId': getCurrentUserId()
     }
   });
+}
+
+/**
+ * 管理员给所有家长发送通知
+ */
+export function sendToAllParents(data: NotificationRequest) {
+  return request({
+    url: '/api/notifications/send-to-all-parents',
+    method: 'post',
+    data,
+    headers: {
+      'userId': getCurrentUserId()
+    }
+  });
+}
+
+/**
+ * 管理员给所有学生发送通知
+ */
+export function sendToAllStudents(data: NotificationRequest) {
+  return request({
+    url: '/api/notifications/send-to-all-students',
+    method: 'post',
+    data,
+    headers: {
+      'userId': getCurrentUserId()
+    }
+  });
+}
+
+/**
+ * 管理员给所有教师发送通知
+ */
+export function sendToAllTeachers(data: NotificationRequest) {
+  return request({
+    url: '/api/notifications/send-to-all-teachers',
+    method: 'post',
+    data,
+    headers: {
+      'userId': getCurrentUserId()
+    }
+  });
 } 

@@ -74,6 +74,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '../../stores/user'
+import type { AxiosResponse } from '../../types/axios'
 
 const userStore = useUserStore()
 const username = ref(userStore.user.realName || userStore.user.username || '家长用户')
