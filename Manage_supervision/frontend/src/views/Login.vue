@@ -107,7 +107,8 @@ const handleLogin = async () => {
     const success = await userStore.login(form.value.username.trim(), form.value.password)
     if (success) {
       ElMessage.success('登录成功')
-      router.push('/')
+      // 使用userStore的redirectBasedOnRole方法而不是直接跳转到首页
+      // router.push('/')
     } else {
       errorMessage.value = userStore.error || '登录失败，请检查用户名和密码'
       console.log('Login failure details:', userStore.error)

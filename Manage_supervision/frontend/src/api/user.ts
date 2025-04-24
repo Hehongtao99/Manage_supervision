@@ -26,6 +26,7 @@ export interface Student {
 }
 
 const API_URL = '/api/user';
+const ADMIN_API_URL = '/api/admin';
 
 // 获取当前用户信息
 export const getCurrentUser = async (): Promise<UserDTO> => {
@@ -66,4 +67,10 @@ export const uploadAvatar = async (file: File): Promise<string> => {
   });
   
   return response.data.avatarUrl;
+};
+
+// 管理员切换用户状态（启用/禁用）
+export const toggleUserStatus = async (userId: number): Promise<any> => {
+  const response = await axios.post(`${ADMIN_API_URL}/users/${userId}/toggle-status`);
+  return response.data;
 }; 

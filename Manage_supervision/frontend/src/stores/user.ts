@@ -72,7 +72,15 @@ export const useUserStore = defineStore('user', {
       return state.user.roles.some((role: string) => 
         role === 'USER' || role === 'user'
       ) && !state.user.roles.some((role: string) => 
-        role === 'ADMIN' || role === 'admin' || role === 'SUPERVISOR' || role === 'supervisor'
+        role === 'ADMIN' || role === 'admin' || 
+        role === 'SUPERVISOR' || role === 'supervisor' ||
+        role === 'PARENT' || role === 'parent'
+      )
+    },
+    isParent: (state) => {
+      console.log('检查家长权限，当前角色:', state.user.roles)
+      return state.user.roles.some((role: string) => 
+        role === 'PARENT' || role === 'parent'
       )
     },
     getUserRole: (state) => {
@@ -254,6 +262,9 @@ export const useUserStore = defineStore('user', {
       } else if (this.isSupervisor) {
         console.log('用户是教师，重定向到教师控制台')
         router.push('/supervisor/students')
+      } else if (this.isParent) {
+        console.log('用户是家长，重定向到家长控制台')
+        router.push('/parent/dashboard')
       } else {
         console.log('用户是普通用户，重定向到普通仪表盘')
         router.push('/dashboard')

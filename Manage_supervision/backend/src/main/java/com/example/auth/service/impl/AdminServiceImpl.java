@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,8 +46,33 @@ public class AdminServiceImpl implements AdminService {
     public PageResponse<UserDTO> getUserList(int page, int size, String username, String role, String status) {
         Pageable pageable = PageRequest.of(page - 1, size);
         
-        // 这里应该根据条件进行查询，为简化示例，先返回所有用户
-        Page<User> users = userRepository.findAll(pageable);
+        Page<User> users;
+        
+        // 根据参数进行查询
+        if (role != null && !role.isEmpty()) {
+            // 如果指定了角色，查找具有该角色的用户
+            Role roleEntity = roleRepository.findByName(role);
+            if (roleEntity != null) {
+                if (username != null && !username.isEmpty()) {
+                    // 同时根据用户名或真实姓名进行模糊搜索
+                    users = userRepository.findByRolesContainingAndUsernameContainingOrRealNameContaining(
+                            roleEntity, username, username, pageable);
+                } else {
+                    // 只根据角色查询
+                    users = userRepository.findByRolesContaining(roleEntity, pageable);
+                }
+            } else {
+                // 找不到指定角色，返回空结果
+                users = Page.empty(pageable);
+            }
+        } else if (username != null && !username.isEmpty()) {
+            // 没有指定角色但有搜索关键词，进行全局搜索
+            // 此处简化处理，实际可能需要更复杂的查询
+            users = userRepository.findAll(pageable);
+        } else {
+            // 没有任何筛选条件，返回所有用户
+            users = userRepository.findAll(pageable);
+        }
         
         List<UserDTO> userDTOs = users.getContent().stream()
                 .map(this::convertToUserDTO)
@@ -286,5 +312,64 @@ public class AdminServiceImpl implements AdminService {
         }
         
         return dto;
+    }
+
+    @Override
+    public UserDTO createParentUser(UserDTO userDTO, String password) {
+        // 验证参数
+        if (userDTO.getUsername() == null || userDTO.getUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("用户名不能为空");
+        }
+        
+        if (password == null || password.trim().isEmpty()) {
+            throw new IllegalArgumentException("密码不能为空");
+        }
+        
+        // 检查用户名是否已存在
+        User existingUser = userRepository.findByUsername(userDTO.getUsername());
+        if (existingUser != null) {
+            throw new IllegalStateException("用户名已存在");
+        }
+
+        // 创建用户实体
+        User user = new User();
+        user.setUsername(userDTO.getUsername());
+        user.setPassword(PasswordUtils.encryptPassword(password));
+        user.setRealName(userDTO.getRealName());
+        user.setNickname(userDTO.getNickname());
+        user.setEmail(userDTO.getEmail());
+        user.setPhone(userDTO.getPhone());
+        user.setBio(userDTO.getBio());
+        user.setUserNumber(userDTO.getUserNumber());
+        user.setStatus("active"); // 默认激活状态
+        
+        // 设置家长角色
+        Role parentRole = roleRepository.findByName("PARENT");
+        if (parentRole == null) {
+            throw new IllegalStateException("家长角色不存在");
+        }
+        
+        Set<Role> roles = new HashSet<>();
+        roles.add(parentRole);
+        user.setRoles(roles);
+        // 保存用户
+        User savedUser = userRepository.save(user);
+        
+        // 转换为DTO返回
+        UserDTO result = new UserDTO();
+        result.setId(savedUser.getId());
+        result.setUsername(savedUser.getUsername());
+        result.setRealName(savedUser.getRealName());
+        result.setNickname(savedUser.getNickname());
+        result.setEmail(savedUser.getEmail());
+        result.setPhone(savedUser.getPhone());
+        result.setBio(savedUser.getBio());
+        result.setUserNumber(savedUser.getUserNumber());
+        result.setStatus(savedUser.getStatus());
+        result.setRoles(savedUser.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toList()));
+        
+        return result;
     }
 } 

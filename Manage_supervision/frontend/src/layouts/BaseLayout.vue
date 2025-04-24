@@ -68,6 +68,11 @@
                   <el-icon><Monitor /></el-icon>学生管理
                 </el-dropdown-item>
                 
+                <!-- 家长可以直接进入家长控制台 -->
+                <el-dropdown-item v-if="userStore.isParent" @click="$router.push('/parent/dashboard')">
+                  <el-icon><User /></el-icon>家长控制台
+                </el-dropdown-item>
+                
                 <el-dropdown-item divided @click="handleLogout">
                   <el-icon><SwitchButton /></el-icon>退出登录
                 </el-dropdown-item>
@@ -123,6 +128,8 @@ const roleName = computed(() => {
     return '管理员'
   } else if (userStore.isSupervisor) {
     return '教师'
+  } else if (userStore.isParent) {
+    return '家长'
   } else {
     return '学生'
   }
@@ -134,6 +141,8 @@ const roleTagType = computed(() => {
     return 'danger'
   } else if (userStore.isSupervisor) {
     return 'warning'
+  } else if (userStore.isParent) {
+    return 'info'
   } else {
     return 'success'
   }
@@ -145,6 +154,8 @@ const navigateToProfile = () => {
     router.push('/profile')
   } else if (userStore.isSupervisor) {
     router.push('/supervisor/profile')
+  } else if (userStore.isParent) {
+    router.push('/parent/profile')
   } else {
     router.push('/profile')
   }
@@ -154,6 +165,8 @@ const navigateToProfile = () => {
 const navigateToChat = () => {
   if (userStore.isSupervisor) {
     router.push('/supervisor/chat')
+  } else if (userStore.isParent) {
+    router.push('/parent/chat')
   } else {
     router.push('/chat')
   }

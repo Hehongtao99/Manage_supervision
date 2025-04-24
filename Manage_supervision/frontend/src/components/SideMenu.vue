@@ -46,8 +46,12 @@
           <span>班级管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
-          <el-icon><Avatar /></el-icon>
+          <el-icon><User /></el-icon>
           <span>学生管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/parents" @click="handleRoute('/admin/parents')">
+          <el-icon><Avatar /></el-icon>
+          <span>家长管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/timetables" @click="handleRoute('/admin/timetables')">
           <el-icon><Calendar /></el-icon>
@@ -126,6 +130,44 @@
         </template>
       </el-menu-item>
     </template>
+    
+    <!-- 家长菜单 -->
+    <template v-else-if="userStore.isParent">
+      <el-menu-item index="/parent/dashboard" @click="handleRoute('/parent/dashboard')">
+        <el-icon><Monitor /></el-icon>
+        <template #title>
+          <span>家长控制台</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/parent/children" @click="handleRoute('/parent/children')">
+        <el-icon><User /></el-icon>
+        <template #title>
+          <span>子女管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/parent/notifications" @click="handleRoute('/parent/notifications')">
+        <el-icon><Bell /></el-icon>
+        <template #title>
+          <span>我的通知</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/parent/chat" @click="handleRoute('/parent/chat')">
+        <el-icon><ChatDotRound /></el-icon>
+        <template #title>
+          <span>聊天</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/parent/profile" @click="handleRoute('/parent/profile')">
+        <el-icon><UserFilled /></el-icon>
+        <template #title>
+          <span>个人信息</span>
+        </template>
+      </el-menu-item>
+    </template>
 
     <!-- 学生菜单 -->
     <template v-else>
@@ -161,6 +203,13 @@
         <el-icon><Bell /></el-icon>
         <template #title>
           <span>我的通知</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/student/parent-requests" @click="handleRoute('/student/parent-requests')">
+        <el-icon><User /></el-icon>
+        <template #title>
+          <span>家长绑定请求</span>
         </template>
       </el-menu-item>
 

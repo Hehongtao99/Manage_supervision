@@ -413,6 +413,24 @@ CREATE TABLE `users`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Table structure for parent_child_relations
+-- ----------------------------
+DROP TABLE IF EXISTS `parent_child_relations`;
+CREATE TABLE `parent_child_relations` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint NOT NULL COMMENT '家长ID',
+  `child_id` bigint NOT NULL COMMENT '子女ID',
+  `relation_type` varchar(20) NOT NULL COMMENT '关系类型：father, mother, guardian',
+  `status` varchar(20) NOT NULL COMMENT '关系状态：pending, confirmed, rejected',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `idx_parent_child`(`parent_id`, `child_id`) COMMENT '家长-子女唯一索引',
+  CONSTRAINT `fk_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_child_id` FOREIGN KEY (`child_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '家长-子女关系表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Procedure structure for transfer_student
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `transfer_student`;
@@ -433,5 +451,11 @@ BEGIN
 END
 ;;
 delimiter ;
+
+-- 插入角色数据
+INSERT INTO roles (name, description, permissions, create_time) VALUES ('ADMIN', '管理员', 'admin:all,system:all,user:all,role:all', NOW());
+INSERT INTO roles (name, description, permissions, create_time) VALUES ('SUPERVISOR', '教师', 'supervisor:all,student:view', NOW());
+INSERT INTO roles (name, description, permissions, create_time) VALUES ('USER', '学生', 'student:all', NOW());
+INSERT INTO roles (name, description, permissions, create_time) VALUES ('PARENT', '家长', 'parent:all,student:view', NOW());
 
 SET FOREIGN_KEY_CHECKS = 1;

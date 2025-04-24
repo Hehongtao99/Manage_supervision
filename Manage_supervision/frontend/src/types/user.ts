@@ -78,4 +78,36 @@ export interface UserDTO {
   userNumber: string;
   avatar?: string;
   bio?: string;
+}
+
+export interface ParentData {
+  username: string;
+  password: string;
+  realName: string;
+  nickname?: string;
+  email?: string;
+  phone?: string;
+  bio?: string;
+}
+
+export interface ParentChildRelationData {
+  id: number;
+  parentId: number;
+  parentName: string;
+  parentUsername: string;
+  childId: number;
+  childName: string;
+  childUsername: string;
+  childUserNumber: string;
+  relationType: string;
+  status: string;
+  createTime: string;
+  className?: string;
+}
+
+export interface PagedResponse {
+  records: any[];
+  total: number;
+  page: number;
+  size: number;
 } 

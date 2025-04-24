@@ -118,6 +118,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresStudent: true
         }
+      },
+      {
+        path: 'parent-requests',
+        name: 'StudentParentRequests',
+        component: () => import('../views/student/ParentRequests.vue'),
+        meta: { 
+          title: '家长绑定请求',
+          requiresAuth: true,
+          requiresStudent: true
+        }
       }
     ]
   },
@@ -249,6 +259,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'parents',
+        name: 'ParentManagement',
+        component: () => import('../views/admin/ParentManagement.vue'),
+        meta: { 
+          title: '家长管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },
@@ -352,6 +372,67 @@ const routes: RouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: '/parent',
+    component: BaseLayout,
+    redirect: '/parent/dashboard',
+    meta: { 
+      requiresAuth: true,
+      requiresParent: true
+    },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'ParentDashboard',
+        component: () => import('../views/parent/Dashboard.vue'),
+        meta: { 
+          title: '家长控制台',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      },
+      {
+        path: 'profile',
+        name: 'ParentProfile',
+        component: () => import('../views/parent/Profile.vue'),
+        meta: { 
+          title: '个人信息',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      },
+      {
+        path: 'children',
+        name: 'ChildrenManagement',
+        component: () => import('../views/parent/ChildrenManagement.vue'),
+        meta: { 
+          title: '子女管理',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'ParentNotifications',
+        component: () => import('../views/parent/Notifications.vue'),
+        meta: { 
+          title: '我的通知',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      },
+      {
+        path: 'chat',
+        name: 'ParentChat',
+        component: () => import('../views/chat/ChatPage.vue'),
+        meta: { 
+          title: '聊天',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      }
+    ]
   }
 ]
 
@@ -382,7 +463,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // 检查特定角色要求之前，强制刷新用户信息以确保权限是最新的
-    if (to.meta.requiresAdmin || to.meta.requiresSupervisor) {
+    if (to.meta.requiresAdmin || to.meta.requiresSupervisor || to.meta.requiresParent) {
       console.log('页面需要特定角色权限，刷新用户信息...')
       try {
         // 尝试刷新用户信息，但不强制刷新以避免可能的循环
@@ -394,6 +475,9 @@ router.beforeEach(async (to, from, next) => {
           needsForceRefresh = true
         } else if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
           console.log('需要教师权限但当前不是教师，尝试强制刷新')
+          needsForceRefresh = true
+        } else if (to.meta.requiresParent && !userStore.isParent) {
+          console.log('需要家长权限但当前不是家长，尝试强制刷新')
           needsForceRefresh = true
         }
         
@@ -430,6 +514,36 @@ router.beforeEach(async (to, from, next) => {
           
           if (hasSupervisorRole) {
             console.log('localStorage中存在教师角色，允许访问')
+            next()
+            return
+          }
+        }
+      } catch (e) {
+        console.error('解析localStorage中的角色信息失败:', e)
+      }
+      
+      console.log('权限验证失败，重定向到聊天页面')
+      next('/chat')
+      return
+    }
+    
+    // 检查家长权限
+    if (to.meta.requiresParent && !userStore.isParent) {
+      console.log('需要家长权限，但用户不是家长，角色:', userStore.user.roles)
+      console.log('isParent返回值:', userStore.isParent)
+      
+      // 尝试从localStorage获取角色信息进行二次验证
+      try {
+        const rolesStr = localStorage.getItem('userRoles')
+        if (rolesStr) {
+          const roles = JSON.parse(rolesStr)
+          const hasParentRole = roles.some((role: string) => 
+            role === 'PARENT' || role === 'parent'
+          )
+          console.log('从localStorage检查家长角色:', roles, '结果:', hasParentRole)
+          
+          if (hasParentRole) {
+            console.log('localStorage中存在家长角色，允许访问')
             next()
             return
           }

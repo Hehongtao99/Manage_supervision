@@ -27,4 +27,12 @@ public interface AdminService {
     RoleDTO updateRole(Long id, RoleDTO roleDTO);
     
     void deleteRole(Long id);
+
+    /**
+     * 创建家长用户
+     * @param userDTO 用户信息
+     * @param password 密码
+     * @return 创建的用户信息
+     */
+    UserDTO createParentUser(UserDTO userDTO, String password);
 } 

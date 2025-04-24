@@ -5,10 +5,12 @@ import com.example.auth.dto.PageResponse;
 import com.example.auth.dto.StudentAssignmentDTO;
 import com.example.auth.dto.TeacherWithStudentsDTO;
 import com.example.auth.dto.UserDTO;
+import com.example.auth.entity.ParentChildRelation;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.User;
 import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
+import com.example.auth.service.ParentService;
 import com.example.auth.service.TeacherStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -32,6 +35,9 @@ public class AdminTeacherStudentController {
     
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private ParentService parentService;
 
     // 获取所有教师列表（带分页）
     @GetMapping("/teachers")
@@ -145,5 +151,48 @@ public class AdminTeacherStudentController {
     public ResponseEntity<TeacherWithStudentsDTO> getTeacherDetails(@PathVariable Long teacherId) {
         TeacherWithStudentsDTO teacher = teacherStudentService.getTeacherWithStudents(teacherId);
         return ResponseEntity.ok(teacher);
+    }
+
+    // 获取特定学生的家长列表
+    @GetMapping("/students/{studentId}/parents")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> getParentsByStudent(@PathVariable Long studentId) {
+        try {
+            Optional<User> optionalStudent = userRepository.findById(studentId);
+            if (!optionalStudent.isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "学生不存在"));
+            }
+            
+            // 获取学生的已确认家长关系
+            List<ParentChildRelation> relations = parentService.getConfirmedParentRelations(studentId);
+            
+            // 转换为前端需要的格式
+            List<Map<String, Object>> parentDTOs = relations.stream()
+                .map(relation -> {
+                    Map<String, Object> dto = new HashMap<>();
+                    dto.put("relationId", relation.getId());
+                    
+                    // 家长信息
+                    User parent = relation.getParent();
+                    dto.put("id", parent.getId());
+                    dto.put("username", parent.getUsername());
+                    dto.put("realName", parent.getRealName() != null ? parent.getRealName() : parent.getUsername());
+                    dto.put("userNumber", parent.getUserNumber());
+                    dto.put("email", parent.getEmail());
+                    dto.put("phone", parent.getPhone());
+                    
+                    // 关系信息
+                    dto.put("relationType", relation.getRelationType());
+                    dto.put("status", relation.getStatus());
+                    dto.put("createTime", relation.getCreateTime());
+                    
+                    return dto;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(Map.of("parents", parentDTOs));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "获取家长列表失败: " + e.getMessage()));
+        }
     }
 } 

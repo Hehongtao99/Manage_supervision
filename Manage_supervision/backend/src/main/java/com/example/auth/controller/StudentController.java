@@ -20,6 +20,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import com.example.auth.dto.ClassDTO;
+import com.example.auth.entity.Class;
+import com.example.auth.entity.ClassStudentRelation;
+import com.example.auth.entity.ParentChildRelation;
+import com.example.auth.repository.ClassRepository;
+import com.example.auth.repository.ClassStudentRelationRepository;
+import com.example.auth.repository.UserRepository;
+import com.example.auth.service.ParentService;
 
 @RestController
 @RequestMapping("/api/student")
@@ -38,6 +48,18 @@ public class StudentController {
     
     @Autowired
     private ClassTeacherService classTeacherService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ClassStudentRelationRepository classStudentRepository;
+
+    @Autowired
+    private ClassRepository classRepository;
+    
+    @Autowired
+    private ParentService parentService;
 
     /**
      * 获取当前登录用户ID
@@ -171,6 +193,102 @@ public class StudentController {
             logger.error("获取班级教师信息失败", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("获取班级教师信息失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取学生的所有家长关系请求
+     */
+    @GetMapping("/parent-relations")
+    public ResponseEntity<?> getParentRelations(HttpServletRequest request) {
+        try {
+            // 使用自定义方法获取用户ID
+            Long studentId = getUserIdFromRequest(request);
+            if (studentId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+            }
+            
+            Optional<User> userOpt = userRepository.findById(studentId);
+            
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+            }
+            
+            User student = userOpt.get();
+            List<ParentChildRelation> relations = parentService.getParentRelations(student.getId());
+            
+            List<Map<String, Object>> relationDTOs = relations.stream().map(relation -> {
+                Map<String, Object> dto = new HashMap<>();
+                dto.put("id", relation.getId());
+                
+                User parent = relation.getParent();
+                dto.put("parentId", parent.getId());
+                dto.put("parentName", parent.getRealName() != null ? parent.getRealName() : parent.getUsername());
+                dto.put("parentUsername", parent.getUsername());
+                
+                dto.put("relationType", relation.getRelationType());
+                dto.put("status", relation.getStatus());
+                dto.put("createTime", relation.getCreateTime());
+                
+                return dto;
+            }).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(Map.of("relations", relationDTOs));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "获取家长关系请求失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 处理家长关系请求
+     */
+    @PutMapping("/parent-relations/{relationId}")
+    public ResponseEntity<?> handleParentRelation(
+            @PathVariable Long relationId, 
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+        try {
+            // 使用自定义方法获取用户身份
+            Long studentId = getUserIdFromRequest(httpRequest);
+            if (studentId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+            }
+            
+            Optional<User> userOpt = userRepository.findById(studentId);
+            String username = userOpt.isPresent() ? userOpt.get().getUsername() : "";
+            
+            String status = request.get("status");
+            if (status == null || (!status.equals("confirmed") && !status.equals("rejected"))) {
+                return ResponseEntity.badRequest().body(Map.of("message", "状态参数无效"));
+            }
+            
+            ParentChildRelation relation = parentService.updateRelationStatus(relationId, status);
+            
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", relation.getId());
+            
+            User parent = relation.getParent();
+            dto.put("parentId", parent.getId());
+            dto.put("parentName", parent.getRealName() != null ? parent.getRealName() : parent.getUsername());
+            dto.put("parentUsername", parent.getUsername());
+            
+            dto.put("relationType", relation.getRelationType());
+            dto.put("status", relation.getStatus());
+            dto.put("createTime", relation.getCreateTime());
+            
+            String message = status.equals("confirmed") ? "已接受家长关联请求" : "已拒绝家长关联请求";
+            
+            return ResponseEntity.ok(Map.of(
+                    "message", message,
+                    "relation", dto
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "处理家长关系请求失败: " + e.getMessage()));
         }
     }
 } 

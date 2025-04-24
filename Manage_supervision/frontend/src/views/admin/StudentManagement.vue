@@ -41,6 +41,12 @@
         <el-table-column prop="realName" label="姓名" width="120" />
         <el-table-column prop="email" label="邮箱" width="180" />
         <el-table-column prop="phone" label="手机号" width="120" />
+        <el-table-column label="监护人" width="120">
+          <template #default="{ row }">
+            <span v-if="row.guardian">{{ row.guardian }}</span>
+            <el-tag v-else type="info" size="small">未设置</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
@@ -60,7 +66,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="180">
+        <el-table-column label="操作" fixed="right" width="280">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -69,6 +75,13 @@
               v-if="row.assignStatus"
             >
               查看教师
+            </el-button>
+            <el-button
+              type="success"
+              link
+              @click="handleShowParents(row)"
+            >
+              查看家长
             </el-button>
           </template>
         </el-table-column>
@@ -127,6 +140,46 @@
         该学生暂未分配教师
       </div>
     </el-dialog>
+
+    <!-- 学生家长信息对话框 -->
+    <el-dialog
+      title="家长信息"
+      v-model="parentsDialogVisible"
+      width="600px"
+    >
+      <div v-if="selectedStudent && studentParents.length > 0" class="parents-info">
+        <h3>{{ selectedStudent.realName || selectedStudent.username }} 的家长</h3>
+        
+        <el-table :data="studentParents" border stripe style="width: 100%">
+          <el-table-column prop="realName" label="姓名" />
+          <el-table-column prop="phone" label="联系电话" />
+          <el-table-column prop="relationType" label="关系">
+            <template #default="scope">
+              {{ getRelationTypeLabel(scope.row.relationType) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="scope">
+              <el-button
+                type="danger"
+                link
+                @click="handleRemoveParentRelation(scope.row)"
+              >
+                解除关系
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      
+      <div v-else class="empty-data">
+        该学生暂无家长关联
+      </div>
+      
+      <div class="dialog-footer">
+        <el-button @click="parentsDialogVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -139,6 +192,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getStudents } from '../../api/student'
 import { unassignStudent } from '../../api/teacher'
+import * as parentApi from '../../api/parent'
 import type { UserProfile } from '../../types/user'
 import axios from '../../utils/axios'
 
@@ -151,6 +205,8 @@ const studentList = ref<(UserProfile & { assignStatus?: boolean })[]>([])
 const teacherDialogVisible = ref(false)
 const selectedStudent = ref<UserProfile | null>(null)
 const studentTeachers = ref<UserProfile[]>([])
+const studentParents = ref<UserProfile[]>([])
+const parentsDialogVisible = ref(false)
 
 // 搜索表单
 const searchForm = reactive({
@@ -164,11 +220,26 @@ const fetchStudents = async () => {
     const response = await getStudents(currentPage.value, pageSize.value, searchForm.keyword)
     const students = response.content
     
-    // 获取学生分配状态
+    // 获取学生分配状态和监护人信息
     await Promise.all(students.map(async (student: any) => {
       try {
+        // 获取分配教师状态
         const teachersResponse = await axios.get(`/api/admin/teachers/student/${student.id}`)
         student.assignStatus = teachersResponse.data.length > 0
+        
+        // 获取学生的监护人信息
+        try {
+          const parentsResponse = await parentApi.getStudentParents(student.id)
+          if (parentsResponse.parents && parentsResponse.parents.length > 0) {
+            // 查找关系类型为"guardian"的家长，如果没有就取第一个
+            const guardian = parentsResponse.parents.find((p: any) => p.relationType === 'guardian') || parentsResponse.parents[0]
+            student.guardian = guardian.realName
+            student.guardianId = guardian.id
+            student.guardianRelationType = guardian.relationType
+          }
+        } catch (err) {
+          console.log(`获取学生${student.id}的监护人信息失败:`, err)
+        }
       } catch (error) {
         student.assignStatus = false
       }
@@ -177,6 +248,7 @@ const fetchStudents = async () => {
     studentList.value = students
     total.value = response.total
   } catch (error) {
+    console.error('获取学生列表失败:', error)
     ElMessage.error('获取学生列表失败')
   } finally {
     loading.value = false
@@ -246,6 +318,62 @@ const handleUnassignStudent = async () => {
   }
 }
 
+const handleShowParents = async (student: UserProfile) => {
+  selectedStudent.value = student
+  parentsDialogVisible.value = true
+  
+  try {
+    const response = await parentApi.getStudentParents(student.id)
+    console.log('获取学生家长结果:', response)
+    studentParents.value = response.parents || []
+  } catch (error) {
+    console.error('获取家长信息失败:', error)
+    ElMessage.error('获取家长信息失败')
+    studentParents.value = []
+  }
+}
+
+const handleRemoveParentRelation = async (parent: any) => {
+  if (!selectedStudent.value) return
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要解除 ${selectedStudent.value.realName || selectedStudent.value.username} 与家长 ${parent.realName} 的关系吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    // 调用解除关系API
+    await parentApi.removeParentChildRelation(parent.relationId)
+    ElMessage.success('解除关系成功')
+    
+    // 重新获取家长列表
+    if (selectedStudent.value) {
+      const response = await parentApi.getStudentParents(selectedStudent.value.id)
+      studentParents.value = response.parents || []
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('解除关系失败:', error)
+      ElMessage.error('解除关系失败')
+    }
+  }
+}
+
+// 获取关系类型标签
+const getRelationTypeLabel = (type: string): string => {
+  const types: Record<string, string> = {
+    'father': '父亲',
+    'mother': '母亲',
+    'guardian': '监护人'
+  }
+  return types[type] || type
+}
+
 // 生命周期钩子
 onMounted(() => {
   fetchStudents()
@@ -307,5 +435,10 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.parents-info h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 </style> 
