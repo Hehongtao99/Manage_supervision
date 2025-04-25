@@ -26,13 +26,20 @@ public class NotificationController {
             @RequestHeader(value = "userId", required = false) Long userId,
             @RequestBody NotificationRequest request) {
         try {
+            System.out.println("接收到创建通知请求: userId=" + userId + ", title=" + request.getTitle() + ", recipientType=" + request.getRecipientType());
+            
             if (userId == null) {
+                System.out.println("创建通知失败: 用户未认证");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(false, "用户未认证", null));
             }
+            
             NotificationResponse notification = notificationService.createNotification(userId, request);
+            System.out.println("通知创建成功: id=" + notification.getId());
             return ResponseEntity.ok(new ApiResponse<>(true, "通知创建成功", notification));
         } catch (Exception e) {
+            System.err.println("创建通知出现异常: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest()
                 .body(new ApiResponse<>(false, "创建通知失败: " + e.getMessage(), null));
         }
@@ -98,20 +105,27 @@ public class NotificationController {
             @RequestHeader(value = "userId", required = false) Long userId,
             @RequestBody NotificationRequest request) {
         try {
+            System.out.println("接收到发送通知给所有家长请求: userId=" + userId + ", title=" + request.getTitle());
+            
             if (userId == null) {
+                System.out.println("发送通知给所有家长失败: 用户未认证");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(false, "用户未认证", null));
             }
             
             // 检查当前用户是否为管理员
             if (!notificationService.isUserAdmin(userId)) {
+                System.out.println("发送通知给所有家长失败: 用户不是管理员, userId=" + userId);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ApiResponse<>(false, "只有管理员才能执行此操作", null));
             }
             
             NotificationResponse notification = notificationService.sendNotificationToAllParents(userId, request);
+            System.out.println("通知已成功发送给所有家长: id=" + notification.getId());
             return ResponseEntity.ok(new ApiResponse<>(true, "通知已成功发送给所有家长", notification));
         } catch (Exception e) {
+            System.err.println("发送通知给所有家长出现异常: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest()
                 .body(new ApiResponse<>(false, "发送通知失败: " + e.getMessage(), null));
         }

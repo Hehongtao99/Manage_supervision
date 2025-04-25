@@ -133,6 +133,7 @@ export const getTeacherClasses = async (teacherId?: number) => {
         data: response.data.map((classObj: any) => ({
           id: classObj.id,
           name: classObj.className || classObj.name || '未命名班级',
+          className: classObj.className || classObj.name || '未命名班级',
           grade: classObj.grade,
           description: classObj.description,
           createTime: classObj.createTime,
@@ -141,6 +142,29 @@ export const getTeacherClasses = async (teacherId?: number) => {
           studentCount: classObj.studentCount || 0
         }))
       };
+    } else if (response.data && typeof response.data === 'object') {
+      // 如果返回的是对象但不是数组
+      console.warn('后端返回的班级数据是对象而不是数组:', response.data);
+      
+      // 检查是否有data字段并且是数组
+      if (response.data.data && Array.isArray(response.data.data)) {
+        return {
+          data: response.data.data.map((classObj: any) => ({
+            id: classObj.id,
+            name: classObj.className || classObj.name || '未命名班级',
+            className: classObj.className || classObj.name || '未命名班级',
+            grade: classObj.grade,
+            description: classObj.description,
+            createTime: classObj.createTime,
+            updateTime: classObj.updateTime,
+            status: classObj.status,
+            studentCount: classObj.studentCount || 0
+          }))
+        };
+      }
+      
+      // 如果数据结构完全不符合预期，返回空数组
+      return { data: [] };
     }
     
     // 如果无法处理，返回空数组

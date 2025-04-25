@@ -31,7 +31,7 @@
       <el-empty v-if="filteredNotifications.length === 0" description="暂无通知记录" />
 
       <div v-else>
-        <el-table :data="filteredNotifications" style="width: 100%">
+        <el-table :data="filteredNotifications" style="width: 100%" :default-sort="{ prop: 'createTime', order: 'descending' }">
           <el-table-column prop="title" label="标题" min-width="200">
             <template #default="{ row }">
               <el-tooltip :content="row.content" placement="top" :show-after="500">
@@ -48,7 +48,7 @@
             </template>
           </el-table-column>
           
-          <el-table-column prop="createTime" label="发送时间" width="180">
+          <el-table-column prop="createTime" label="发送时间" width="180" sortable>
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
@@ -216,16 +216,21 @@ onMounted(async () => {
   ]);
 });
 
-// 加载通知列表
+// 加载通知列表 - 已发送通知
 const loadNotifications = async () => {
   try {
     const res = await getSentNotifications();
-    if (res.data.success) {
+    console.log('获取已发送通知响应:', res);
+    
+    if (res && res.data && res.data.success) {
       notifications.value = res.data.data;
+    } else {
+      console.error('获取通知列表失败:', res);
+      ElMessage.error((res && res.data && res.data.message) || '获取通知列表失败');
     }
   } catch (error) {
-    console.error('获取通知列表失败', error);
-    ElMessage.error('获取通知列表失败');
+    console.error('获取通知列表失败:', error);
+    ElMessage.error('获取通知列表失败，请稍后重试');
   }
 };
 
@@ -269,17 +274,22 @@ const submitNotification = async () => {
     submitting.value = true;
     
     try {
+      console.log('准备发送通知:', notificationForm.value);
       const res = await createNotification(notificationForm.value);
-      if (res.data.success) {
+      console.log('通知发送响应:', res);
+      
+      if (res && res.data && res.data.success) {
         ElMessage.success('通知发送成功');
         createDialogVisible.value = false;
         await loadNotifications();
-      } else {
+      } else if (res && res.data) {
         ElMessage.error(res.data.message || '发送失败');
+      } else {
+        ElMessage.error('通知发送失败，未收到服务器响应');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('发送通知失败', error);
-      ElMessage.error('发送通知失败，请稍后重试');
+      ElMessage.error(error.message || '发送通知失败，请稍后重试');
     } finally {
       submitting.value = false;
     }

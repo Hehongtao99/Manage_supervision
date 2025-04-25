@@ -52,6 +52,12 @@ public interface ClassStudentRelationRepository extends JpaRepository<ClassStude
     List<User> findActiveStudentsByClassId(@Param("classId") Long classId);
     
     /**
+     * 根据班级ID和状态查找学生列表
+     */
+    @Query("SELECT csr.student FROM ClassStudentRelation csr WHERE csr.classEntity.id = :classId AND csr.status = :status")
+    List<User> findStudentsByClassIdAndStatus(@Param("classId") Long classId, @Param("status") String status);
+    
+    /**
      * 查找学生所在的所有活跃班级
      */
     @Query("SELECT csr.classEntity FROM ClassStudentRelation csr WHERE csr.student.id = :studentId AND csr.status = 'active'")

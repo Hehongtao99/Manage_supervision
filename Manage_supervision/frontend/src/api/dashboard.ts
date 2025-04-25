@@ -1,5 +1,6 @@
 import axios from '../utils/axios'
 import { useUserStore } from '../stores/user'
+import type { SupervisorDashboardDTO } from '@/types/dashboard'
 
 export interface UserInfo {
   id: number
@@ -38,5 +39,29 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   console.log('调用仪表盘API，用户角色:', userStore.user.roles, '使用端点:', endpoint)
   
   const response = await axios.get<DashboardStats>(`/api/dashboard${endpoint}`)
+  return response.data
+}
+
+/**
+ * 获取管理员控制台统计数据
+ */
+export const getAdminDashboardStats = async () => {
+  const response = await axios.get('/api/dashboard/admin/stats')
+  return response.data
+}
+
+/**
+ * 获取基础控制台统计数据
+ */
+export const getBasicDashboardStats = async () => {
+  const response = await axios.get('/api/dashboard/stats')
+  return response.data
+}
+
+/**
+ * 获取教师/督导员控制台统计数据
+ */
+export const getSupervisorDashboardStats = async (): Promise<SupervisorDashboardDTO> => {
+  const response = await axios.get('/api/dashboard/supervisor/stats')
   return response.data
 } 

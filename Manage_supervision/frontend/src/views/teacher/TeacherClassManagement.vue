@@ -11,8 +11,8 @@
             placeholder="搜索班级名称"
             class="search-input"
             clearable
-            @clear="searchClasses"
-            @input="searchClasses"
+            @clear="loadClasses"
+            @input="handleSearch"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
@@ -21,9 +21,15 @@
         </div>
       </template>
       
+      <div v-if="loading" class="loading-container">
+        <el-skeleton :rows="5" animated />
+      </div>
+      
+      <el-empty v-else-if="filteredClasses.length === 0" description="暂无班级数据"></el-empty>
+      
       <el-table
-        v-loading="loading"
-        :data="classes"
+        v-else
+        :data="filteredClasses"
         style="width: 100%"
         border
         @row-click="handleClassClick"
@@ -41,13 +47,20 @@
       </el-table>
     </el-card>
     
+    <!-- 班级学生对话框 -->
     <el-dialog
       v-model="studentsDialogVisible"
-      title="班级学生"
+      :title="selectedClass ? `${selectedClass.className}学生列表` : '班级学生'"
       width="70%"
     >
+      <div v-if="studentsLoading" class="loading-container">
+        <el-skeleton :rows="5" animated />
+      </div>
+      
+      <el-empty v-else-if="students.length === 0" description="该班级暂无学生"></el-empty>
+      
       <el-table
-        v-loading="studentsLoading"
+        v-else
         :data="students"
         style="width: 100%"
         border
@@ -68,11 +81,11 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
-import { getTeacherClasses, getClassStudents } from '@/api/supervisor';
+import { getTeacherClasses } from '@/api/class';
 
 // 班级数据
 const classes = ref<any[]>([]);
@@ -85,20 +98,32 @@ const studentsLoading = ref(false);
 const studentsDialogVisible = ref(false);
 const selectedClass = ref<any>(null);
 
+// 计算过滤后的班级列表
+const filteredClasses = computed(() => {
+  if (!searchKeyword.value) return classes.value;
+  
+  const keyword = searchKeyword.value.toLowerCase().trim();
+  return classes.value.filter(cls => 
+    (cls.className && cls.className.toLowerCase().includes(keyword)) ||
+    (cls.grade && cls.grade.toLowerCase().includes(keyword)) ||
+    (cls.description && cls.description.toLowerCase().includes(keyword))
+  );
+});
+
 // 获取班级列表
-const fetchClasses = async () => {
+const loadClasses = async () => {
   loading.value = true;
   try {
     const result = await getTeacherClasses();
     console.log('获取到班级数据:', result);
     
-    // 检查返回的数据格式
+    // 检查返回数据格式并处理
     if (result && Array.isArray(result)) {
       classes.value = result;
-    } else if (result && result.classes && Array.isArray(result.classes)) {
-      classes.value = result.classes;
     } else if (result && result.data && Array.isArray(result.data)) {
       classes.value = result.data;
+    } else if (result?.data?.data && Array.isArray(result.data.data)) {
+      classes.value = result.data.data;
     } else {
       console.warn('返回的班级数据格式不是预期格式:', result);
       classes.value = [];
@@ -113,24 +138,11 @@ const fetchClasses = async () => {
   }
 };
 
-// 搜索班级
-const searchClasses = () => {
-  const keyword = searchKeyword.value.toLowerCase().trim();
-  if (!keyword) {
-    fetchClasses();
-    return;
+// 延迟搜索以提高性能
+const handleSearch = () => {
+  if (searchKeyword.value.trim() === '') {
+    loadClasses();
   }
-  
-  // 保存原始班级列表的引用，并在此基础上进行过滤
-  fetchClasses().then(() => {
-    // 本地过滤
-    classes.value = classes.value.filter(cls => 
-      (cls.className && cls.className.toLowerCase().includes(keyword)) ||
-      (cls.name && cls.name.toLowerCase().includes(keyword)) ||
-      (cls.grade && cls.grade.toLowerCase().includes(keyword)) ||
-      (cls.description && cls.description.toLowerCase().includes(keyword))
-    );
-  });
 };
 
 // 处理班级点击
@@ -139,41 +151,35 @@ const handleClassClick = (row: any) => {
 };
 
 // 查看班级学生
-const viewStudents = async (classData: any) => {
-  if (!classData || !classData.id) {
-    ElMessage.warning('找不到班级信息');
-    return;
-  }
-  
-  selectedClass.value = classData;
+const viewStudents = async (classInfo: any) => {
+  selectedClass.value = classInfo;
   studentsDialogVisible.value = true;
   studentsLoading.value = true;
   
   try {
-    const result = await getClassStudents(classData.id);
-    console.log('获取到班级学生数据:', result);
+    const response = await fetch(`/api/classes/${classInfo.id}/students`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
-    // 检查返回数据格式
-    if (Array.isArray(result)) {
-      students.value = result;
-    } else if (result && result.data && Array.isArray(result.data)) {
-      students.value = result.data;
-    } else {
-      console.warn('返回的学生数据格式不是预期格式:', result);
-      students.value = [];
-      ElMessage.warning('获取学生数据格式不正确');
+    const data = await response.json();
+    students.value = Array.isArray(data) ? data : [];
+    
+    if (students.value.length === 0) {
+      ElMessage.info('该班级暂无学生');
     }
   } catch (error: any) {
-    console.error('获取学生列表失败:', error);
+    console.error('获取班级学生失败:', error);
     students.value = [];
-    ElMessage.error('获取学生列表失败：' + (error.response?.data?.message || error.message || '未知错误'));
+    ElMessage.error('获取学生列表失败：' + error.message);
   } finally {
     studentsLoading.value = false;
   }
 };
 
+// 页面加载时获取班级数据
 onMounted(() => {
-  fetchClasses();
+  loadClasses();
 });
 </script>
 
@@ -188,6 +194,10 @@ onMounted(() => {
   color: #303133;
 }
 
+.box-card {
+  margin-bottom: 20px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -198,11 +208,20 @@ onMounted(() => {
   width: 300px;
 }
 
-.box-card {
-  margin-bottom: 20px;
+.loading-container {
+  padding: 20px 0;
 }
 
 .el-table {
+  margin-top: 20px;
+}
+
+/* 表格行悬停效果 */
+:deep(.el-table__row) {
   cursor: pointer;
+}
+
+:deep(.el-table__row:hover > td) {
+  background-color: #f0f9ff !important;
 }
 </style> 

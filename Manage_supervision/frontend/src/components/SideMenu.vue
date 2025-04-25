@@ -26,10 +26,6 @@
           <el-icon><Avatar /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/roles" @click="handleRoute('/admin/roles')">
-          <el-icon><Lock /></el-icon>
-          <span>角色管理</span>
-        </el-menu-item>
       </el-sub-menu>
 
       <el-sub-menu index="teacher-student-management">
@@ -95,7 +91,7 @@
         </template>
       </el-menu-item>
       
-      <el-menu-item index="/supervisor/class" @click="handleRoute('/supervisor/class')">
+      <el-menu-item index="/supervisor/class-management" @click="handleRoute('/supervisor/class-management')">
         <el-icon><List /></el-icon>
         <template #title>
           <span>班级管理</span>
@@ -192,17 +188,17 @@
 
     <!-- 学生菜单 -->
     <template v-else>
+      <el-menu-item index="/student/dashboard" @click="handleRoute('/student/dashboard')">
+        <el-icon><Monitor /></el-icon>
+        <template #title>
+          <span>学生首页</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/chat" @click="handleRoute('/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
           <span>聊天</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/student/tasks" @click="handleRoute('/student/tasks')">
-        <el-icon><Document /></el-icon>
-        <template #title>
-          <span>任务列表</span>
         </template>
       </el-menu-item>
 

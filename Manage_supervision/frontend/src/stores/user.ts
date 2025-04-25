@@ -266,8 +266,8 @@ export const useUserStore = defineStore('user', {
         console.log('用户是家长，重定向到家长控制台')
         router.push('/parent/dashboard')
       } else {
-        console.log('用户是普通用户，重定向到普通仪表盘')
-        router.push('/dashboard')
+        console.log('用户是学生，重定向到学生仪表盘')
+        router.push('/student/dashboard')
       }
     },
 

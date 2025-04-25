@@ -53,12 +53,22 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/student',
     component: BaseLayout,
-    redirect: '/student/tasks',
+    redirect: '/student/dashboard',
     meta: { 
       requiresAuth: true,
       requiresStudent: true
     },
     children: [
+      {
+        path: 'dashboard',
+        name: 'StudentDashboard',
+        component: () => import('../views/student/Dashboard.vue'),
+        meta: { 
+          title: '学生首页',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
       {
         path: 'tasks',
         name: 'StudentTaskList',
@@ -201,16 +211,6 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'roles',
-        name: 'RoleManagement',
-        component: () => import('../views/admin/RoleManagement.vue'),
-        meta: { 
-          title: '角色管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
         path: 'logs',
         name: 'SystemLogs',
         component: () => import('../views/admin/SystemLogs.vue'),
@@ -285,12 +285,22 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/supervisor',
     component: BaseLayout,
-    redirect: '/supervisor/students',
+    redirect: '/supervisor/dashboard',
     meta: { 
       requiresAuth: true,
       requiresSupervisor: true
     },
     children: [
+      {
+        path: 'dashboard',
+        name: 'SupervisorDashboard',
+        component: () => import('../views/supervisor/Dashboard.vue'),
+        meta: { 
+          title: '教师控制台',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
       {
         path: 'students',
         name: 'SupervisorStudentManagement',
@@ -319,7 +329,8 @@ const routes: RouteRecordRaw[] = [
           title: '班级管理',
           requiresAuth: true,
           requiresSupervisor: true
-        }
+        },
+        alias: 'class'
       },
       {
         path: 'timetable',
@@ -397,6 +408,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/teacher/TeacherMessage.vue'),
         meta: { 
           title: '家长留言',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'class-management',
+        name: 'TeacherClassManagement',
+        component: () => import('../views/teacher/TeacherClassManagement.vue'),
+        meta: { 
+          title: '班级管理',
           requiresAuth: true,
           requiresSupervisor: true
         }

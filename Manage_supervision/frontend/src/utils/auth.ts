@@ -13,16 +13,19 @@ export function getCurrentUserId(): number | null {
     if (userStoreStr) {
       const userStore = JSON.parse(userStoreStr);
       if (userStore.user && userStore.user.id) {
-        return userStore.user.id;
+        console.log('从userStore获取到用户ID:', userStore.user.id);
+        return Number(userStore.user.id);
       }
     }
     
     // 尝试从localStorage直接获取userId
     const userId = localStorage.getItem('userId');
     if (userId) {
-      return parseInt(userId, 10);
+      console.log('从localStorage直接获取到用户ID:', userId);
+      return Number(userId);
     }
     
+    console.warn('未能获取到用户ID, userStore和userId均为空');
     return null;
   } catch (error) {
     console.error('获取用户ID失败:', error);

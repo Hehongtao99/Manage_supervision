@@ -39,8 +39,26 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public NotificationResponse createNotification(Long senderId, NotificationRequest request) {
+        System.out.println("开始创建通知: senderId=" + senderId + ", title=" + request.getTitle() + ", type=" + request.getRecipientType());
+        
+        // 验证请求对象
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new RuntimeException("通知标题不能为空");
+        }
+        
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw new RuntimeException("通知内容不能为空");
+        }
+        
+        if (request.getRecipientType() == null) {
+            throw new RuntimeException("通知接收者类型不能为空");
+        }
+        
+        // 验证发送者存在
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new RuntimeException("用户不存在: ID=" + senderId));
+        
+        System.out.println("发送者信息: ID=" + sender.getId() + ", 用户名=" + sender.getUsername() + ", 角色=" + sender.getRoles());
 
         Notification notification = new Notification();
         notification.setTitle(request.getTitle());
@@ -52,6 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
         // 设置是否为全局通知
         if ("ALL".equals(request.getRecipientType())) {
             notification.setIsGlobal(true);
+            System.out.println("这是全局通知");
         } else {
             notification.setIsGlobal(false);
         }
@@ -62,40 +81,49 @@ public class NotificationServiceImpl implements NotificationService {
                 throw new RuntimeException("班级通知必须指定班级ID");
             }
             com.example.auth.entity.Class classEntity = classRepository.findById(request.getClassId())
-                    .orElseThrow(() -> new RuntimeException("班级不存在"));
+                    .orElseThrow(() -> new RuntimeException("班级不存在: ID=" + request.getClassId()));
             notification.setClassEntity(classEntity);
+            System.out.println("班级通知: 班级ID=" + classEntity.getId() + ", 班级名称=" + classEntity.getClassName());
         }
 
         // 保存通知
-        notification = notificationRepository.save(notification);
+        try {
+            notification = notificationRepository.save(notification);
+            System.out.println("通知保存成功: ID=" + notification.getId());
+        } catch (Exception e) {
+            System.err.println("保存通知时出错: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("保存通知失败: " + e.getMessage());
+        }
 
         // 为相关用户创建通知关系
         List<User> recipients = new ArrayList<>();
-        if ("ALL".equals(request.getRecipientType())) {
-            // 所有用户都收到通知
-            recipients = userRepository.findAll();
-        } else if ("CLASS".equals(request.getRecipientType())) {
-            // 只有班级内的学生收到通知
-            List<ClassStudentRelation> relations = classStudentRelationRepository.findByClassEntityAndStatus(
-                    notification.getClassEntity(), "active");
-            
-            if (relations.isEmpty()) {
-                System.out.println("警告: 班级 " + request.getClassId() + " 没有活跃学生");
-            } else {
-                System.out.println("为班级 " + request.getClassId() + " 的 " + relations.size() + " 名学生创建通知关系");
+        
+        try {
+            if ("ALL".equals(request.getRecipientType())) {
+                // 全体通知 - 获取所有用户
+                recipients = userRepository.findAll();
+                System.out.println("全体通知: 找到 " + recipients.size() + " 个用户");
+            } else if ("CLASS".equals(request.getRecipientType())) {
+                // 班级通知 - 获取班级内所有学生
+                Long classId = request.getClassId();
+                recipients = classStudentRelationRepository.findStudentsByClassIdAndStatus(classId, "active");
+                System.out.println("班级通知: 班级ID=" + classId + ", 找到 " + recipients.size() + " 个学生");
             }
             
-            recipients = relations.stream()
-                    .map(ClassStudentRelation::getStudent)
-                    .collect(Collectors.toList());
-        }
-
-        // 创建用户通知关系
-        for (User recipient : recipients) {
-            UserNotification userNotification = new UserNotification();
-            userNotification.setUser(recipient);
-            userNotification.setNotification(notification);
-            userNotificationRepository.save(userNotification);
+            // 创建用户通知关系
+            for (User recipient : recipients) {
+                UserNotification userNotification = new UserNotification();
+                userNotification.setUser(recipient);
+                userNotification.setNotification(notification);
+                userNotificationRepository.save(userNotification);
+            }
+            
+            System.out.println("成功创建了 " + recipients.size() + " 个用户通知关系");
+        } catch (Exception e) {
+            System.err.println("创建用户通知关系时出错: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("创建用户通知关系失败: " + e.getMessage());
         }
 
         return convertToDto(notification, null);
@@ -139,13 +167,18 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         
+        // 按照创建时间降序排序（新的在前面）
+        result.sort((a, b) -> b.getCreateTime().compareTo(a.getCreateTime()));
+        
         return result;
     }
     
 
     @Override
     public List<NotificationResponse> getSentNotifications(Long teacherId) {
-        List<Notification> notifications = notificationRepository.findBySenderId(teacherId);
+        // 使用优化后的查询方法，直接从数据库获取排序后的结果
+        List<Notification> notifications = notificationRepository.findBySenderIdOrderByCreateTimeDesc(teacherId);
+        
         return notifications.stream()
                 .map(n -> convertToDto(n, null))
                 .collect(Collectors.toList());
@@ -153,7 +186,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationResponse> getAllNotifications() {
-        List<Notification> notifications = notificationRepository.findAll();
+        // 使用优化后的查询方法，直接从数据库获取排序后的结果
+        List<Notification> notifications = notificationRepository.findAllOrderByCreateTimeDesc();
+        
         return notifications.stream()
                 .map(n -> convertToDto(n, null))
                 .collect(Collectors.toList());

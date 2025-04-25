@@ -2,44 +2,53 @@
   <div class="chat-window">
     <!-- 聊天头部 -->
     <div class="chat-header">
+      <!-- 如果有会话，则显示对方用户信息 -->
       <div v-if="conversation" class="user-info">
         <span class="username">{{ otherUser.name }}</span>
       </div>
+      <!-- 如果没有会话，则显示占位符 -->
       <div v-else class="placeholder">
-        <span>Please select a chat</span>
+        <span>请选择一个聊天</span>
       </div>
     </div>
-    
+
     <!-- 聊天内容区 -->
-    <div 
-      class="chat-content" 
+    <div
+      class="chat-content"
       ref="chatContent"
       @scroll="handleScroll"
     >
-      <el-empty v-if="!conversation" description="Select a contact to start chatting" />
-      
+      <!-- 如果没有会话，则显示空状态消息 -->
+      <el-empty v-if="!conversation" description="选择一个联系人开始聊天" />
+
+      <!-- 如果有会话，则显示消息内容 -->
       <template v-else>
+        <!-- 加载中状态 -->
         <div v-if="loading" class="loading-container">
           <el-skeleton :rows="3" animated />
         </div>
-        
+
+        <!-- 没有消息时的空状态 -->
         <div v-else-if="messages.length === 0" class="empty-conversation">
-          <el-empty description="No messages yet" />
+          <el-empty description="暂无消息" />
         </div>
-        
+
+        <!-- 消息列表 -->
         <template v-else>
+          <!-- 加载更多按钮 -->
           <div v-if="hasMoreMessages" class="load-more">
-            <el-button 
-              :loading="loadingMore" 
-              link 
+            <el-button
+              :loading="loadingMore"
+              link
               @click="loadMoreMessages"
             >
-              Load more
+              加载更多
             </el-button>
           </div>
-          
-          <ChatMessage 
-            v-for="(message, index) in messages" 
+
+          <!-- 循环渲染消息组件 -->
+          <ChatMessage
+            v-for="(message, index) in messages"
             :key="message.id"
             :message="message"
             :show-sender="shouldShowSender(message, index)"
@@ -47,15 +56,16 @@
         </template>
       </template>
     </div>
-    
+
     <!-- 聊天输入区 -->
     <div class="chat-input" v-if="conversation">
       <div class="input-area">
+        <!-- 消息输入框 -->
         <el-input
           v-model="messageContent"
           type="textarea"
           :autosize="{ minRows: 2, maxRows: 5 }"
-          placeholder="Type a message..."
+          placeholder="输入消息..."
           @keydown.enter.exact.prevent="sendMessage"
         />
       </div>
@@ -70,29 +80,30 @@
           :on-change="handleFileSelected"
         >
           <el-button type="primary" :icon="Upload" plain class="upload-btn">
-            File
+            文件
           </el-button>
         </el-upload>
-        
-        <el-button 
-          type="primary" 
-          :disabled="!messageContent.trim() && !selectedFile" 
+
+        <!-- 发送按钮 -->
+        <el-button
+          type="primary"
+          :disabled="!messageContent.trim() && !selectedFile"
           @click="sendMessage"
           :loading="sending"
         >
-          Send
+          发送
         </el-button>
       </div>
-      
+
       <!-- 显示已选择的文件 -->
       <div v-if="selectedFile" class="selected-file">
         <span class="file-name">{{ selectedFile.name }}</span>
         <span class="file-size">({{ formatFileSize(selectedFile.size) }})</span>
-        <el-button 
-          type="danger" 
-          :icon="Delete" 
-          circle 
-          plain 
+        <el-button
+          type="danger"
+          :icon="Delete"
+          circle
+          plain
           size="small"
           @click="clearSelectedFile"
         />
@@ -111,68 +122,68 @@ import type { ChatMessage as ChatMessageType } from '../../services/chat';
 import { Upload, Delete } from '@element-plus/icons-vue';
 import { ElNotification } from 'element-plus';
 
-// 组件属性
+// 组件属性定义
 const props = defineProps<{
-  conversationId?: number;
+  conversationId?: number; // 会话 ID（可选）
 }>();
 
-// 组件事件
+// 组件事件定义
 const emit = defineEmits<{
-  (e: 'messageSent'): void;
+  (e: 'messageSent'): void; // 消息发送事件
 }>();
 
-// Store
+// 使用 Vuex Store
 const chatStore = useChatStore();
 const userStore = useUserStore();
 
-// 状态变量
-const messageContent = ref('');
-const chatContent = ref<HTMLElement | null>(null);
-const loading = ref(false);
-const sending = ref(false);
-const loadingMore = ref(false);
-const hasMoreMessages = ref(true);
-const firstMessageId = ref<number | null>(null);
-const selectedFile = ref<File | null>(null);
-const upload = ref<any>(null);
+// 状态变量定义
+const messageContent = ref(''); // 消息内容
+const chatContent = ref<HTMLElement | null>(null); // 聊天内容区域的 DOM 元素引用
+const loading = ref(false); // 加载状态
+const sending = ref(false); // 发送状态
+const loadingMore = ref(false); // 加载更多状态
+const hasMoreMessages = ref(true); // 是否有更多消息
+const firstMessageId = ref<number | null>(null); // 第一条消息 ID
+const selectedFile = ref<File | null>(null); // 选择的文件
+const upload = ref<any>(null); // el-upload 组件的引用
 
-// 计算当前会话
+// 计算属性：当前会话
 const conversation = computed(() => {
   if (!props.conversationId) return null;
   return chatStore.conversations.find(c => c.id === props.conversationId) || null;
 });
 
-// 获取另一个用户信息
+// 计算属性：获取对方用户信息
 const otherUser = computed(() => {
   if (!conversation.value) return { id: 0, name: '', avatar: '' };
-  
+
   const currentUserId = userStore.userId;
   return conversation.value.user1.id === currentUserId
     ? conversation.value.user2
     : conversation.value.user1;
 });
 
-// 获取消息列表
+// 计算属性：获取消息列表
 const messages = computed(() => {
   if (!props.conversationId) return [];
   return chatStore.getMessagesForConversation(props.conversationId);
 });
 
-// 判断是否应该显示发送者名称（只在连续消息的第一条显示）
+// 判断是否应该显示发送者名称
 const shouldShowSender = (message: ChatMessageType, index: number) => {
   if (index === 0) return true;
-  
+
   const prevMessage = messages.value[index - 1];
   return prevMessage.senderId !== message.senderId;
 };
 
-// 监听消息滚动
+// 处理滚动事件，加载更多消息
 const handleScroll = () => {
   if (!chatContent.value) return;
-  
+
   const { scrollTop } = chatContent.value;
-  
-  // 当滚动到顶部附近时，自动加载更多消息
+
+  // 滚动到顶部附近时，加载更多消息
   if (scrollTop < 50 && hasMoreMessages.value && !loadingMore.value) {
     loadMoreMessages();
   }
@@ -181,33 +192,34 @@ const handleScroll = () => {
 // 加载更多消息
 const loadMoreMessages = async () => {
   if (!props.conversationId || !firstMessageId.value || loadingMore.value || !hasMoreMessages.value) return;
-  
+
   loadingMore.value = true;
-  
+
   try {
     // 记录当前滚动位置和高度
     const { scrollHeight } = chatContent.value!;
-    
+
     // 加载更早的消息
     const loadedCount = await chatStore.loadOlderMessages(props.conversationId, firstMessageId.value);
-    
+
+    // 如果没有更多消息，设置 hasMoreMessages 为 false
     if (loadedCount === 0 || loadedCount < 20) {
       hasMoreMessages.value = false;
     }
-    
+
     // 等待DOM更新
     await nextTick();
-    
+
     // 保持滚动位置（考虑新增内容的高度）
     if (chatContent.value) {
       const newScrollHeight = chatContent.value.scrollHeight;
       chatContent.value.scrollTop = newScrollHeight - scrollHeight;
     }
-    
+
     // 更新第一条消息ID
     updateFirstMessageId();
   } catch (error) {
-    console.error('Failed to load more messages:', error);
+    console.error('加载更多消息失败:', error);
   } finally {
     loadingMore.value = false;
   }
@@ -223,37 +235,37 @@ const updateFirstMessageId = () => {
 // 发送消息
 const sendMessage = async () => {
   if ((!messageContent.value.trim() && !selectedFile.value) || !props.conversationId || sending.value) return;
-  
+
   sending.value = true;
-  
+
   try {
     // 如果有文件，发送文件消息
     if (selectedFile.value) {
       await chatService.sendFileMessage(
-        otherUser.value.id, 
-        selectedFile.value, 
+        otherUser.value.id,
+        selectedFile.value,
         messageContent.value.trim()
       );
-      
+
       // 清除已选文件
       clearSelectedFile();
     } else {
       // 发送纯文本消息
       await chatStore.sendMessage(otherUser.value.id, messageContent.value.trim());
     }
-    
+
     // 清空消息内容
     messageContent.value = '';
     emit('messageSent');
-    
+
     // 滚动到底部
     await nextTick();
     scrollToBottom();
   } catch (error) {
-    console.error('Failed to send message:', error);
+    console.error('发送消息失败:', error);
     ElNotification({
-      title: 'Send Failed',
-      message: error instanceof Error ? error.message : 'Failed to send message, please try again',
+      title: '发送失败',
+      message: error instanceof Error ? error.message : '发送消息失败，请重试',
       type: 'error'
     });
   } finally {
@@ -264,12 +276,12 @@ const sendMessage = async () => {
 // 处理文件选择
 const handleFileSelected = (file: any) => {
   selectedFile.value = file.raw;
-  
+
   // 如果文件太大，显示警告
   if (file.size > 20 * 1024 * 1024) { // 20MB
     ElNotification({
-      title: 'File Too Large',
-      message: 'File size cannot exceed 20MB',
+      title: '文件过大',
+      message: '文件大小不能超过 20MB',
       type: 'warning'
     });
   }
@@ -316,27 +328,27 @@ const handleNewMessage = (message: ChatMessageType) => {
 // 加载会话消息
 const loadConversationMessages = async () => {
   if (!props.conversationId) return;
-  
+
   loading.value = true;
-  
+
   try {
     // 设置活跃的会话
     await chatStore.setActiveConversation(props.conversationId);
-    
+
     // 更新第一条消息ID
     updateFirstMessageId();
-    
+
     // 滚动到底部
     await nextTick();
     scrollToBottom();
   } catch (error) {
-    console.error('Failed to load conversation messages:', error);
+    console.error('加载会话消息失败:', error);
   } finally {
     loading.value = false;
   }
 };
 
-// 监听conversationId变化
+// 监听 conversationId 变化
 watch(() => props.conversationId, (newId) => {
   if (newId) {
     hasMoreMessages.value = true;
@@ -348,7 +360,7 @@ watch(() => props.conversationId, (newId) => {
 onMounted(() => {
   // 注册消息监听
   const unsubscribe = chatService.onMessage(handleNewMessage, props.conversationId);
-  
+
   // 组件卸载时取消监听
   onUnmounted(() => {
     if (unsubscribe) unsubscribe();
@@ -471,4 +483,4 @@ onMounted(() => {
   font-size: 12px;
   color: #67c23a;
 }
-</style> 
+</style>

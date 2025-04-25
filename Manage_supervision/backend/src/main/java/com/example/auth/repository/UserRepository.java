@@ -15,6 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     Long countByRolesContaining(Role role);
     
+    Long countByStatus(String status);
+    
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    Long countByRolesNameContaining(@Param("roleName") String roleName);
+    
     Page<User> findByRolesContaining(Role role, Pageable pageable);
     
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r = :role AND (u.username LIKE %:username% OR u.realName LIKE %:realName%)")

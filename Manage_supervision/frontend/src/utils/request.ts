@@ -2,6 +2,7 @@ import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../stores/user';
+import { getCurrentUserId } from './auth';
 
 // 创建axios实例
 const service = axios.create({
@@ -23,10 +24,17 @@ service.interceptors.request.use(
       console.log('request.ts: 未找到token，不设置Authorization头');
     }
     
-    // 获取用户ID
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      config.headers['userId'] = userId;
+    // 获取用户ID - 首先尝试从headers中获取，如果没有则从localStorage获取
+    if (!config.headers['userId']) {
+      const userId = getCurrentUserId();
+      if (userId) {
+        config.headers['userId'] = userId;
+        console.log('request.ts: 设置userId头:', userId);
+      } else {
+        console.warn('request.ts: 未找到userId，请求可能会失败');
+      }
+    } else {
+      console.log('request.ts: 使用已设置的userId头:', config.headers['userId']);
     }
     
     // 添加请求日志
@@ -46,8 +54,15 @@ service.interceptors.response.use(
     // 在这里可以对响应数据做些什么
     console.log('API响应:', response.config.url, response.status);
     
-    // 直接返回响应数据，不做嵌套处理
-    return response.data;
+    // 检查响应中是否有错误信息
+    if (response.data && response.data.success === false) {
+      console.warn('API返回错误:', response.data.message);
+      ElMessage.error(response.data.message || '操作失败');
+      return Promise.reject(new Error(response.data.message || '操作失败'));
+    }
+    
+    // 直接返回响应数据，而不是response.data
+    return response;
   },
   (error) => {
     console.error('API请求错误:', error);

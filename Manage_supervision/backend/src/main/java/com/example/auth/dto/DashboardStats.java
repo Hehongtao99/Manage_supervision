@@ -7,6 +7,13 @@ import java.util.Map;
 @Data
 public class DashboardStats {
     private Long totalUsers;
+    private Long activeUsers;
+    private Long totalRoles;
+    private String systemStatus;
+    private Long totalStudents;
+    private Long totalTeachers;
+    private Long totalClasses;
+    private Long totalNotifications;
     private Map<String, Long> roleDistribution;
     private SystemInfo systemInfo;
     private List<UserInfo> userList;

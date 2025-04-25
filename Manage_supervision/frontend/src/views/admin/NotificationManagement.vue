@@ -32,7 +32,7 @@
       <el-empty v-if="filteredNotifications.length === 0" description="暂无通知记录" />
 
       <div v-else>
-        <el-table :data="filteredNotifications" style="width: 100%">
+        <el-table :data="filteredNotifications" style="width: 100%" :default-sort="{ prop: 'createTime', order: 'descending' }">
           <el-table-column prop="title" label="标题" min-width="200">
             <template #default="{ row }">
               <el-tooltip :content="row.content" placement="top" :show-after="500">
@@ -55,7 +55,7 @@
             </template>
           </el-table-column>
           
-          <el-table-column prop="createTime" label="发送时间" width="180">
+          <el-table-column prop="createTime" label="发送时间" width="180" sortable>
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
@@ -228,8 +228,13 @@ onMounted(async () => {
 const loadAllNotifications = async () => {
   try {
     const res = await getAllNotifications();
-    if (res.data.success) {
+    console.log('获取通知列表响应:', res);
+    
+    if (res && res.data && res.data.success) {
       notifications.value = res.data.data;
+    } else {
+      console.error('获取通知列表失败:', res);
+      ElMessage.error((res && res.data && res.data.message) || '获取通知列表失败');
     }
   } catch (error) {
     console.error('获取通知列表失败', error);
@@ -282,38 +287,49 @@ const sendNotification = async () => {
     const request: NotificationRequest = {
       title: notificationForm.value.title,
       content: notificationForm.value.content,
-      recipientType: notificationForm.value.recipientGroup === 'CLASS' ? 'CLASS' : 'ALL'
+      recipientType: notificationForm.value.recipientGroup
     };
     
     if (notificationForm.value.recipientGroup === 'CLASS') {
       request.classId = notificationForm.value.classId;
     }
     
-    let response;
-    switch (notificationForm.value.recipientGroup) {
-      case 'ALL':
-        response = await createNotification(request);
-        break;
-      case 'PARENT':
-        response = await sendToAllParents(request);
-        break;
-      case 'STUDENT':
-        response = await sendToAllStudents(request);
-        break;
-      case 'TEACHER':
-        response = await sendToAllTeachers(request);
-        break;
-      case 'CLASS':
-        response = await createNotification(request);
-        break;
-    }
+    console.log('准备发送通知:', request);
     
-    if (response.data.success) {
-      ElMessage.success('通知发送成功');
-      sendDialogVisible.value = false;
-      loadAllNotifications();
-    } else {
-      ElMessage.error(response.data.message || '通知发送失败');
+    let response;
+    try {
+      switch (notificationForm.value.recipientGroup) {
+        case 'ALL':
+          response = await createNotification(request);
+          break;
+        case 'PARENT':
+          response = await sendToAllParents(request);
+          break;
+        case 'STUDENT':
+          response = await sendToAllStudents(request);
+          break;
+        case 'TEACHER':
+          response = await sendToAllTeachers(request);
+          break;
+        case 'CLASS':
+          response = await createNotification(request);
+          break;
+      }
+      
+      console.log('通知发送响应:', response);
+      
+      if (response && response.data && response.data.success) {
+        ElMessage.success('通知发送成功');
+        sendDialogVisible.value = false;
+        await loadAllNotifications();
+      } else if (response && response.data) {
+        ElMessage.error(response.data.message || '通知发送失败');
+      } else {
+        ElMessage.error('通知发送失败，未收到服务器响应');
+      }
+    } catch (error: any) {
+      console.error('发送通知API调用失败:', error);
+      ElMessage.error(error.message || '通知发送失败');
     }
   } catch (error: any) {
     console.error('发送通知失败', error);

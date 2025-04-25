@@ -7,6 +7,8 @@ import com.example.auth.entity.Project;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.Task;
 import com.example.auth.entity.User;
+import com.example.auth.repository.ClassRepository;
+import com.example.auth.repository.NotificationRepository;
 import com.example.auth.repository.ProjectRepository;
 import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.TaskRepository;
@@ -37,6 +39,12 @@ public class DashboardServiceImpl implements DashboardService {
     
     @Autowired
     private TaskRepository taskRepository;
+    
+    @Autowired
+    private ClassRepository classRepository;
+    
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     private DashboardStats.SystemInfo getSystemInfo() {
         DashboardStats.SystemInfo systemInfo = new DashboardStats.SystemInfo();
@@ -75,6 +83,33 @@ public class DashboardServiceImpl implements DashboardService {
         
         // 获取用户总数
         stats.setTotalUsers(userRepository.count());
+        
+        // 获取活跃用户数
+        Long activeUsers = userRepository.countByStatus("active");
+        stats.setActiveUsers(activeUsers);
+        
+        // 获取角色总数
+        Long totalRoles = roleRepository.count();
+        stats.setTotalRoles(totalRoles);
+        
+        // 设置系统状态
+        stats.setSystemStatus("正常");
+        
+        // 获取学生总数
+        Long studentCount = userRepository.countByRolesNameContaining("学生");
+        stats.setTotalStudents(studentCount);
+        
+        // 获取教师总数
+        Long teacherCount = userRepository.countByRolesNameContaining("教师");
+        stats.setTotalTeachers(teacherCount);
+        
+        // 获取班级总数
+        Long classCount = classRepository.count();
+        stats.setTotalClasses(classCount);
+        
+        // 获取通知总数
+        Long notificationCount = notificationRepository.count();
+        stats.setTotalNotifications(notificationCount);
         
         // 获取角色分布
         Map<String, Long> roleDistribution = new HashMap<>();

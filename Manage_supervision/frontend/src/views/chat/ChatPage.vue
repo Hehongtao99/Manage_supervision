@@ -3,35 +3,35 @@
     <div class="chat-container">
       <div class="chat-sidebar">
         <div class="sidebar-header">
-          <h2>Messages</h2>
+          <h2>消息</h2>
           <el-dropdown v-if="isSupervisor" @command="handleCommand">
             <el-button type="primary" size="small">
-              New Chat <el-icon><ArrowDown /></el-icon>
+              发起新聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="showStudentList">Select Student</el-dropdown-item>
+                <el-dropdown-item command="showStudentList">选择学生</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
           <el-dropdown v-else @command="handleCommand">
             <el-button type="primary" size="small">
-              New Chat <el-icon><ArrowDown /></el-icon>
+              发起新聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="showSupervisorList">Select Supervisor</el-dropdown-item>
+                <el-dropdown-item command="showSupervisorList">选择导师</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
-        <ChatList 
+        <ChatList
           :loading="loadingConversations"
           @select="handleSelectConversation"
         />
       </div>
       <div class="chat-main">
-        <ChatWindow 
+        <ChatWindow
           :conversation-id="activeConversationId"
           @message-sent="handleMessageSent"
         />
@@ -41,29 +41,29 @@
     <!-- 学生选择对话框 -->
     <el-dialog
       v-model="showStudentDialog"
-      title="Select Student"
+      title="选择学生"
       width="500px"
     >
       <el-input
         v-model="searchKeyword"
-        placeholder="Search students"
+        placeholder="搜索学生"
         prefix-icon="Search"
         clearable
         @input="handleSearch"
       />
-      
+
       <el-table
         :data="filteredStudents"
         style="width: 100%; margin-top: 16px;"
         height="350px"
         v-loading="loadingStudents"
       >
-        <el-table-column prop="name" label="Name" width="120" />
-        <el-table-column prop="studentId" label="Student ID" width="180" />
-        <el-table-column fixed="right" label="Actions" width="120">
+        <el-table-column prop="name" label="姓名" width="120" />
+        <el-table-column prop="studentId" label="学号" width="180" />
+        <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
             <el-button link type="primary" @click="startChatWithStudent(scope.row)">
-              Start Chat
+              开始聊天
             </el-button>
           </template>
         </el-table-column>
@@ -73,28 +73,28 @@
     <!-- 教师选择对话框 -->
     <el-dialog
       v-model="showSupervisorDialog"
-      title="Select Supervisor"
+      title="选择导师"
       width="500px"
     >
       <el-input
         v-model="supervisorSearchKeyword"
-        placeholder="Search supervisors"
+        placeholder="搜索导师"
         prefix-icon="Search"
         clearable
         @input="handleSupervisorSearch"
       />
-      
+
       <el-table
         :data="filteredSupervisors"
         style="width: 100%; margin-top: 16px;"
         height="350px"
         v-loading="loadingSupervisors"
       >
-        <el-table-column prop="name" label="Name" width="180" />
-        <el-table-column fixed="right" label="Actions" width="120">
+        <el-table-column prop="name" label="姓名" width="180" />
+        <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
             <el-button link type="primary" @click="startChatWithSupervisor(scope.row)">
-              Start Chat
+              开始聊天
             </el-button>
           </template>
         </el-table-column>
@@ -151,25 +151,25 @@ const handleCommand = (command: string) => {
 // 加载学生列表
 const loadStudents = async () => {
   loadingStudents.value = true;
-  
+
   try {
     const response = await axios.get('/api/supervisor/students');
-    
+
     // 添加数据验证
     if (Array.isArray(response.data)) {
       students.value = response.data.map(student => ({
         ...student,
-        name: student.name || 'Unknown Name',
-        studentId: student.studentId || 'Unknown ID'
+        name: student.name || '未知姓名',
+        studentId: student.studentId || '未知学号'
       }));
       filteredStudents.value = students.value;
     } else {
-      console.error('Student data format error:', response.data);
+      console.error('学生数据格式错误:', response.data);
       students.value = [];
       filteredStudents.value = [];
     }
   } catch (error) {
-    console.error('Failed to load student list:', error);
+    console.error('加载学生列表失败:', error);
     students.value = [];
     filteredStudents.value = [];
   } finally {
@@ -180,25 +180,25 @@ const loadStudents = async () => {
 // 加载教师列表
 const loadSupervisors = async () => {
   loadingSupervisors.value = true;
-  
+
   try {
     const supervisorList = await getSupervisors();
-    
+
     // 添加数据验证
     if (Array.isArray(supervisorList)) {
       supervisors.value = supervisorList.map(supervisor => ({
         ...supervisor,
-        name: supervisor.name || supervisor.username || 'Unknown Name',
-        department: supervisor.department || 'Unknown Department'
+        name: supervisor.name || supervisor.username || '未知姓名',
+        department: supervisor.department || '未知部门'
       }));
       filteredSupervisors.value = supervisors.value;
     } else {
-      console.error('Supervisor data format error:', supervisorList);
+      console.error('导师数据格式错误:', supervisorList);
       supervisors.value = [];
       filteredSupervisors.value = [];
     }
   } catch (error) {
-    console.error('Failed to load supervisor list:', error);
+    console.error('加载导师列表失败:', error);
     supervisors.value = [];
     filteredSupervisors.value = [];
   } finally {
@@ -209,13 +209,13 @@ const loadSupervisors = async () => {
 // 搜索学生
 const handleSearch = () => {
   const keyword = searchKeyword.value.toLowerCase();
-  
+
   if (!keyword) {
     filteredStudents.value = students.value;
     return;
   }
-  
-  filteredStudents.value = students.value.filter(student => 
+
+  filteredStudents.value = students.value.filter(student =>
     (student.name && student.name.toLowerCase().includes(keyword)) ||
     (student.studentId && student.studentId.toLowerCase().includes(keyword))
   );
@@ -224,13 +224,13 @@ const handleSearch = () => {
 // 搜索教师
 const handleSupervisorSearch = () => {
   const keyword = supervisorSearchKeyword.value.toLowerCase();
-  
+
   if (!keyword) {
     filteredSupervisors.value = supervisors.value;
     return;
   }
-  
-  filteredSupervisors.value = supervisors.value.filter(supervisor => 
+
+  filteredSupervisors.value = supervisors.value.filter(supervisor =>
     (supervisor.name && supervisor.name.toLowerCase().includes(keyword))
   );
 };
@@ -238,32 +238,32 @@ const handleSupervisorSearch = () => {
 // 开始与学生聊天
 const startChatWithStudent = async (student: any) => {
   if (!student || !student.id) {
-    console.error('Student data incomplete, cannot start chat:', student);
+    console.error('学生数据不完整，无法开始聊天:', student);
     return;
   }
-  
+
   try {
     const conversation = await chatStore.getOrCreateConversationWithUser(student.id);
     activeConversationId.value = conversation.id;
     showStudentDialog.value = false;
   } catch (error) {
-    console.error('Failed to start chat:', error);
+    console.error('开始聊天失败:', error);
   }
 };
 
 // 开始与教师聊天
 const startChatWithSupervisor = async (supervisor: any) => {
   if (!supervisor || !supervisor.id) {
-    console.error('Supervisor data incomplete, cannot start chat:', supervisor);
+    console.error('导师数据不完整，无法开始聊天:', supervisor);
     return;
   }
-  
+
   try {
     const conversation = await chatStore.getOrCreateConversationWithUser(supervisor.id);
     activeConversationId.value = conversation.id;
     showSupervisorDialog.value = false;
   } catch (error) {
-    console.error('Failed to start chat:', error);
+    console.error('开始聊天失败:', error);
   }
 };
 
@@ -281,10 +281,10 @@ const handleMessageSent = () => {
 onMounted(async () => {
   // 初始化聊天服务
   await chatStore.initChat();
-  
+
   // 加载会话列表
   await chatStore.loadConversations();
-  
+
   // 如果有会话，选择第一个
   if (chatStore.conversations.length > 0) {
     activeConversationId.value = chatStore.conversations[0].id;
@@ -346,4 +346,4 @@ onMounted(async () => {
   height: 100%;
   position: relative;
 }
-</style> 
+</style>

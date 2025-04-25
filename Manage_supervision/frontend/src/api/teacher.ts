@@ -1,4 +1,5 @@
 import axios from '../utils/axios'
+import type { UserDTO } from '../types/user'
 
 // 获取教师列表（分页）
 export const getTeachers = async (page = 1, size = 10, keyword?: string) => {
@@ -34,6 +35,17 @@ export const getTeacherStudents = async (teacherId: number) => {
     return response.data
   } catch (error) {
     console.error('获取教师学生列表失败:', error)
+    throw error
+  }
+}
+
+// 获取当前登录教师的学生列表
+export const getCurrentTeacherStudents = async () => {
+  try {
+    const response = await axios.get('/api/supervisor/students/assigned')
+    return response.data
+  } catch (error) {
+    console.error('获取当前教师学生列表失败:', error)
     throw error
   }
 }
