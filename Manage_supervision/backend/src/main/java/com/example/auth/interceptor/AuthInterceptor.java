@@ -80,25 +80,38 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         System.out.println("用户: " + username + ", 角色: " + user.getRoles());
 
-        // 直接使用简单字符串比对
+        // 处理可能的多角色要求 (逗号分隔)
+        String[] requiredRoles = requiredRole.split(",");
+        
+        // 遍历用户拥有的角色
         for (var role : user.getRoles()) {
             String roleName = role.getName();
-            System.out.println("比对角色: " + roleName + " vs 需要: " + requiredRole);
             
-            // 不区分大小写比较
-            if (roleName.equalsIgnoreCase(requiredRole)) {
+            // 管理员拥有所有权限
+            if (roleName.equalsIgnoreCase("ADMIN")) {
                 hasRole = true;
                 break;
             }
             
-            // 实现角色层级：ADMIN具有所有权限，SUPERVISOR具有USER权限
-            if (roleName.equalsIgnoreCase("ADMIN")) {
-                // 管理员拥有所有权限
-                hasRole = true;
-                break;
-            } else if (roleName.equalsIgnoreCase("SUPERVISOR") && requiredRole.equalsIgnoreCase("USER")) {
+            // 检查用户角色是否匹配任一所需角色
+            for (String reqRole : requiredRoles) {
+                System.out.println("比对角色: " + roleName + " vs 需要: " + reqRole.trim());
+                
+                // 不区分大小写比较
+                if (roleName.equalsIgnoreCase(reqRole.trim())) {
+                    hasRole = true;
+                    break;
+                }
+                
                 // 督导员拥有用户权限
-                hasRole = true;
+                if (roleName.equalsIgnoreCase("SUPERVISOR") && reqRole.trim().equalsIgnoreCase("USER")) {
+                    hasRole = true;
+                    break;
+                }
+            }
+            
+            // 如果已经有匹配的角色，跳出循环
+            if (hasRole) {
                 break;
             }
         }

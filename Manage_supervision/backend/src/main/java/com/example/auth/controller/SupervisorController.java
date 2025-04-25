@@ -834,13 +834,22 @@ public class SupervisorController {
         try {
             Long teacherId = getUserIdFromRequest(request);
             if (teacherId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("未授权的访问");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "未授权的访问"
+                ));
             }
             
             List<Map<String, Object>> classes = classService.getClassesByTeacherId(teacherId);
-            return ResponseEntity.ok(classes);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("classes", classes);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("获取班级列表失败：" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false,
+                "message", "获取班级列表失败：" + e.getMessage()
+            ));
         }
     }
 

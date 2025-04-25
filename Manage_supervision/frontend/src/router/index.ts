@@ -128,6 +128,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresStudent: true
         }
+      },
+      {
+        path: 'attendance',
+        name: 'StudentAttendance',
+        component: () => import('../views/student/Attendance.vue'),
+        meta: { 
+          title: '考勤签到',
+          requiresAuth: true,
+          requiresStudent: true
+        }
       }
     ]
   },
@@ -372,6 +382,16 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'attendance',
+        name: 'SupervisorAttendanceManagement',
+        component: () => import('../views/supervisor/AttendanceManagement.vue'),
+        meta: { 
+          title: '考勤管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
         path: 'messages',
         name: 'TeacherMessage',
         component: () => import('../views/teacher/TeacherMessage.vue'),
@@ -448,6 +468,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/parent/ParentTeacherMessage.vue'),
         meta: { 
           title: '与教师留言',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      },
+      {
+        path: 'attendance',
+        name: 'ParentChildAttendance',
+        component: () => import('../views/parent/ChildAttendance.vue'),
+        meta: { 
+          title: '子女考勤',
           requiresAuth: true,
           requiresParent: true
         }

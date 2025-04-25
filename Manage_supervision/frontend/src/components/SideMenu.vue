@@ -116,6 +116,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/supervisor/attendance" @click="handleRoute('/supervisor/attendance')">
+        <el-icon><Timer /></el-icon>
+        <template #title>
+          <span>考勤管理</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
@@ -165,6 +172,13 @@
         <el-icon><Comment /></el-icon>
         <template #title>
           <span>与教师留言</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/parent/attendance" @click="handleRoute('/parent/attendance')">
+        <el-icon><Timer /></el-icon>
+        <template #title>
+          <span>子女考勤</span>
         </template>
       </el-menu-item>
       
@@ -227,6 +241,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/student/attendance" @click="handleRoute('/student/attendance')">
+        <el-icon><Timer /></el-icon>
+        <template #title>
+          <span>考勤签到</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
@@ -258,7 +279,8 @@ import {
   Money,
   Tickets,
   Message,
-  Comment
+  Comment,
+  Timer
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
