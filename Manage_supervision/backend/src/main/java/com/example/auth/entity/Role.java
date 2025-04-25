@@ -63,4 +63,14 @@ public class Role {
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
+
+    // 重写toString方法，以便更好地在日志中显示
+    @Override
+    public String toString() {
+        return "Role{" +
+               "id=" + id +
+               ", name='" + name + '\'' +
+               ", description='" + description + '\'' +
+               '}';
+    }
 } 

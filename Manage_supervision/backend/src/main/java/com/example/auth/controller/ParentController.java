@@ -2,12 +2,14 @@ package com.example.auth.controller;
 
 import com.example.auth.dto.ApiResponse;
 import com.example.auth.dto.ParentChildRelationDTO;
+import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.ClassStudentRelation;
 import com.example.auth.entity.ParentChildRelation;
 import com.example.auth.entity.User;
 import com.example.auth.repository.ClassStudentRelationRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.service.ParentService;
+import com.example.auth.service.TeacherStudentService;
 import com.example.auth.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,9 @@ public class ParentController {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private TeacherStudentService teacherStudentService;
     
     /**
      * 获取当前登录用户ID
@@ -392,6 +397,44 @@ public class ParentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "搜索学生失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取子女的教师列表
+     */
+    @GetMapping("/students/{studentId}/teachers")
+    public ResponseEntity<?> getStudentTeachers(@PathVariable Long studentId, HttpServletRequest request) {
+        try {
+            Long parentId = getUserIdFromRequest(request);
+            if (parentId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+            }
+            
+            Optional<User> userOpt = userRepository.findById(parentId);
+            
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "用户未登录"));
+            }
+            
+            User parent = userOpt.get();
+            // 验证家长和子女的关系
+            if (!parentService.relationExists(parent.getId(), studentId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "您没有权限查看该学生信息"));
+            }
+            
+            // 使用TeacherStudentService获取学生的教师列表，传入家长ID和学生ID
+            List<UserDTO> teachers = teacherStudentService.getTeachersByParentAndChildId(parent.getId(), studentId);
+            
+            if (teachers == null || teachers.isEmpty()) {
+                return ResponseEntity.ok(Map.of("teachers", List.of(), "message", "该学生暂无绑定的教师"));
+            }
+            
+            return ResponseEntity.ok(Map.of("teachers", teachers));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "获取学生教师信息失败: " + e.getMessage()));
         }
     }
 } 

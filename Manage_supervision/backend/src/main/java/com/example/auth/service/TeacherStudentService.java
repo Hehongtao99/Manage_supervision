@@ -24,6 +24,9 @@ public interface TeacherStudentService {
     // 获取特定学生的教师列表
     List<UserDTO> getTeachersByStudentId(Long studentId);
     
+    // 根据家长ID和子女ID获取教师列表
+    List<UserDTO> getTeachersByParentAndChildId(Long parentId, Long studentId);
+    
     // 批量分配学生给教师
     boolean assignStudentsToTeacher(Long teacherId, List<Long> studentIds);
     

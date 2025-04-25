@@ -133,6 +133,26 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         return new ArrayList<>();
     }
 
+    /**
+     * 根据家长ID和子女ID获取子女的教师信息
+     * @param parentId 家长ID
+     * @param studentId 子女ID
+     * @return 子女的教师信息列表
+     */
+    public List<UserDTO> getTeachersByParentAndChildId(Long parentId, Long studentId) {
+        // 通过家长ID和子女ID获取教师信息
+        Optional<User> optionalStudent = userRepository.findById(studentId);
+        if (optionalStudent.isPresent()) {
+            User student = optionalStudent.get();
+            List<User> teachers = teacherStudentRepository.findActiveTeachersByStudent(student);
+            
+            return teachers.stream()
+                    .map(this::convertToUserDTO)
+                    .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+
     @Override
     @Transactional
     public boolean assignStudentsToTeacher(Long teacherId, List<Long> studentIds) {

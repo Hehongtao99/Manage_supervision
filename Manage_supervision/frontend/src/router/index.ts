@@ -370,6 +370,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresSupervisor: true
         }
+      },
+      {
+        path: 'messages',
+        name: 'TeacherMessage',
+        component: () => import('../views/teacher/TeacherMessage.vue'),
+        meta: { 
+          title: '家长留言',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
       }
     ]
   },
@@ -428,6 +438,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/chat/ChatPage.vue'),
         meta: { 
           title: '聊天',
+          requiresAuth: true,
+          requiresParent: true
+        }
+      },
+      {
+        path: 'teacher-messages',
+        name: 'ParentTeacherMessage',
+        component: () => import('../views/parent/ParentTeacherMessage.vue'),
+        meta: { 
+          title: '与教师留言',
           requiresAuth: true,
           requiresParent: true
         }

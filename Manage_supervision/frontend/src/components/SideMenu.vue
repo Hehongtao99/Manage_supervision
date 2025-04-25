@@ -79,40 +79,40 @@
       </el-sub-menu>
     </template>
 
-    <!-- 督导员菜单 -->
+    <!-- 教师/班主任菜单 -->
     <template v-else-if="userStore.isSupervisor">
+      <el-menu-item index="/supervisor/dashboard" @click="handleRoute('/supervisor/dashboard')">
+        <el-icon><Monitor /></el-icon>
+        <template #title>
+          <span>教师控制台</span>
+        </template>
+      </el-menu-item>
+      
       <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
         <el-icon><User /></el-icon>
         <template #title>
           <span>学生管理</span>
         </template>
       </el-menu-item>
-
-      <el-menu-item index="/supervisor/classes" @click="handleRoute('/supervisor/classes')">
+      
+      <el-menu-item index="/supervisor/class" @click="handleRoute('/supervisor/class')">
         <el-icon><List /></el-icon>
         <template #title>
           <span>班级管理</span>
-        </template>
-      </el-menu-item>
-      
-      <el-menu-item index="/supervisor/timetable" @click="handleRoute('/supervisor/timetable')">
-        <el-icon><Calendar /></el-icon>
-        <template #title>
-          <span>班级课表</span>
         </template>
       </el-menu-item>
 
       <el-menu-item index="/supervisor/notifications" @click="handleRoute('/supervisor/notifications')">
         <el-icon><Bell /></el-icon>
         <template #title>
-          <span>通知管理</span>
+          <span>发送通知</span>
         </template>
       </el-menu-item>
-      
-      <el-menu-item index="/supervisor/bills" @click="handleRoute('/supervisor/bills')">
-        <el-icon><Money /></el-icon>
+
+      <el-menu-item index="/supervisor/messages" @click="handleRoute('/supervisor/messages')">
+        <el-icon><Comment /></el-icon>
         <template #title>
-          <span>账单管理</span>
+          <span>家长留言</span>
         </template>
       </el-menu-item>
 
@@ -158,6 +158,13 @@
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
           <span>聊天</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/parent/teacher-messages" @click="handleRoute('/parent/teacher-messages')">
+        <el-icon><Comment /></el-icon>
+        <template #title>
+          <span>与教师留言</span>
         </template>
       </el-menu-item>
       
@@ -249,7 +256,9 @@ import {
   Calendar,
   Bell,
   Money,
-  Tickets
+  Tickets,
+  Message,
+  Comment
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

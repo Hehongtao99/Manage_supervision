@@ -41,6 +41,7 @@ C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\mai
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ProjectDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ClassStudentRelationDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\annotation\RequireRole.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\ParentTeacherMessageRepository.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\config\WebSocketConfig.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\TaskSubmissionRepository.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\ClassStudentController.java
@@ -59,6 +60,7 @@ C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\mai
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\FeeStandard.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\ConversationRepository.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\CourseDTO.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ParentTeacherMessageRequest.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\NotificationService.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\ProjectEvaluation.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\ClassRepository.java
@@ -70,6 +72,7 @@ C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\mai
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\ClassStudentRepository.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\ChatMessageRepository.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\NotificationRepository.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\ParentTeacherMessage.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\BillController.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\UserDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\ChatMessage.java
@@ -81,10 +84,12 @@ C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\mai
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ParentChildRelationDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\impl\FeeStandardServiceImpl.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\TaskSubmissionController.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\ParentTeacherMessageController.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ChatMessageDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\impl\NotificationServiceImpl.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ChangePasswordRequest.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\impl\TeacherStudentServiceImpl.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ParentTeacherMessageReplyRequest.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\TeacherWithStudentsDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\FeeStandardController.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\TaskEvaluationService.java
@@ -119,6 +124,7 @@ C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\mai
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\ChatFileController.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\Class.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\ParentChildRelation.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\ParentTeacherMessageDTO.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\Project.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\impl\BillServiceImpl.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\BillPaymentDTO.java
@@ -130,6 +136,7 @@ C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\mai
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\UserNotification.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\entity\StudentClassHistory.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\dto\TaskRequest.java
+C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\service\ParentTeacherMessageService.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\SupervisorController.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\controller\AuthController.java
 C:\Users\37602\Desktop\s_m\Manage_supervision\Manage_supervision\backend\src\main\java\com\example\auth\repository\BillRepository.java

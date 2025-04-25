@@ -133,4 +133,13 @@ export const getStudentParents = async (studentId: number): Promise<any> => {
     console.error('获取学生家长列表失败:', error)
     throw error
   }
+}
+
+/**
+ * 家长端 - 获取当前家长的子女列表（供前端组件使用）
+ * @returns 子女列表
+ */
+export const getChildrenList = async (): Promise<any> => {
+  const response = await http.get('/api/parent/children')
+  return response.data
 } 

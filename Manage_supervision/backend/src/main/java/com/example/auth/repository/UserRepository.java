@@ -37,4 +37,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT csr.student.id FROM ClassStudentRelation csr WHERE csr.classEntity.id = :classId AND csr.status = 'ACTIVE'")
     List<Long> findStudentIdsByClassId(@Param("classId") Long classId);
+    
+    /**
+     * 检查是否是家长和学生的关系
+     */
+    @Query("SELECT COUNT(pcr) > 0 FROM ParentChildRelation pcr WHERE pcr.parent.id = :parentId AND pcr.child.id = :childId AND pcr.status = 'confirmed'")
+    boolean isParentOfStudent(@Param("parentId") Long parentId, @Param("childId") Long childId);
+    
+    /**
+     * 检查教师是否是学生的老师
+     */
+    @Query("SELECT COUNT(ctr) > 0 FROM ClassTeacherRelation ctr JOIN ClassStudentRelation csr ON ctr.classEntity.id = csr.classEntity.id " +
+           "WHERE ctr.teacher.id = :teacherId AND csr.student.id = :studentId AND ctr.status = 'active' AND csr.status = 'active'")
+    boolean isTeacherOfStudent(@Param("teacherId") Long teacherId, @Param("studentId") Long studentId);
 } 

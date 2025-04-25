@@ -174,6 +174,30 @@ export const getAssignedStudents = async () => {
   }
 };
 
+/**
+ * 获取学生的教师列表
+ * @param studentId 学生ID
+ * @returns 教师列表
+ */
+export const getTeachersForStudent = async (studentId: number): Promise<any> => {
+  try {
+    const response = await axios.get(`/api/parent/students/${studentId}/teachers`);
+    
+    // 检查返回的数据结构，提取教师列表
+    if (response.data && response.data.teachers) {
+      return response.data.teachers;
+    } else if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      console.warn('教师数据结构异常:', response.data);
+      return [];
+    }
+  } catch (error) {
+    console.error(`获取学生(${studentId})的教师列表失败:`, error);
+    return []; // 返回空数组而不是抛出异常，避免中断调用链
+  }
+};
+
 // 接口为用户类型声明
 export interface Student {
   id: number;

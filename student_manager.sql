@@ -431,6 +431,35 @@ CREATE TABLE `parent_child_relations` (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '家长-子女关系表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Table structure for parent_teacher_messages
+-- ----------------------------
+DROP TABLE IF EXISTS `parent_teacher_messages`;
+CREATE TABLE `parent_teacher_messages` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `parent_id` bigint NOT NULL COMMENT '家长ID',
+  `teacher_id` bigint NOT NULL COMMENT '教师ID',
+  `student_id` bigint NOT NULL COMMENT '学生ID',
+  `content` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '留言内容',
+  `reply_content` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '回复内容',
+  `status` varchar(20) NOT NULL DEFAULT 'unread' COMMENT '状态：unread未读, read已读, replied已回复',
+  `is_parent_read` tinyint(1) NOT NULL DEFAULT 0 COMMENT '家长是否已读回复',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `reply_time` datetime NULL DEFAULT NULL COMMENT '回复时间',
+  `file_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '附件URL',
+  `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '附件名称',
+  `file_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '附件类型',
+  `file_size` bigint NULL DEFAULT NULL COMMENT '附件大小',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
+  INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+  INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
+  CONSTRAINT `fk_ptm_parent` FOREIGN KEY (`parent_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ptm_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ptm_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '家长教师留言表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Procedure structure for transfer_student
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `transfer_student`;

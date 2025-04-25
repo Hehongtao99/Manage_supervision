@@ -73,4 +73,10 @@ export const uploadAvatar = async (file: File): Promise<string> => {
 export const toggleUserStatus = async (userId: number): Promise<any> => {
   const response = await axios.post(`${ADMIN_API_URL}/users/${userId}/toggle-status`);
   return response.data;
+};
+
+// 获取当前用户详细信息
+export const getUserInfo = async (): Promise<any> => {
+  const response = await axios.get('/api/auth/info');
+  return response.data;
 }; 

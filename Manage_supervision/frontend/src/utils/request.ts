@@ -42,28 +42,43 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  response => {
-    console.log('API响应成功:', response.config.url, response.status);
-    return response;
+  (response) => {
+    // 在这里可以对响应数据做些什么
+    console.log('API响应:', response.config.url, response.status);
+    
+    // 直接返回响应数据，不做嵌套处理
+    return response.data;
   },
-  error => {
-    const status = error.response?.status;
-    const url = error.config?.url || '未知';
-    const method = error.config?.method || '未知';
-    console.error(`API请求失败: [${method.toUpperCase()}] ${url}, 状态码: ${status}`, error);
+  (error) => {
+    console.error('API请求错误:', error);
     
-    // 提取具体的错误信息
-    let errorMessage = '请求失败，服务器异常';
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    // 统一处理401未授权的情况
-    if (status === 401) {
-      console.warn('未授权访问，请重新登录');
-      // 这里可以添加重定向到登录页面或清除token的逻辑
+    // 错误处理
+    if (error.response) {
+      // 请求已发出，服务器返回状态码不在 2xx 范围内
+      console.error('错误状态码:', error.response.status);
+      console.error('错误数据:', error.response.data);
+      
+      // 处理401错误（未授权）
+      if (error.response.status === 401) {
+        ElMessage.error('登录已过期，请重新登录');
+        // 清除token并跳转到登录页
+        localStorage.removeItem('token');
+        // 使用window.location跳转到登录页
+        window.location.href = '/login';
+      } else {
+        // 显示服务器返回的错误信息
+        ElMessage.error(
+          error.response.data.message || '请求失败，请稍后重试'
+        );
+      }
+    } else if (error.request) {
+      // 请求已发出，但没有收到响应
+      console.error('未收到响应:', error.request);
+      ElMessage.error('网络连接异常，请检查网络');
+    } else {
+      // 请求配置发生错误
+      console.error('请求错误:', error.message);
+      ElMessage.error('请求配置错误：' + error.message);
     }
     
     return Promise.reject(error);
