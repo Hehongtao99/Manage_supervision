@@ -255,6 +255,17 @@ public class UserServiceImpl implements UserService {
                 }
             }
             
+            // 添加对地址字段的处理
+            if (profileData.containsKey("address")) {
+                String address = profileData.get("address");
+                if (address != null && address.length() <= 200) {
+                    user.setAddress(address);
+                    logger.info("用户 {} 地址更新为: {}", user.getUsername(), address);
+                } else {
+                    logger.warn("地址长度不合法，应小于等于200个字符");
+                }
+            }
+            
             // 保存更新
             User updatedUser = userRepository.save(user);
             logger.info("用户 {} 个人信息更新成功", user.getUsername());

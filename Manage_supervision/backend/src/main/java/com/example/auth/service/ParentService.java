@@ -88,4 +88,11 @@ public interface ParentService {
      * @return 是否存在关系
      */
     boolean relationExists(Long parentId, Long childId);
+    
+    /**
+     * 获取子女的统计信息（考勤率、作业完成率、平均成绩等）
+     * @param childId 子女ID
+     * @return 子女统计信息
+     */
+    Map<String, Object> getChildStats(Long childId);
 } 

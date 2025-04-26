@@ -1,0 +1,69 @@
+<view class="container">
+  <view class="header">
+    <view class="title">与教师留言</view>
+    <view class="add-btn" bindtap="openNewMessageDialog">发送新留言</view>
+  </view>
+
+  <!-- 留言列表 -->
+  <view class="message-list" wx:if="{{messages.length > 0}}">
+    <view class="message-item" wx:for="{{messages}}" wx:key="id" bindtap="viewMessageDetail" data-id="{{item.id}}">
+      <view class="message-top">
+        <view class="message-info">
+          <view class="student-name">{{item.studentName || '我的孩子'}}</view>
+          <view class="teacher-name">{{item.teacherName || ''}}老师</view>
+        </view>
+        <view class="message-time">{{item.createTime}}</view>
+      </view>
+      <view class="message-content">{{item.content}}</view>
+      <view class="message-status" wx:if="{{item.replyContent}}">
+        <view class="reply-indicator {{item.replyRead ? 'read' : 'unread'}}">
+          {{item.replyRead ? '已回复' : '有新回复'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态提示 -->
+  <view class="empty-state" wx:else>
+    <view class="empty-icon">暂无数据</view>
+    <view class="empty-text">暂无留言记录</view>
+  </view>
+
+  <!-- 发送新留言弹窗 -->
+  <view class="dialog-mask" wx:if="{{showNewMessageDialog}}" bindtap="cancelDialog"></view>
+  <view class="dialog-container" wx:if="{{showNewMessageDialog}}">
+    <view class="dialog-title">发送留言给教师</view>
+    <view class="dialog-content">
+      <view class="form-item">
+        <view class="form-label">选择孩子</view>
+        <picker bindchange="onChildChange" value="{{selectedChildIndex}}" range="{{childrenNames}}">
+          <view class="picker-text">{{childrenNames[selectedChildIndex] || '请选择孩子'}}</view>
+        </picker>
+      </view>
+      
+      <view class="form-item loading-text" wx:if="{{teachers.length === 0 && !errorMessage}}">
+        正在加载教师信息...
+      </view>
+      
+      <view class="form-item" wx:if="{{teachers.length > 0}}">
+        <view class="form-label">选择教师</view>
+        <picker bindchange="onTeacherChange" value="{{selectedTeacherIndex}}" range="{{teacherNames}}">
+          <view class="picker-text">{{teacherNames[selectedTeacherIndex] || '请选择教师'}}</view>
+        </picker>
+      </view>
+      
+      <view class="form-item error-text" wx:if="{{errorMessage}}">
+        {{errorMessage}}
+      </view>
+      
+      <view class="form-item">
+        <view class="form-label">留言内容</view>
+        <textarea class="message-textarea" placeholder="请输入留言内容" bindinput="onContentInput" value="{{messageContent}}"></textarea>
+      </view>
+    </view>
+    <view class="dialog-footer">
+      <view class="dialog-btn cancel-btn" bindtap="cancelDialog">取消</view>
+      <view class="dialog-btn confirm-btn" bindtap="sendMessage">发送</view>
+    </view>
+  </view>
+</view>

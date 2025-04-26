@@ -1,0 +1,53 @@
+<!-- pages/login/login.wxml -->
+<view class="container">
+  <view class="logo-container">
+    <image class="logo" src="/assets/logo.png" mode="aspectFit"></image>
+    <text class="title">家校互联-家长版</text>
+  </view>
+  
+  <view class="form-container">
+    <view class="form-item">
+      <text class="form-label">用户名</text>
+      <input 
+        class="form-input" 
+        value="{{username}}" 
+        placeholder="请输入用户名"
+        data-field="username"
+        bindinput="onInputChange"
+      />
+    </view>
+    
+    <view class="form-item">
+      <text class="form-label">密码</text>
+      <view class="password-input-container">
+        <input 
+          class="form-input password-input" 
+          value="{{password}}" 
+          password="{{!showPassword}}"
+          placeholder="请输入密码"
+          data-field="password"
+          bindinput="onInputChange"
+        />
+        <view class="password-toggle" bindtap="togglePasswordVisibility">
+          <image class="eye-icon" src="{{showPassword ? '/assets/icons/eye-open.png' : '/assets/icons/eye-close.png'}}"></image>
+        </view>
+      </view>
+    </view>
+    
+    <view class="error-message" wx:if="{{errorMessage}}">
+      <text>{{errorMessage}}</text>
+    </view>
+    
+    <button 
+      class="login-btn" 
+      type="primary"
+      loading="{{isLoading}}"
+      bindtap="login"
+    >登录</button>
+    
+    <view class="register-link">
+      <text>还没有账号？</text>
+      <text class="link" bindtap="goToRegister">立即注册</text>
+    </view>
+  </view>
+</view> 

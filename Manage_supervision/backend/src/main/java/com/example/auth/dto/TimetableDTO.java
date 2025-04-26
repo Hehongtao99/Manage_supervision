@@ -1,7 +1,12 @@
 package com.example.auth.dto;
 
+import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * 课表数据传输对象
+ */
+@Data
 public class TimetableDTO {
     private Long id;
     private Long classId;

@@ -184,4 +184,22 @@ public class NotificationController {
                 .body(new ApiResponse<>(false, "发送通知失败: " + e.getMessage(), null));
         }
     }
+    
+    /**
+     * 获取最近的通知（用于首页显示）
+     */
+    @GetMapping("/recent")
+    public ResponseEntity<?> getRecentNotifications(
+            @RequestHeader("Authorization") String auth,
+            @RequestParam(required = false, defaultValue = "5") Integer limit) {
+        try {
+            String token = auth.substring(7); // 去除"Bearer "前缀
+            
+            List<NotificationResponse> notifications = notificationService.getRecentNotifications(limit);
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body(new ApiResponse<>(false, "获取最近通知失败: " + e.getMessage(), null));
+        }
+    }
 } 

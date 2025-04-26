@@ -1,0 +1,25 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading"></view>
+  </view>
+
+  <!-- 通知详情 -->
+  <view class="notification-card" wx:else>
+    <view class="notification-header">
+      <view class="notification-title">{{notification.title}}</view>
+      <view class="notification-meta">
+        <view class="sender">发送者：{{notification.senderName || '系统'}}</view>
+        <view class="time">{{notification.createTime}}</view>
+      </view>
+    </view>
+    
+    <view class="notification-content">
+      <text>{{notification.content}}</text>
+    </view>
+  </view>
+  
+  <view class="action-btns">
+    <view class="btn back-btn" bindtap="navigateBack">返回</view>
+  </view>
+</view> 

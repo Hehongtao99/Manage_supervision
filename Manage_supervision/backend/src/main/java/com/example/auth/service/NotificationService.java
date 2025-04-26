@@ -30,4 +30,7 @@ public interface NotificationService {
     
     // 检查用户是否是管理员
     boolean isUserAdmin(Long userId);
+    
+    // 获取最近的通知
+    List<NotificationResponse> getRecentNotifications(Integer limit);
 } 

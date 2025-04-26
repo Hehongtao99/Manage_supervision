@@ -5,6 +5,7 @@ import com.example.auth.dto.ClassTeacherRelationDTO;
 import com.example.auth.dto.UserDTO;
 import com.example.auth.service.ClassService;
 import com.example.auth.service.ClassTeacherService;
+import com.example.auth.service.TimetableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +21,14 @@ public class ClassController {
 
     private final ClassService classService;
     private final ClassTeacherService classTeacherService;
+    private final TimetableService timetableService;
 
     @Autowired
-    public ClassController(ClassService classService, ClassTeacherService classTeacherService) {
+    public ClassController(ClassService classService, ClassTeacherService classTeacherService, 
+                          TimetableService timetableService) {
         this.classService = classService;
         this.classTeacherService = classTeacherService;
+        this.timetableService = timetableService;
     }
 
     @PostMapping
@@ -191,6 +195,16 @@ public class ClassController {
             return ResponseEntity.badRequest()
                     .body(List.of(Map.of("error", e.getMessage())));
         }
+    }
+
+    // 获取班级课表 - 处理小程序端请求
+    @GetMapping("/{classId}/timetable")
+    public ResponseEntity<?> getClassTimetable(@PathVariable Long classId) {
+        // 获取班级最新的课表
+        List<Map<String, Object>> timetableData = timetableService.getLatestTimetableWithItemsByClassId(classId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("timetable", timetableData);
+        return ResponseEntity.ok(response);
     }
 
     @ExceptionHandler(RuntimeException.class)

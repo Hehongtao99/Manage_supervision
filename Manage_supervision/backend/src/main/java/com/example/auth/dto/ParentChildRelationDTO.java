@@ -11,6 +11,7 @@ public class ParentChildRelationDTO {
     private String childName;
     private String childUsername;
     private String childUserNumber;
+    private String childAvatar;
     private String relationType;
     private String status;
     private String className;
@@ -83,6 +84,14 @@ public class ParentChildRelationDTO {
     
     public void setChildUserNumber(String childUserNumber) {
         this.childUserNumber = childUserNumber;
+    }
+    
+    public String getChildAvatar() {
+        return childAvatar;
+    }
+    
+    public void setChildAvatar(String childAvatar) {
+        this.childAvatar = childAvatar;
     }
     
     public String getRelationType() {

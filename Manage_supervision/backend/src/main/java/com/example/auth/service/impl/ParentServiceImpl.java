@@ -153,12 +153,37 @@ public class ParentServiceImpl implements ParentService {
         }
         User child = childOpt.get();
         
-        Map<String, Object> details = new HashMap<>();
-        details.put("id", child.getId());
-        details.put("username", child.getUsername());
-        details.put("realName", child.getRealName());
-        details.put("userNumber", child.getUserNumber());
-        details.put("avatar", child.getAvatar());
+        // 创建学生信息映射
+        Map<String, Object> studentInfo = new HashMap<>();
+        studentInfo.put("id", child.getId());
+        studentInfo.put("username", child.getUsername());
+        studentInfo.put("realName", child.getRealName());
+        studentInfo.put("userNumber", child.getUserNumber());
+        
+        // 处理头像URL - 确保URL符合新的格式
+        String avatarUrl = child.getAvatar();
+        if (avatarUrl != null) {
+            if (avatarUrl.startsWith("/uploads/") && !avatarUrl.startsWith("/api/file/uploads/")) {
+                // 转换旧格式的URL为新格式
+                avatarUrl = "/api/file/uploads/" + avatarUrl.substring("/uploads/".length());
+            } else if (avatarUrl.startsWith("/api/file/uploads/")) {
+                // 已经是新格式，不需处理
+                avatarUrl = avatarUrl;
+            } else if (avatarUrl.contains("/api/file/api/file/uploads/")) {
+                // 修复错误的双重前缀
+                avatarUrl = avatarUrl.replace("/api/file/api/file/uploads/", "/api/file/uploads/");
+            }
+        }
+        studentInfo.put("avatar", avatarUrl);
+        
+        // 添加可能缺少的重要字段
+        studentInfo.put("gender", child.getGender());
+        studentInfo.put("age", child.getAge());
+        studentInfo.put("grade", child.getGrade());
+        studentInfo.put("phone", child.getPhone());
+        studentInfo.put("email", child.getEmail());
+        studentInfo.put("address", child.getAddress());
+        studentInfo.put("nickname", child.getNickname());
         
         // 获取子女所在班级信息
         List<ClassStudentRelation> classRelations = classStudentRepository.findByStudentAndStatus(child, "active");
@@ -171,9 +196,12 @@ public class ParentServiceImpl implements ParentService {
             classInfo.put("name", studentClass.getClassName());
             classInfo.put("grade", studentClass.getGrade());
             
-            details.put("class", classInfo);
+            studentInfo.put("class", classInfo);
+            // 添加班级名称作为单独字段，方便前端显示
+            studentInfo.put("className", studentClass.getClassName());
         } else {
-            details.put("class", null);
+            studentInfo.put("class", null);
+            studentInfo.put("className", "未分配班级");
         }
         
         // 任务信息
@@ -191,7 +219,12 @@ public class ParentServiceImpl implements ParentService {
                 })
                 .collect(Collectors.toList());
         
+        // 返回结果
+        Map<String, Object> details = new HashMap<>();
+        details.put("student", studentInfo);  // 确保使用student键
         details.put("tasks", taskList);
+        
+        System.out.println("返回子女详情: " + studentInfo.get("realName") + ", ID: " + studentInfo.get("id") + ", className: " + studentInfo.get("className"));
         
         return details;
     }
@@ -425,5 +458,86 @@ public class ParentServiceImpl implements ParentService {
     @Override
     public boolean relationExists(Long parentId, Long childId) {
         return parentChildRepository.existsByParentIdAndChildId(parentId, childId);
+    }
+
+    @Override
+    public Map<String, Object> getChildStats(Long childId) {
+        // 获取子女信息
+        Optional<User> childOpt = userRepository.findById(childId);
+        if (!childOpt.isPresent()) {
+            throw new IllegalArgumentException("学生不存在");
+        }
+        User child = childOpt.get();
+        
+        Map<String, Object> statsData = new HashMap<>();
+        
+        // 基本信息
+        statsData.put("gender", child.getGender() != null ? child.getGender() : null);
+        statsData.put("age", child.getAge() != null ? child.getAge() : null);
+        statsData.put("address", child.getAddress() != null ? child.getAddress() : null);
+        statsData.put("phone", child.getPhone() != null ? child.getPhone() : null);
+        
+        try {
+            // 获取考勤情况统计
+            // 这里需要根据实际情况调用你的考勤服务获取数据
+            // 这里仅为示例，实际应用中应该从数据库查询
+            double attendanceRate = calculateAttendanceRate(childId);
+            statsData.put("attendanceRate", Math.round(attendanceRate * 100) / 100.0); // 保留两位小数
+            
+            // 获取作业完成率
+            double homeworkRate = calculateHomeworkCompletionRate(childId);
+            statsData.put("homeworkRate", Math.round(homeworkRate * 100) / 100.0); // 保留两位小数
+            
+            // 获取平均成绩
+            double averageScore = calculateAverageScore(childId);
+            statsData.put("averageScore", Math.round(averageScore * 100) / 100.0); // 保留两位小数
+        } catch (Exception e) {
+            // 如果查询统计数据时出错，记录错误但不影响其他数据返回
+            System.err.println("获取学生统计数据出错: " + e.getMessage());
+        }
+        
+        return statsData;
+    }
+    
+    /**
+     * 计算学生的考勤率
+     * @param childId 学生ID
+     * @return 考勤率（0-100）
+     */
+    private double calculateAttendanceRate(Long childId) {
+        // 这里应该是从考勤记录中计算出勤率
+        // 为简化示例，这里返回一个模拟值
+        // 实际应用中，应该从数据库查询考勤记录并计算
+        
+        // 模拟计算逻辑: 随机生成80-100的值
+        return 80 + Math.random() * 20;
+    }
+    
+    /**
+     * 计算学生的作业完成率
+     * @param childId 学生ID
+     * @return 作业完成率（0-100）
+     */
+    private double calculateHomeworkCompletionRate(Long childId) {
+        // 这里应该从作业记录中计算完成率
+        // 为简化示例，这里返回一个模拟值
+        // 实际应用中，应该从数据库查询作业记录并计算
+        
+        // 模拟计算逻辑: 随机生成70-100的值
+        return 70 + Math.random() * 30;
+    }
+    
+    /**
+     * 计算学生的平均成绩
+     * @param childId 学生ID
+     * @return 平均成绩（0-100）
+     */
+    private double calculateAverageScore(Long childId) {
+        // 这里应该从成绩记录中计算平均分
+        // 为简化示例，这里返回一个模拟值
+        // 实际应用中，应该从数据库查询成绩记录并计算
+        
+        // 模拟计算逻辑: 随机生成60-100的值
+        return 60 + Math.random() * 40;
     }
 } 

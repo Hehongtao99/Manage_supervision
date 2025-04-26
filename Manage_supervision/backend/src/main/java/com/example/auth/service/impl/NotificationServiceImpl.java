@@ -358,6 +358,17 @@ public class NotificationServiceImpl implements NotificationService {
                 .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
     }
 
+    @Override
+    public List<NotificationResponse> getRecentNotifications(Integer limit) {
+        // 使用分页查询获取最近的通知
+        org.springframework.data.domain.PageRequest pageRequest = org.springframework.data.domain.PageRequest.of(0, limit);
+        List<Notification> notifications = notificationRepository.findRecentNotifications(pageRequest);
+        
+        return notifications.stream()
+                .map(n -> convertToDto(n, null))
+                .collect(Collectors.toList());
+    }
+
     private NotificationResponse convertToDto(Notification notification, UserNotification userNotification) {
         NotificationResponse response = new NotificationResponse();
         response.setId(notification.getId());

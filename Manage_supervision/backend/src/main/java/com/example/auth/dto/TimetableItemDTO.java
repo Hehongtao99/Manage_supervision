@@ -1,7 +1,12 @@
 package com.example.auth.dto;
 
+import lombok.Data;
 import java.time.LocalTime;
 
+/**
+ * 课表项目数据传输对象
+ */
+@Data
 public class TimetableItemDTO {
     private Long id;
     private Long timetableId;
@@ -9,8 +14,8 @@ public class TimetableItemDTO {
     private String teacherName;
     private String courseName;
     private Integer dayOfWeek;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private String startTime;
+    private String endTime;
     private String periodType;
     private Integer periodNumber;
     private String classroom;
@@ -41,11 +46,11 @@ public class TimetableItemDTO {
     }
 
     public LocalTime getStartTime() {
-        return startTime;
+        return LocalTime.parse(startTime);
     }
 
     public LocalTime getEndTime() {
-        return endTime;
+        return LocalTime.parse(endTime);
     }
 
     public String getPeriodType() {
@@ -85,11 +90,11 @@ public class TimetableItemDTO {
         this.dayOfWeek = dayOfWeek;
     }
 
-    public void setStartTime(LocalTime startTime) {
+    public void setStartTime(String startTime) {
         this.startTime = startTime;
     }
 
-    public void setEndTime(LocalTime endTime) {
+    public void setEndTime(String endTime) {
         this.endTime = endTime;
     }
 

@@ -1,0 +1,89 @@
+<!-- pages/children/detail.wxml -->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading"></view>
+  </view>
+  
+  <!-- 内容区域 -->
+  <view class="content" wx:else>
+    <!-- 头部信息 -->
+    <view class="header">
+      <view class="page-title">孩子详情</view>
+    </view>
+    
+    <!-- 学生基本信息卡片 -->
+    <view class="student-card">
+      <view class="student-info-header">
+        <image class="student-avatar" src="{{childInfo.avatar ? (childInfo.avatar.startsWith('http') ? childInfo.avatar : app.globalData.apiBaseUrl + childInfo.avatar) + '?t=' + timestamp : '/assets/default-avatar.png'}}" binderror="handleImageError"></image>
+        <view class="student-basic-info">
+          <text class="student-name">{{childInfo.realName || childInfo.username}}</text>
+          <text class="student-id">学号: {{childInfo.userNumber || '未设置'}}</text>
+          <text class="student-class">班级: {{childInfo.className || '未分配班级'}}</text>
+        </view>
+      </view>
+      
+      <!-- 家长关系 -->
+      <view class="relation-tag">
+        <text>{{childInfo.relation || '父亲'}}</text>
+      </view>
+    </view>
+    
+    <!-- 基本信息详情 -->
+    <view class="info-section">
+      <view class="section-title">基本信息</view>
+      
+      <view class="info-item">
+        <text class="info-label">姓名</text>
+        <text class="info-value">{{childInfo.realName || childInfo.username}}</text>
+      </view>
+      
+      <view class="info-item">
+        <text class="info-label">学号</text>
+        <text class="info-value">{{childInfo.userNumber || '未设置'}}</text>
+      </view>
+      
+      <view class="info-item">
+        <text class="info-label">班级</text>
+        <text class="info-value">{{childInfo.className || '未分配班级'}}</text>
+      </view>
+      
+      <!-- 以下信息已隐藏：性别、年龄、出生日期 -->
+    </view>
+    
+    <!-- 联系信息 -->
+    <view class="info-section">
+      <view class="section-title">联系信息</view>
+      
+      <view class="info-item">
+        <text class="info-label">联系电话</text>
+        <text class="info-value">{{childInfo.phone || '未设置'}}</text>
+      </view>
+      
+      <!-- 已隐藏家庭住址信息 -->
+    </view>
+    
+    <!-- 考勤记录 -->
+    <view class="info-section attendance-section">
+      <view class="section-header">
+        <view class="section-title">考勤记录</view>
+        <text class="view-more" bindtap="navigateToAttendance">查看更多</text>
+      </view>
+      
+      <view class="attendance-list" wx:if="{{attendanceRecords.length > 0}}">
+        <view class="attendance-item" wx:for="{{attendanceRecords}}" wx:key="id">
+          <view class="attendance-date">{{item.date}}</view>
+          <view class="attendance-status {{item.status === '正常' ? 'normal' : (item.status === '迟到' ? 'late' : (item.status === '早退' ? 'early' : 'absent'))}}">
+            {{item.status}}
+          </view>
+          <view class="attendance-time">{{item.time || ''}}</view>
+          <view class="attendance-remark">{{item.remark || ''}}</view>
+        </view>
+      </view>
+      
+      <view class="empty-state" wx:else>
+        <text>暂无考勤记录</text>
+      </view>
+    </view>
+  </view>
+</view> 

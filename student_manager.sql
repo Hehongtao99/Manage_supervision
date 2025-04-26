@@ -407,6 +407,10 @@ CREATE TABLE `users`  (
   `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `user_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `gender` varchar(10) DEFAULT NULL,
+  `age` varchar(10) DEFAULT NULL,
+  `grade` varchar(20) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `UK_r43af9ap4edm43mmtq01oddj6`(`username` ASC) USING BTREE,
   UNIQUE INDEX `UK_g3brvi3cpqs10ebdf6eqh7wv9`(`user_number` ASC) USING BTREE

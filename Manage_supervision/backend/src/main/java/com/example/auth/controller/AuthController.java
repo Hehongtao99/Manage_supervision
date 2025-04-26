@@ -136,17 +136,58 @@ public class AuthController {
         @RequestBody ChangePasswordRequest request
     ) {
         try {
+            // 参数验证
+            if (request.getCurrentPassword() == null || request.getCurrentPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "当前密码不能为空"
+                ));
+            }
+
+            if (request.getNewPassword() == null || request.getNewPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "新密码不能为空"
+                ));
+            }
+
+            if (request.getNewPassword().length() < 6) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "新密码长度不能小于6位"
+                ));
+            }
+
+            // 验证token并获取用户信息
             String token = auth.substring(7);
             String username = jwtUtil.getUsernameFromToken(token);
             User user = userService.findByUsername(username);
 
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "用户不存在"
+                ));
+            }
+
+            // 如果当前密码与新密码相同，返回错误
+            if (request.getCurrentPassword().equals(request.getNewPassword())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "新密码不能与当前密码相同"
+                ));
+            }
+
+            // 调用服务修改密码
             userService.changePassword(user, request.getCurrentPassword(), request.getNewPassword());
             
             return ResponseEntity.ok(Map.of(
+                "success", true,
                 "message", "密码修改成功"
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
                 "message", e.getMessage()
             ));
         }

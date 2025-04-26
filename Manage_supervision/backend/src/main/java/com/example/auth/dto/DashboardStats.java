@@ -15,6 +15,7 @@ public class DashboardStats {
     private Long totalClasses;
     private Long totalNotifications;
     private Map<String, Long> roleDistribution;
+    private Map<String, Long> classDistribution;
     private SystemInfo systemInfo;
     private List<UserInfo> userList;
 

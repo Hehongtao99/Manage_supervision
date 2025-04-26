@@ -37,36 +37,61 @@ public class ParentTeacherMessageDTO {
     public ParentTeacherMessageDTO(ParentTeacherMessage message) {
         this.id = message.getId();
         
-        if (message.getParent() != null) {
-            this.parentId = message.getParent().getId();
-            this.parentName = message.getParent().getRealName() != null ? 
-                message.getParent().getRealName() : message.getParent().getUsername();
+        try {
+            if (message.getParent() != null) {
+                this.parentId = message.getParent().getId();
+                this.parentName = message.getParent().getRealName() != null ? 
+                    message.getParent().getRealName() : message.getParent().getUsername();
+                this.parentUsername = message.getParent().getUsername();
+                System.out.println("家长信息设置成功: ID=" + this.parentId + ", 姓名=" + this.parentName);
+            } else {
+                System.out.println("留言[" + message.getId() + "]没有关联的家长信息");
+            }
+            
+            if (message.getTeacher() != null) {
+                this.teacherId = message.getTeacher().getId();
+                this.teacherName = message.getTeacher().getRealName() != null ? 
+                    message.getTeacher().getRealName() : message.getTeacher().getUsername();
+                this.teacherUsername = message.getTeacher().getUsername();
+                System.out.println("教师信息设置成功: ID=" + this.teacherId + ", 姓名=" + this.teacherName);
+            } else {
+                System.out.println("留言[" + message.getId() + "]没有关联的教师信息");
+            }
+            
+            if (message.getStudent() != null) {
+                this.studentId = message.getStudent().getId();
+                this.studentName = message.getStudent().getRealName() != null ? 
+                    message.getStudent().getRealName() : message.getStudent().getUsername();
+                this.studentUsername = message.getStudent().getUsername();
+                this.studentUserNumber = message.getStudent().getUserNumber();
+                System.out.println("学生信息设置成功: ID=" + this.studentId + ", 姓名=" + this.studentName);
+            } else {
+                System.out.println("留言[" + message.getId() + "]没有关联的学生信息");
+                // 明确设置为空值，不使用默认的"未指定"
+                this.studentId = null;
+                this.studentName = null;
+                this.studentUsername = null;
+            }
+            
+            this.content = message.getContent();
+            this.replyContent = message.getReplyContent();
+            this.status = message.getStatus();
+            this.isParentRead = message.isParentRead();
+            this.replyRead = message.isReplyRead();
+            this.createTime = message.getCreateTime();
+            this.updateTime = message.getUpdateTime();
+            this.replyTime = message.getReplyTime();
+            this.fileUrl = message.getFileUrl();
+            this.fileName = message.getFileName();
+            this.fileType = message.getFileType();
+            this.fileSize = message.getFileSize();
+            
+            System.out.println("留言DTO构建完成: ID=" + this.id + ", 状态=" + this.status);
+        } catch (Exception e) {
+            System.err.println("构建ParentTeacherMessageDTO时发生异常: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // 重新抛出异常以便上层捕获
         }
-        
-        if (message.getTeacher() != null) {
-            this.teacherId = message.getTeacher().getId();
-            this.teacherName = message.getTeacher().getRealName() != null ? 
-                message.getTeacher().getRealName() : message.getTeacher().getUsername();
-        }
-        
-        if (message.getStudent() != null) {
-            this.studentId = message.getStudent().getId();
-            this.studentName = message.getStudent().getRealName() != null ? 
-                message.getStudent().getRealName() : message.getStudent().getUsername();
-        }
-        
-        this.content = message.getContent();
-        this.replyContent = message.getReplyContent();
-        this.status = message.getStatus();
-        this.isParentRead = message.isParentRead();
-        this.replyRead = message.isReplyRead();
-        this.createTime = message.getCreateTime();
-        this.updateTime = message.getUpdateTime();
-        this.replyTime = message.getReplyTime();
-        this.fileUrl = message.getFileUrl();
-        this.fileName = message.getFileName();
-        this.fileType = message.getFileType();
-        this.fileSize = message.getFileSize();
     }
     
     // Getters and Setters

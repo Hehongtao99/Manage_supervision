@@ -79,8 +79,8 @@ public class UserController {
             // 保存文件
             Files.copy(file.getInputStream(), filePath);
 
-            // 更新用户头像URL
-            String avatarUrl = "/uploads/" + filename;
+            // 更新用户头像URL - 确保URL格式正确
+            String avatarUrl = "/api/file/uploads/" + filename;
             
             // 调用UserService保存头像URL
             userService.updateAvatar(user, avatarUrl);
@@ -130,6 +130,41 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "个人信息更新失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取当前登录用户的信息
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7); // 去除"Bearer "前缀
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "用户不存在"));
+            }
+
+            // 构建响应数据
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("username", user.getUsername());
+            userData.put("realName", user.getRealName());
+            userData.put("nickname", user.getNickname());
+            userData.put("email", user.getEmail());
+            userData.put("phone", user.getPhone());
+            userData.put("bio", user.getBio());
+            userData.put("avatar", user.getAvatar());
+            userData.put("roles", user.getRoles().stream().map(role -> role.getName()).toList());
+
+            return ResponseEntity.ok(userData);
+        } catch (Exception e) {
+            logger.error("获取当前用户信息失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body(Map.of("message", "获取用户信息失败: " + e.getMessage()));
         }
     }
     

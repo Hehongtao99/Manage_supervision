@@ -1,0 +1,33 @@
+<!--app/pages/profile/about.wxml-->
+<view class="about-container">
+  <view class="logo-section">
+    <image class="logo" src="/app/assets/images/logo.png" mode="aspectFit"></image>
+    <view class="app-name">家校互联-家长版</view>
+    <view class="version">版本 {{version}}</view>
+  </view>
+  
+  <view class="info-section">
+    <view class="info-title">应用介绍</view>
+    <view class="info-content">
+      <text>家校互联家长版为家长提供便捷的学校信息查询和沟通服务，让家长随时了解孩子在校情况，促进家校合作。</text>
+    </view>
+  </view>
+  
+  <view class="info-section">
+    <view class="info-title">主要功能</view>
+    <view class="info-content">
+      <text>• 查看学生考勤记录\n• 查阅作业布置情况\n• 查看成绩信息\n• 与班主任沟通\n• 接收学校通知</text>
+    </view>
+  </view>
+  
+  <view class="info-section">
+    <view class="info-title">联系我们</view>
+    <view class="info-content">
+      <text>客服电话：400-123-4567\n技术支持：support@school-connect.com\n官方网站：www.school-connect.com</text>
+    </view>
+  </view>
+  
+  <view class="copyright">
+    <text>Copyright © 2024 家校互联 All Rights Reserved</text>
+  </view>
+</view> 

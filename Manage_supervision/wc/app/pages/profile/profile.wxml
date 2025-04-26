@@ -1,0 +1,41 @@
+<!--app/pages/profile/profile.wxml-->
+<view class="profile-container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading"></view>
+  </view>
+
+  <!-- 用户信息卡片 -->
+  <view class="user-card" wx:if="{{!isLoading}}">
+    <view class="avatar-container">
+      <image class="avatar" src="{{userInfo.avatar ? (userInfo.avatar.startsWith('http') ? userInfo.avatar : app.globalData.apiBaseUrl + userInfo.avatar) + '?t=' + timestamp : '/assets/default-avatar.png'}}" mode="aspectFill" binderror="handleImageError"></image>
+    </view>
+    <view class="user-info">
+      <view class="username">{{userInfo.realName || userInfo.username}}</view>
+      <view class="user-phone">{{userInfo.phone || '未绑定手机号'}}</view>
+    </view>
+  </view>
+
+  <!-- 功能区 -->
+  <view class="function-list">
+    <view class="function-group">
+      <view class="function-item" bindtap="editProfile">
+        <view class="function-name">编辑资料</view>
+        <view class="function-arrow"></view>
+      </view>
+      
+      <view class="function-item" bindtap="changePassword">
+        <view class="function-name">修改密码</view>
+        <view class="function-arrow"></view>
+      </view>
+    </view>
+
+    <!-- 版本信息 -->
+    <view class="version-info">
+      <text>版本 {{version}}</text>
+    </view>
+
+    <!-- 退出登录按钮 -->
+    <view class="logout-button" bindtap="logout">退出登录</view>
+  </view>
+</view>

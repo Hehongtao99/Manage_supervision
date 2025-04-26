@@ -1,0 +1,35 @@
+<!--app/pages/profile/edit.wxml-->
+<view class="edit-container">
+  <view class="form-group">
+    <view class="form-item avatar-item">
+      <view class="form-label">头像</view>
+      <view class="avatar-wrapper" bindtap="chooseAvatar">
+        <image class="avatar" src="{{userInfo.avatar ? (userInfo.avatar.startsWith('http') ? userInfo.avatar : app.globalData.apiBaseUrl + userInfo.avatar) + '?t=' + timestamp : '/assets/default-avatar.png'}}" mode="aspectFill" binderror="handleImageError"></image>
+        <view class="upload-icon">
+          <view class="icon-edit"></view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="form-item">
+      <view class="form-label">姓名</view>
+      <input class="form-input" value="{{userInfo.realName}}" bindinput="onInputChange" data-field="realName" placeholder="请输入您的真实姓名"/>
+    </view>
+    
+    <view class="form-item">
+      <view class="form-label">手机号</view>
+      <input class="form-input" value="{{userInfo.phone}}" bindinput="onInputChange" data-field="phone" type="number" maxlength="11" placeholder="请输入您的手机号"/>
+    </view>
+    
+    <view class="form-item">
+      <view class="form-label">邮箱</view>
+      <input class="form-input" value="{{userInfo.email}}" bindinput="onInputChange" data-field="email" type="text" placeholder="请输入您的邮箱"/>
+    </view>
+    
+    <!-- 地址输入框已隐藏 -->
+  </view>
+  
+  <view class="button-group">
+    <button class="save-button" bindtap="saveProfile" loading="{{isSaving}}">保存修改</button>
+  </view>
+</view> 

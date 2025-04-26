@@ -1,0 +1,220 @@
+/* app/pages/profile/profile.wxss */
+page {
+  background-color: #f5f5f5;
+}
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 加载中样式 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200rpx;
+}
+
+.loading {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 用户卡片样式 */
+.user-card {
+  background-color: #4CAF50;
+  padding: 40rpx 30rpx;
+  display: flex;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.avatar-container {
+  margin-right: 30rpx;
+}
+
+.avatar {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.8);
+  background-color: #ffffff;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.username {
+  font-size: 36rpx;
+  font-weight: 500;
+  margin-bottom: 10rpx;
+}
+
+.user-phone {
+  font-size: 28rpx;
+  opacity: 0.8;
+}
+
+/* 功能列表样式 */
+.function-list {
+  flex: 1;
+  padding: 30rpx 0;
+}
+
+.function-group {
+  background-color: #fff;
+  border-radius: 10rpx;
+  margin: 0 20rpx 30rpx;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.function-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 30rpx;
+  position: relative;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.function-item:last-child {
+  border-bottom: none;
+}
+
+.function-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 30rpx;
+}
+
+.function-icon image {
+  width: 100%;
+  height: 100%;
+}
+
+.function-name {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333;
+}
+
+.function-arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 4rpx solid #ccc;
+  border-right: 4rpx solid #ccc;
+  transform: rotate(45deg);
+}
+
+/* 版本信息样式 */
+.version-info {
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  margin: 30rpx 0;
+}
+
+/* 退出登录按钮 */
+.logout-button {
+  margin: 40rpx auto;
+  width: 80%;
+  height: 90rpx;
+  line-height: 90rpx;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(to right, #ff4d4f, #ff7875);
+  border-radius: 45rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.2);
+  transition: all 0.3s;
+}
+
+.logout-button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* 退出登录模态框 */
+.logout-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  width: 80%;
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  animation: modal-in 0.3s ease;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  padding: 30rpx 0;
+}
+
+.modal-message {
+  font-size: 30rpx;
+  color: #666;
+  text-align: center;
+  padding: 0 40rpx 40rpx;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  border-top: 1rpx solid #eee;
+}
+
+.modal-button {
+  flex: 1;
+  height: 90rpx;
+  line-height: 90rpx;
+  text-align: center;
+  font-size: 32rpx;
+}
+
+.modal-cancel {
+  color: #666;
+  border-right: 1rpx solid #eee;
+}
+
+.modal-confirm {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(30rpx) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

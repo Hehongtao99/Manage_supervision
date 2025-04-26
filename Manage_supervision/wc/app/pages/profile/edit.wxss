@@ -1,0 +1,112 @@
+/* app/pages/profile/edit.wxss */
+page {
+  background-color: #f5f5f5;
+}
+
+.edit-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 20rpx;
+}
+
+.form-group {
+  background-color: #fff;
+  border-radius: 10rpx;
+  margin: 0 20rpx 30rpx;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.form-item:last-child {
+  border-bottom: none;
+}
+
+.avatar-item {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.form-label {
+  width: 160rpx;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 30rpx;
+  height: 60rpx;
+  padding: 0 10rpx;
+}
+
+.avatar-wrapper {
+  margin-top: 20rpx;
+  position: relative;
+  align-self: center;
+}
+
+.avatar {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+}
+
+.upload-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 60rpx;
+  height: 60rpx;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 4rpx solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.icon-edit {
+  width: 30rpx;
+  height: 30rpx;
+  border: 2rpx solid #fff;
+  border-radius: 2rpx;
+  position: relative;
+}
+
+.icon-edit:before {
+  content: '';
+  position: absolute;
+  top: -6rpx;
+  left: 8rpx;
+  width: 2rpx;
+  height: 10rpx;
+  background-color: #fff;
+  transform: rotate(45deg);
+}
+
+.button-group {
+  padding: 40rpx 20rpx;
+}
+
+.save-button {
+  background-color: #4CAF50;
+  color: #fff;
+  border-radius: 10rpx;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+  font-weight: 500;
+}
+
+.save-button::after {
+  border: none;
+} 

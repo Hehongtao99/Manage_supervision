@@ -43,6 +43,18 @@ public class User {
     
     @Column(name = "user_number", unique = true)
     private String userNumber;
+    
+    @Column(name = "gender")
+    private String gender;
+    
+    @Column(name = "age")
+    private String age;
+    
+    @Column(name = "grade")
+    private String grade;
+    
+    @Column(name = "address")
+    private String address;
 
     @PrePersist
     protected void onCreate() {
@@ -109,6 +121,22 @@ public class User {
     public String getUserNumber() {
         return userNumber;
     }
+    
+    public String getGender() {
+        return gender;
+    }
+    
+    public String getAge() {
+        return age;
+    }
+    
+    public String getGrade() {
+        return grade;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
 
     // Setters
     public void setId(Long id) {
@@ -161,5 +189,21 @@ public class User {
     
     public void setUserNumber(String userNumber) {
         this.userNumber = userNumber;
+    }
+    
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+    
+    public void setAge(String age) {
+        this.age = age;
+    }
+    
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+    
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

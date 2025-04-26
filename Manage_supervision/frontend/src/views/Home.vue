@@ -365,6 +365,29 @@ const handleLogout = () => {
   margin: 0 auto;
   height: calc(100vh - 32px);
   overflow-y: auto;
+  /* 添加滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: #C0C4CC #f4f4f4;
+}
+
+/* 添加自定义滚动条样式 */
+.dashboard-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dashboard-container::-webkit-scrollbar-track {
+  background: #f4f4f4;
+  border-radius: 4px;
+}
+
+.dashboard-container::-webkit-scrollbar-thumb {
+  background: #C0C4CC;
+  border-radius: 4px;
+}
+
+.dashboard-container::-webkit-scrollbar-thumb:hover {
+  background: #909399;
 }
 
 .header {
@@ -410,6 +433,12 @@ const handleLogout = () => {
   font-size: 36px;
   font-weight: bold;
   margin-bottom: 5px;
+  /* 修复数字显示不完整的问题 */
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: clip;
+  display: inline-block;
+  width: 100%;
 }
 
 .stat-value.primary {

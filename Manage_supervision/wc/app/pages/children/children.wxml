@@ -1,0 +1,53 @@
+<!-- pages/children/children.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="title">我的孩子</text>
+    <button class="add-btn" bindtap="relateChild">+ 关联孩子</button>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading"></view>
+  </view>
+  
+  <!-- 内容区域 -->
+  <view class="content" wx:else>
+    <!-- 子女列表 -->
+    <view class="children-list" wx:if="{{children.length > 0}}">
+      <view class="child-card" wx:for="{{children}}" wx:key="id">
+        <view class="child-info" bindtap="goToChildDetail" data-id="{{item.childId}}">
+          <image class="child-avatar" src="{{item.childAvatar ? (item.childAvatar.startsWith('http') || item.childAvatar.startsWith('/api/') ? item.childAvatar : app.globalData.apiBaseUrl + item.childAvatar) : '/assets/default-avatar.png'}}"></image>
+          <view class="child-detail">
+            <view class="name-status-row">
+              <text class="child-name">{{item.childName}}</text>
+              <view class="status-tag {{item.status === 'pending' ? 'status-pending' : (item.status === 'active' || item.status === 'confirmed' || !item.status ? 'status-active' : 'status-inactive')}}">
+                <text class="status-text">{{item.status === 'pending' ? '申请中' : (item.status === 'active' || item.status === 'confirmed' || !item.status ? '已关联' : '未关联')}}</text>
+              </view>
+            </view>
+            <text class="child-id">学号: {{item.childUserNumber || '未设置'}}</text>
+            <text class="child-class">班级: {{item.className || '未分配班级'}}</text>
+            <view class="relation-tag">
+              <text class="relation-text">{{item.relationType === 'father' ? '父亲' : (item.relationType === 'mother' ? '母亲' : '监护人')}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="child-actions">
+          <view class="action-btn detail-btn" bindtap="goToChildDetail" data-id="{{item.childId}}" wx:if="{{item.status === 'active' || item.status === 'confirmed' || !item.status}}">
+            <text>查看详情</text>
+          </view>
+          <view class="action-btn unrelate-btn" bindtap="unrelateChild" data-id="{{item.id}}" data-name="{{item.childName}}" data-status="{{item.status}}">
+            <text>{{item.status === 'pending' ? '取消申请' : '解除关联'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/assets/icons/empty.png"></image>
+      <text class="empty-text">暂无关联的孩子信息</text>
+      <text class="empty-desc">点击"关联孩子"按钮添加您的孩子</text>
+    </view>
+  </view>
+</view> 

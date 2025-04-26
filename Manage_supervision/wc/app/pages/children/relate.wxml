@@ -1,0 +1,76 @@
+<view class="container">
+  <view class="header">
+    <text class="title">关联孩子</text>
+  </view>
+  
+  <view class="content">
+    <!-- 搜索区域 -->
+    <view class="search-container">
+      <view class="search-box">
+        <input 
+          class="search-input" 
+          type="text" 
+          placeholder="输入孩子的姓名或学号搜索" 
+          value="{{keyword}}"
+          bindinput="onKeywordInput"
+          confirm-type="search"
+        />
+        <view class="search-btn" bindtap="searchStudents">搜索</view>
+      </view>
+      <view class="search-tip">提示：输入至少2个字符即可开始搜索</view>
+      <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+    </view>
+    
+    <!-- 加载状态 -->
+    <view class="loading-container" wx:if="{{isLoading}}">
+      <view class="loading"></view>
+    </view>
+    
+    <!-- 搜索结果列表 -->
+    <view class="search-results" wx:if="{{searchResults.length > 0 && !isLoading}}">
+      <view 
+        class="student-item {{selectedStudent && selectedStudent.id === item.id ? 'selected' : ''}}" 
+        wx:for="{{searchResults}}" 
+        wx:key="id"
+        bindtap="selectStudent"
+        data-id="{{item.id}}"
+      >
+        <view class="student-info">
+          <text class="student-name">{{item.realName || item.username}}</text>
+          <text class="student-id">学号: {{item.userNumber || '未设置'}}</text>
+          <view class="student-class" wx:if="{{item.className}}">班级: {{item.className}}</view>
+        </view>
+        <view class="select-icon" wx:if="{{selectedStudent && selectedStudent.id === item.id}}">✓</view>
+      </view>
+    </view>
+    
+    <!-- 无搜索结果提示 -->
+    <view class="empty-state" wx:if="{{searchResults.length === 0 && keyword.length >= 2 && !isLoading}}">
+      <text class="empty-text">没有找到匹配的学生</text>
+      <text class="empty-desc">请尝试使用其他姓名或学号搜索</text>
+    </view>
+    
+    <!-- 选择关系类型 -->
+    <view class="relation-section" wx:if="{{selectedStudent}}">
+      <view class="section-title">设置您与孩子的关系：</view>
+      <radio-group class="relation-types" bindchange="onRelationTypeChange">
+        <label class="relation-item" wx:for="{{relationTypes}}" wx:key="value">
+          <radio value="{{item.value}}" checked="{{relationType === item.value}}" />
+          <text class="relation-label">{{item.label}}</text>
+        </label>
+      </radio-group>
+    </view>
+    
+    <!-- 按钮组 -->
+    <view class="action-buttons">
+      <button class="action-btn cancel-btn" bindtap="cancelRelation">取消</button>
+      <button 
+        class="action-btn confirm-btn {{!selectedStudent ? 'disabled' : ''}}" 
+        bindtap="confirmRelation" 
+        disabled="{{!selectedStudent}}"
+      >
+        确认关联
+      </button>
+    </view>
+  </view>
+</view> 

@@ -274,12 +274,14 @@ const getStatusText = (status: string) => {
 // 查看留言详情
 const viewMessage = (row: any) => {
   currentMessage.value = row;
+  console.log('查看留言详情:', row);
   messageDialogVisible.value = true;
 };
 
 // 打开回复对话框
 const openReplyDialog = (row: any) => {
   currentMessage.value = row;
+  console.log('打开回复对话框，当前留言:', row);
   replyForm.replyContent = row.replyContent || '';
   replyDialogVisible.value = true;
 };
@@ -292,7 +294,9 @@ const submitReply = async () => {
     if (valid && currentMessage.value) {
       submitting.value = true;
       try {
+        console.log('开始提交回复，留言ID:', currentMessage.value.id, '回复内容:', replyForm.replyContent);
         const result = await replyMessage(currentMessage.value.id, replyForm.replyContent);
+        console.log('回复成功，服务器返回数据:', result);
         ElMessage.success('回复成功');
         replyDialogVisible.value = false;
         
@@ -300,9 +304,27 @@ const submitReply = async () => {
         if (result) {
           const index = messages.value.findIndex(msg => msg.id === currentMessage.value.id);
           if (index !== -1) {
+            console.log('更新本地消息列表中的消息');
+            // 保存原始的学生信息以防丢失
+            const originalStudentName = messages.value[index].studentName;
             messages.value[index] = result;
+            
+            // 确保学生信息不丢失
+            if (!messages.value[index].studentName && originalStudentName) {
+              console.log('恢复原始学生信息:', originalStudentName);
+              messages.value[index].studentName = originalStudentName;
+            }
           }
+          
+          // 保存原始的学生信息以防丢失
+          const originalStudentName = currentMessage.value.studentName;
           currentMessage.value = result;
+          
+          // 确保学生信息不丢失
+          if (!currentMessage.value.studentName && originalStudentName) {
+            console.log('恢复当前消息的原始学生信息:', originalStudentName);
+            currentMessage.value.studentName = originalStudentName;
+          }
         }
         
         // 重新加载消息列表

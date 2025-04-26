@@ -69,4 +69,6 @@ public interface ClassStudentRelationRepository extends JpaRepository<ClassStude
     @Query("SELECT c FROM Class c JOIN ClassStudentRelation csr ON c.id = csr.classEntity.id " +
            "WHERE csr.student.id = :studentId AND csr.status = 'active'")
     Optional<Class> findActiveClassByStudentId(@Param("studentId") Long studentId);
+
+    List<ClassStudentRelation> findByClassEntityIdAndStatus(Long classId, String status);
 } 

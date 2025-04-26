@@ -1,0 +1,27 @@
+<view class="container">
+  <view class="message-card">
+    <view class="message-header">
+      <view class="user-info">
+        <view class="username">{{message.teacherName || '老师'}}</view>
+        <view class="time">{{message.createTime}}</view>
+      </view>
+    </view>
+    
+    <view class="message-content">
+      <view class="label">留言内容</view>
+      <view class="content-text">{{message.content}}</view>
+    </view>
+    
+    <view class="reply-section" wx:if="{{message.replyContent}}">
+      <view class="reply-header">
+        <view class="label">老师回复</view>
+        <view class="time">{{message.replyTime}}</view>
+      </view>
+      <view class="reply-content">{{message.replyContent}}</view>
+    </view>
+  </view>
+  
+  <view class="action-btns">
+    <view class="btn back-btn" bindtap="navigateBack">返回</view>
+  </view>
+</view> 

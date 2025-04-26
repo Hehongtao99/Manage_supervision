@@ -1,0 +1,67 @@
+<!-- pages/attendance/attendance.wxml -->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="title-section">
+      <text class="title">{{childName}}的考勤记录</text>
+    </view>
+    <view class="month-selector">
+      <view class="arrow prev" bindtap="changeMonth" data-direction="prev">◀</view>
+      <text class="month-text">{{currentMonth}}</text>
+      <view class="arrow next" bindtap="changeMonth" data-direction="next">▶</view>
+    </view>
+  </view>
+  
+  <!-- 考勤统计 -->
+  <view class="statistics-card">
+    <view class="stat-item">
+      <text class="stat-value present">{{summary.present}}</text>
+      <text class="stat-label">已打卡</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value absent">{{summary.absent}}</text>
+      <text class="stat-label">未打卡</text>
+    </view>
+  </view>
+  
+  <!-- 出勤率 -->
+  <view class="attendance-rate-card">
+    <view class="rate-info">
+      <text class="rate-label">本月打卡率</text>
+      <text class="rate-value">{{summary.presentRate}}</text>
+    </view>
+    <view class="rate-progress">
+      <progress percent="{{summary.presentRate}}" stroke-width="6" activeColor="#4CAF50" backgroundColor="#e9e9e9"/>
+    </view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading"></view>
+  </view>
+  
+  <!-- 考勤记录列表 -->
+  <view class="attendance-list" wx:else>
+    <block wx:if="{{attendanceList.length > 0}}">
+      <view class="attendance-item" wx:for="{{attendanceList}}" wx:key="id">
+        <view class="attendance-date">
+          <text class="date-text">{{item.date}}</text>
+          <text class="week-text">周{{item.weekDay}}</text>
+        </view>
+        <view class="attendance-status">
+          <view class="status-tag {{item.status}}">
+            <text>{{item.status === 'present' ? '已打卡' : '未打卡'}}</text>
+          </view>
+          <text class="time-text">{{item.status === 'present' ? item.time : ''}}</text>
+        </view>
+        <view class="attendance-detail">
+          <text>{{item.remark}}</text>
+        </view>
+      </view>
+    </block>
+    <view class="empty-state" wx:else>
+      <image class="empty-icon" src="/assets/icons/empty.png"></image>
+      <text class="empty-text">暂无考勤记录</text>
+    </view>
+  </view>
+</view> 

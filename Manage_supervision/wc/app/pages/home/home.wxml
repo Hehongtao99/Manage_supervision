@@ -1,0 +1,81 @@
+<!-- pages/home/home.wxml -->
+<view class="container">
+  <!-- 头部用户信息区域 -->
+  <view class="header">
+    <view class="user-info">
+      <image class="avatar" src="{{userInfo.avatar ? (userInfo.avatar.startsWith('http') ? userInfo.avatar : (userInfo.avatar.startsWith('/') ? apiBaseUrl + userInfo.avatar : userInfo.avatar)) + '?t=' + timestamp : '/assets/images/default-avatar.png'}}" binderror="handleImageError"></image>
+      <view class="user-detail">
+        <text class="username">{{userInfo.realName || userInfo.username || '家长用户'}}</text>
+        <text class="role">家长</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 全局加载状态 -->
+  <view class="loading-container" wx:if="{{isLoading}}">
+    <view class="loading"></view>
+  </view>
+  
+  <!-- 错误状态提示 -->
+  <view class="error-tip" wx:if="{{hasError && !isLoading}}">
+    <text>部分数据加载失败，请下拉刷新重试</text>
+  </view>
+  
+  <!-- 内容区域 -->
+  <view class="content" wx:if="{{!isLoading}}">
+    <!-- 子女信息卡片 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">我的孩子</text>
+        <text class="view-more" bindtap="navigateToChildren">查看全部</text>
+      </view>
+      
+      <!-- 子女加载状态 -->
+      <view class="section-loading" wx:if="{{childrenLoading}}">
+        <view class="loading-small"></view>
+      </view>
+      
+      <view class="children-list" wx:elif="{{children.length > 0}}">
+        <view class="child-card" wx:for="{{children}}" wx:key="childId" bindtap="goToChildDetail" data-id="{{item.childId}}">
+          <image class="child-avatar" src="{{item.childAvatar ? (item.childAvatar.startsWith('http') ? item.childAvatar : (item.childAvatar.startsWith('/') ? apiBaseUrl + item.childAvatar : item.childAvatar)) + '?t=' + timestamp : '/assets/images/default-avatar.png'}}" binderror="handleChildImageError" data-index="{{index}}"></image>
+          <view class="child-info">
+            <text class="child-name">{{item.childName || '未知姓名'}}</text>
+            <text class="child-class">{{item.className || '未分配班级'}}</text>
+          </view>
+          <view class="relation-type">
+            <text class="relation-text">{{item.relationType === 'father' ? '父亲' : (item.relationType === 'mother' ? '母亲' : '监护人')}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="empty-state" wx:else>
+        <text>暂无已关联的孩子</text>
+        <view class="add-child-btn" bindtap="navigateToAddChild">+ 关联孩子</view>
+      </view>
+    </view>
+    
+    <!-- 重要通知 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">重要通知</text>
+        <text class="view-more" bindtap="navigateToNotifications">查看全部</text>
+      </view>
+      
+      <!-- 通知加载状态 -->
+      <view class="section-loading" wx:if="{{notificationsLoading}}">
+        <view class="loading-small"></view>
+      </view>
+      
+      <view class="notifications-list" wx:elif="{{notifications.length > 0}}">
+        <view class="notification-item" wx:for="{{notifications}}" wx:key="id" bindtap="viewNotification" data-id="{{item.id}}">
+          <text class="notification-title">{{item.title}}</text>
+          <text class="notification-time">{{item.createTime}}</text>
+        </view>
+      </view>
+      
+      <view class="empty-state" wx:else>
+        <text>暂无重要通知</text>
+      </view>
+    </view>
+  </view>
+</view> 

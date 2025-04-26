@@ -1,0 +1,217 @@
+/* pages/attendance/attendance.wxss */
+.container {
+  padding: 0;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: #4CAF50;
+  padding: 15px 20px;
+  color: white;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.title-section {
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 5px 15px;
+}
+
+.arrow {
+  font-size: 14px;
+  padding: 5px;
+}
+
+.month-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* 统计卡片 */
+.statistics-card {
+  margin: 15px;
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  padding: 15px 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  justify-content: space-around;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.present {
+  color: #4CAF50;
+}
+
+.absent {
+  color: #F44336;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 出勤率卡片 */
+.attendance-rate-card {
+  margin: 15px;
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.rate-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.rate-label {
+  font-size: 15px;
+  color: #333;
+}
+
+.rate-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.rate-progress {
+  width: 100%;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.loading {
+  width: 35px;
+  height: 35px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 考勤列表 */
+.attendance-list {
+  margin: 15px;
+}
+
+.attendance-item {
+  background-color: white;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.attendance-date {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.date-text {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333;
+}
+
+.week-text {
+  font-size: 13px;
+  color: #666;
+}
+
+.attendance-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  color: white;
+}
+
+.status-tag.present {
+  background-color: #4CAF50;
+}
+
+.status-tag.absent {
+  background-color: #F44336;
+}
+
+.time-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.attendance-detail {
+  font-size: 13px;
+  color: #666;
+  border-top: 1px solid #eeeeee;
+  padding-top: 10px;
+  text-align: center;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.empty-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999;
+}

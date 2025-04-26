@@ -92,6 +92,9 @@ public class TeacherMessageServiceImpl implements TeacherMessageService {
             throw new IllegalArgumentException("无权回复此留言");
         }
         
+        // 保存原始的学生关联
+        User student = message.getStudent();
+        
         // 更新留言信息
         message.setReplyContent(replyContent);
         message.setStatus("replied"); // 状态更新为已回复
@@ -99,11 +102,26 @@ public class TeacherMessageServiceImpl implements TeacherMessageService {
         message.setParentRead(false); // 设置为家长未读（因为是教师新回复的）
         message.setReplyRead(false); // 设置回复未读
         
+        // 确保学生关联不变
+        message.setStudent(student);
+        
         // 保存更新
         ParentTeacherMessage updatedMessage = messageRepository.save(message);
         
         // 返回DTO
-        return new ParentTeacherMessageDTO(updatedMessage);
+        ParentTeacherMessageDTO dto = new ParentTeacherMessageDTO(updatedMessage);
+        
+        // 记录日志，确认学生信息正确
+        if (updatedMessage.getStudent() != null) {
+            System.out.println("回复留言 ID: " + messageId + " 成功，相关学生ID: " + updatedMessage.getStudent().getId() + 
+                              ", 学生姓名: " + (updatedMessage.getStudent().getRealName() != null ? 
+                                             updatedMessage.getStudent().getRealName() : 
+                                             updatedMessage.getStudent().getUsername()));
+        } else {
+            System.out.println("回复留言 ID: " + messageId + " 成功，但无相关学生信息");
+        }
+        
+        return dto;
     }
     
     @Override

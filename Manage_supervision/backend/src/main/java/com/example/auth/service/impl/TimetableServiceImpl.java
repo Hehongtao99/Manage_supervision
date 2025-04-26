@@ -14,10 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 public class TimetableServiceImpl implements TimetableService {
@@ -196,6 +198,97 @@ public class TimetableServiceImpl implements TimetableService {
         return result;
     }
 
+    /**
+     * 获取班级最新课表及其课程项
+     */
+    @Override
+    public List<Map<String, Object>> getLatestTimetableWithItemsByClassId(Long classId) {
+        // 获取班级所有课表
+        List<Timetable> timetables = timetableRepository.findByClassId(classId);
+        
+        if (timetables == null || timetables.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        // 按周次降序排序，获取最新的课表
+        timetables.sort((t1, t2) -> {
+            Integer w1 = t1.getWeekNumber();
+            Integer w2 = t2.getWeekNumber();
+            return w2.compareTo(w1); // 降序排序
+        });
+        
+        Timetable latestTimetable = timetables.get(0);
+        List<TimetableItem> items = timetableItemRepository.findByTimetableId(latestTimetable.getId());
+        
+        if (items == null || items.isEmpty()) {
+            // 如果没有课程项，则返回课表基本信息作为课程
+            // 这样前端至少能显示课表名称
+            List<Map<String, Object>> timetableInfo = new ArrayList<>();
+            for (Timetable timetable : timetables) {
+                Map<String, Object> courseInfo = new HashMap<>();
+                courseInfo.put("id", timetable.getId());
+                courseInfo.put("name", timetable.getName());
+                courseInfo.put("courseName", timetable.getName());
+                courseInfo.put("weekNumber", timetable.getWeekNumber());
+                courseInfo.put("time", "未设置时间");
+                courseInfo.put("location", "未设置地点");
+                courseInfo.put("teacherName", "未知教师");
+                timetableInfo.add(courseInfo);
+            }
+            return timetableInfo;
+        }
+        
+        return items.stream()
+            .map(item -> {
+                Map<String, Object> courseInfo = new HashMap<>();
+                courseInfo.put("id", item.getId());
+                courseInfo.put("courseName", item.getCourseName());
+                // 确保前端能正确识别的字段
+                courseInfo.put("name", item.getCourseName());
+                courseInfo.put("dayOfWeek", getDayOfWeekName(item.getDayOfWeek()));
+                courseInfo.put("startTime", item.getStartTime().toString());
+                courseInfo.put("endTime", item.getEndTime().toString());
+                courseInfo.put("time", getDayOfWeekName(item.getDayOfWeek()) + " " + 
+                               item.getStartTime().toString() + "-" + item.getEndTime().toString());
+                courseInfo.put("classroom", item.getClassroom());
+                courseInfo.put("location", item.getClassroom() != null ? item.getClassroom() : "未设置地点");
+                
+                // 如果有教师信息，也添加
+                if (item.getTeacherId() != null) {
+                    userRepository.findById(item.getTeacherId())
+                        .ifPresent(teacher -> {
+                            String teacherName = teacher.getRealName() != null ? 
+                                teacher.getRealName() : teacher.getUsername();
+                            courseInfo.put("teacherName", teacherName);
+                            courseInfo.put("teacherId", teacher.getId());
+                        });
+                } else {
+                    courseInfo.put("teacherName", "未知教师");
+                }
+                
+                return courseInfo;
+            })
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 将星期几数字转换为名称
+     */
+    private String getDayOfWeekName(Integer dayOfWeek) {
+        if (dayOfWeek == null) return "";
+        
+        switch (dayOfWeek) {
+            case 1: return "周一";
+            case 2: return "周二";
+            case 3: return "周三";
+            case 4: return "周四";
+            case 5: return "周五";
+            case 6: return "周六";
+            case 7: return "周日";
+            default: return "未知";
+        }
+    }
+
     private TimetableDTO convertToDTO(Timetable timetable) {
         TimetableDTO dto = new TimetableDTO();
         dto.setId(timetable.getId());
@@ -219,8 +312,8 @@ public class TimetableServiceImpl implements TimetableService {
         dto.setTeacherId(item.getTeacherId());
         dto.setCourseName(item.getCourseName());
         dto.setDayOfWeek(item.getDayOfWeek());
-        dto.setStartTime(item.getStartTime());
-        dto.setEndTime(item.getEndTime());
+        dto.setStartTime(item.getStartTime().toString());
+        dto.setEndTime(item.getEndTime().toString());
         dto.setPeriodType(item.getPeriodType());
         dto.setPeriodNumber(item.getPeriodNumber());
         dto.setClassroom(item.getClassroom());

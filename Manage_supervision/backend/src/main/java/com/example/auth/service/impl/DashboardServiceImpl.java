@@ -96,11 +96,13 @@ public class DashboardServiceImpl implements DashboardService {
         stats.setSystemStatus("正常");
         
         // 获取学生总数
-        Long studentCount = userRepository.countByRolesNameContaining("学生");
+        // 使用USER角色作为学生角色
+        Long studentCount = userRepository.countByRolesNameContaining("USER");
         stats.setTotalStudents(studentCount);
         
         // 获取教师总数
-        Long teacherCount = userRepository.countByRolesNameContaining("教师");
+        // 使用SUPERVISOR角色作为教师角色
+        Long teacherCount = userRepository.countByRolesNameContaining("SUPERVISOR");
         stats.setTotalTeachers(teacherCount);
         
         // 获取班级总数
@@ -118,6 +120,23 @@ public class DashboardServiceImpl implements DashboardService {
             roleDistribution.put(role.getName(), count);
         }
         stats.setRoleDistribution(roleDistribution);
+        
+        // 获取班级分布数据
+        Map<String, Long> classDistribution = new HashMap<>();
+        classRepository.findAll().forEach(clazz -> {
+            String className = clazz.getClassName();
+            if (className != null && !className.isEmpty()) {
+                // 对年级进行分组，如"一年级(1)班" -> "一年级"
+                String grade = className;
+                if (className.contains("年级")) {
+                    grade = className.substring(0, className.indexOf("年级") + 2);
+                }
+                
+                Long count = classDistribution.getOrDefault(grade, 0L);
+                classDistribution.put(grade, count + 1);
+            }
+        });
+        stats.setClassDistribution(classDistribution);
         
         // 获取系统信息
         stats.setSystemInfo(getSystemInfo());
@@ -137,6 +156,9 @@ public class DashboardServiceImpl implements DashboardService {
         
         // 不包含角色分布
         stats.setRoleDistribution(new HashMap<>());
+        
+        // 不包含班级分布
+        stats.setClassDistribution(new HashMap<>());
         
         // 不包含用户列表
         stats.setUserList(new ArrayList<>());

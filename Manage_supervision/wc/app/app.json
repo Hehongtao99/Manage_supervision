@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/register/register",
+    "pages/home/home",
+    "pages/profile/profile",
+    "pages/children/children",
+    "pages/children/relate",
+    "pages/attendance/attendance",
+    "pages/homework/homework",
+    "pages/grades/grades",
+    "pages/children/detail",
+    "pages/notifications/index",
+    "pages/notifications/detail",
+    "pages/messages/index",
+    "pages/messages/detail"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4CAF50",
+    "navigationBarTitleText": "家校互联-家长版",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#4CAF50",
+    "backgroundColor": "#fff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/children/children",
+        "text": "我的孩子"
+      },
+      {
+        "pagePath": "pages/messages/index",
+        "text": "留言"
+      },
+      {
+        "pagePath": "pages/notifications/index",
+        "text": "通知"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+} 
