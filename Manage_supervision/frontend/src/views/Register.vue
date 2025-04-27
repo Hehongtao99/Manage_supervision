@@ -95,11 +95,6 @@ const loading = ref(false)
 const agreeToTerms = ref(false)
 
 const handleRegister = async () => {
-  if (!form.value.username || !form.value.password || !form.value.confirmPassword) {
-    ElMessage.warning('请填写所有字段')
-    return
-  }
-
   if (!agreeToTerms.value) {
     ElMessage.warning('请阅读并同意服务条款和隐私政策')
     return

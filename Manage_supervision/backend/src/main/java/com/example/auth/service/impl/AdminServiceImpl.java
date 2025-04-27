@@ -61,7 +61,7 @@ public class AdminServiceImpl implements AdminService {
         User user = new User();
         user.setUsername(userDTO.getUsername());
         // 使用PasswordUtils加密密码
-        user.setPassword(PasswordUtils.encryptPassword(password));
+        user.setPassword(PasswordUtils.encryptPassword(password != null ? password : ""));
         user.setRealName(userDTO.getRealName());
         user.setNickname(userDTO.getNickname());
         user.setEmail(userDTO.getEmail());
@@ -70,15 +70,28 @@ public class AdminServiceImpl implements AdminService {
         user.setCreateTime(LocalDateTime.now());
         
         // 设置角色
-        List<Role> roles = roleRepository.findByNameIn(userDTO.getRoles());
-        user.setRoles(new HashSet<>(roles));
-        
-        // 根据角色生成用户编号
-        String role = userDTO.getRoles() != null && !userDTO.getRoles().isEmpty() 
-                ? userDTO.getRoles().get(0) 
-                : "USER";
-        String userNumber = userNumberGenerator.generateUserNumberByRole(role);
-        user.setUserNumber(userNumber);
+        if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
+            List<Role> roles = roleRepository.findByNameIn(userDTO.getRoles());
+            user.setRoles(new HashSet<>(roles));
+            
+            // 根据角色生成用户编号
+            String role = userDTO.getRoles().get(0);
+            String userNumber = userNumberGenerator.generateUserNumberByRole(role);
+            user.setUserNumber(userNumber);
+        } else {
+            // 默认为USER角色
+            Role userRole = roleRepository.findByName("USER");
+            if (userRole == null) {
+                userRole = new Role();
+                userRole.setName("USER");
+                roleRepository.save(userRole);
+            }
+            user.setRoles(new HashSet<>(Collections.singletonList(userRole)));
+            
+            // 生成学生编号
+            String userNumber = userNumberGenerator.generateStudentNumber();
+            user.setUserNumber(userNumber);
+        }
         
         User savedUser = userRepository.save(user);
         return convertToUserDTO(savedUser);
@@ -90,10 +103,23 @@ public class AdminServiceImpl implements AdminService {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            user.setRealName(userDTO.getRealName());
-            user.setNickname(userDTO.getNickname());
-            user.setEmail(userDTO.getEmail());
-            user.setPhone(userDTO.getPhone());
+            
+            // 只更新非空字段
+            if (userDTO.getRealName() != null) {
+                user.setRealName(userDTO.getRealName());
+            }
+            
+            if (userDTO.getNickname() != null) {
+                user.setNickname(userDTO.getNickname());
+            }
+            
+            if (userDTO.getEmail() != null) {
+                user.setEmail(userDTO.getEmail());
+            }
+            
+            if (userDTO.getPhone() != null) {
+                user.setPhone(userDTO.getPhone());
+            }
             
             // 更新角色
             if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {

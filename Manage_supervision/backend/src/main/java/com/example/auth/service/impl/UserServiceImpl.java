@@ -49,30 +49,7 @@ public class UserServiceImpl implements UserService {
     public User register(String username, String password) {
         logger.info("尝试注册用户: {}", username);
         
-        // 参数验证
-        if (username == null || username.trim().isEmpty()) {
-            logger.warn("注册失败: 用户名不能为空");
-            throw new RuntimeException("用户名不能为空");
-        }
-        
-        if (password == null || password.trim().isEmpty()) {
-            logger.warn("注册失败: 密码不能为空");
-            throw new RuntimeException("密码不能为空");
-        }
-        
-        // 用户名长度验证
-        if (username.length() < 3 || username.length() > 20) {
-            logger.warn("注册失败: 用户名长度必须在3-20个字符之间");
-            throw new RuntimeException("用户名长度必须在3-20个字符之间");
-        }
-        
-        // 密码长度验证
-        if (password.length() < 6 || password.length() > 20) {
-            logger.warn("注册失败: 密码长度必须在6-20个字符之间");
-            throw new RuntimeException("密码长度必须在6-20个字符之间");
-        }
-
-        // 检查用户名是否已存在
+        // 只检查用户名是否已存在
         if (userRepository.findByUsername(username) != null) {
             logger.warn("注册失败: 用户名 {} 已存在", username);
             throw new RuntimeException("用户名已存在");
