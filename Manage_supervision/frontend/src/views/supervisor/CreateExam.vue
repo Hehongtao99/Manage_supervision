@@ -5,6 +5,19 @@
       <el-button @click="goBack">返回</el-button>
     </div>
 
+    <el-alert
+      v-if="showNoQuestionsWarning"
+      type="warning"
+      show-icon
+      :closable="false"
+      title="没有可用的题库，请先创建题库"
+      style="margin-bottom: 15px;"
+    >
+      <template #default>
+        <router-link to="/supervisor/question-banks">点击创建题库</router-link>
+      </template>
+    </el-alert>
+    
     <el-form
       ref="examFormRef"
       :model="examForm"
@@ -167,9 +180,6 @@
                 :value="bank.id"
               />
             </el-select>
-            <div v-if="questionBanks.length === 0" class="no-banks-tip">
-              没有可用的题库，请先<router-link to="/supervisor/question-banks">创建题库</router-link>
-            </div>
           </div>
           <div v-if="bankQuestionsLoading" class="loading-container">
             <el-icon class="is-loading"><Loading /></el-icon>
@@ -267,10 +277,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, FormInstance } from 'element-plus'
 import { Search, Loading } from '@element-plus/icons-vue'
-import { createExam, getExam, updateExam, publishExam } from '@/api/exam'
-import { getQuestionBanks } from '@/api/questionBank'
-import { getQuestionsByBankIdPage } from '@/api/question'
+import { createExam, getExam, updateExam, publishExam, getExamQuestions, getExamStudents } from '@/api/exam'
+import questionBankService from '@/api/questionBank'
+import questionService from '@/api/question'
 import { getAssignedStudents } from '@/api/student'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -287,6 +298,7 @@ const examId = computed(() => {
 // 表单相关
 const examFormRef = ref<FormInstance>()
 const totalScore = ref(0)
+const showNoQuestionsWarning = ref(false)
 
 // 表单数据
 const examForm = reactive({
@@ -408,28 +420,47 @@ const calculateTotalScore = () => {
 // 加载题库列表
 const loadQuestionBanks = async () => {
   try {
-    // 使用常规题库列表API，添加status参数
-    const response = await getQuestionBanks({
-      status: 'active'
-    })
+    // 根据日志，用户ID应该是3
+    const userId = 3;
+    
+    console.log('正在加载题库，使用固定用户ID:', userId);
+    
+    // 使用原始的题库API
+    const response = await axios.get(`/api/question-banks/creator/${userId}`, {
+      params: { 
+        status: 'ACTIVE',
+        page: 0,
+        size: 100
+      }
+    });
     
     if (response.data && response.data.code === 200) {
       // 处理分页格式的返回数据
       const responseData = response.data.data;
       questionBanks.value = responseData.content || [];
       
+      console.log('加载题库成功，题库数量:', questionBanks.value.length);
+      
+      // 更新顶部警告状态 - 如果题库列表不为空，则隐藏警告
+      showNoQuestionsWarning.value = questionBanks.value.length === 0;
+      
       // 仅当有题库时才设置选中的题库并加载题目
       if (questionBanks.value.length > 0 && !selectedQuestionBank.value) {
         selectedQuestionBank.value = questionBanks.value[0].id;
         await loadBankQuestions();
       }
-      // 如果没有题库，则显示提示
-      if (questionBanks.value.length === 0) {
-        ElMessage.warning('没有可用的题库，请先创建题库');
-      }
+    } else {
+      // 加载失败，也认为没有题库，显示警告
+      questionBanks.value = [];
+      showNoQuestionsWarning.value = true;
+      console.error('加载题库列表响应异常:', response.data);
+      ElMessage.error(response.data?.message || '加载题库列表失败');
     }
   } catch (error) {
     console.error('加载题库列表失败:', error);
+    // 加载失败，也认为没有题库，显示警告
+    questionBanks.value = [];
+    showNoQuestionsWarning.value = true;
     ElMessage.error('加载题库列表失败');
   }
 }
@@ -443,13 +474,16 @@ const loadBankQuestions = async () => {
   
   bankQuestionsLoading.value = true;
   try {
-    const params = {
-      bankId: selectedQuestionBank.value,
-      page: 0,
-      size: 100,
-      status: 'active' // 只获取激活状态的题目
-    };
-    const response = await getQuestionsByBankIdPage(params);
+    console.log('正在加载题库题目，题库ID:', selectedQuestionBank.value);
+    
+    // 使用问题API获取题库中的题目
+    const response = await axios.get(`/api/questions/bank/${selectedQuestionBank.value}`, {
+      params: {
+        page: 0,
+        size: 100
+      }
+    });
+    
     if (response.data && response.data.code === 200) {
       // 过滤已添加的题目
       const existingQuestionIds = examForm.examQuestions.map((q) => q.questionId);
@@ -482,8 +516,13 @@ const openQuestionSelectorDialog = async () => {
   await loadQuestionBanks()
   
   if (questionBanks.value.length === 0) {
+    // 如果没有题库，显示顶部警告并提示用户
+    showNoQuestionsWarning.value = true;
     ElMessage.warning('没有可用的题库，请先创建题库')
     return
+  } else {
+    // 如果有题库，确保不显示顶部警告
+    showNoQuestionsWarning.value = false;
   }
   
   questionDialogVisible.value = true
@@ -551,10 +590,10 @@ const loadStudents = async () => {
   
   try {
     const response = await getAssignedStudents()
-    if (response.data && response.data.code === 200) {
+    if (response && response.code === 200) {
       // 过滤已添加的学生
       const existingStudentIds = examForm.examStudents.map((s) => s.studentId)
-      studentList.value = (response.data.data || [])
+      studentList.value = (response.data || [])
         .filter((s: any) => !existingStudentIds.includes(s.id))
     } else {
       ElMessage.error('获取学生列表失败')

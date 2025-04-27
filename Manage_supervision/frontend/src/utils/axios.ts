@@ -4,17 +4,19 @@ import { ElMessage } from 'element-plus'
 
 // 创建axios实例
 const instance = axios.create({
-  // 移除baseURL，使用相对路径
-  timeout: 15000,
+  baseURL: '', // 根据环境配置
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
-// 请求拦截器
+// 添加请求拦截器
 instance.interceptors.request.use(
   config => {
-    // 每次请求前都从localStorage获取最新的token
+    console.log('发送请求:', config.method?.toUpperCase(), config.url, config.params || config.data);
+    
+    // 从localStorage获取token
     const token = localStorage.getItem('token')
     if (token) {
       // 添加调试日志
@@ -26,23 +28,21 @@ instance.interceptors.request.use(
     return config
   },
   error => {
-    console.error('请求发送失败:', error)
+    console.error('请求错误:', error)
     return Promise.reject(error)
   }
 )
 
-// 响应拦截器
+// 添加响应拦截器
 instance.interceptors.response.use(
-  response => response,
+  response => {
+    console.log('接收响应:', response.config.url, response.status, response.data);
+    
+    // 处理成功响应
+    return response;
+  },
   error => {
-    // 添加详细的错误日志
-    console.error('API请求错误:', {
-      status: error.response?.status,
-      url: error.config?.url,
-      method: error.config?.method,
-      data: error.response?.data,
-      error: error.message
-    })
+    console.error('响应错误:', error.config?.url, error.response?.status, error.response?.data);
     
     // 获取具体错误信息
     const errorMessage = error.response?.data?.message || '请求失败，请稍后重试'

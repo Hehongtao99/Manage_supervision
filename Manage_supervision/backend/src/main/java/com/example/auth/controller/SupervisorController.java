@@ -1,6 +1,7 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
+import com.example.auth.common.Result;
 import com.example.auth.dto.*;
 import com.example.auth.entity.User;
 import com.example.auth.service.ProjectService;
@@ -68,7 +69,7 @@ public class SupervisorController {
      */
     @GetMapping("/students/assigned")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getAssignedStudents(@RequestHeader("Authorization") String auth) {
+    public ResponseEntity<Result> getAssignedStudents(@RequestHeader("Authorization") String auth) {
         try {
             String token = auth.replace("Bearer ", "");
             Long supervisorId = jwtUtil.getUserIdFromToken(token);
@@ -83,10 +84,10 @@ public class SupervisorController {
             } else {
                 logger.info("未找到分配给督导员ID: {}的学生", supervisorId);
             }
-            return ResponseEntity.ok(students);
+            return ResponseEntity.ok(Result.success(students));
         } catch (Exception e) {
             logger.error("Failed to get assigned students list", e);
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get assigned students list: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Result.error(HttpStatus.BAD_REQUEST.value(), "Failed to get assigned students list: " + e.getMessage()));
         }
     }
 

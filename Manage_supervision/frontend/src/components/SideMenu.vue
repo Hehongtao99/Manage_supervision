@@ -57,6 +57,44 @@
         </template>
       </el-menu-item>
 
+      <el-sub-menu index="supervisor-project">
+        <template #title>
+          <el-icon><Folder /></el-icon>
+          <span>项目管理</span>
+        </template>
+        <el-menu-item index="/supervisor/projects" @click="handleRoute('/supervisor/projects')">
+          <el-icon><List /></el-icon>
+          <span>项目列表</span>
+        </el-menu-item>
+        <el-menu-item index="/supervisor/tasks" @click="handleRoute('/supervisor/tasks')">
+          <el-icon><Document /></el-icon>
+          <span>任务列表</span>
+        </el-menu-item>
+      </el-sub-menu>
+
+      <el-sub-menu index="supervisor-question">
+        <template #title>
+          <el-icon><Collection /></el-icon>
+          <span>题库管理</span>
+        </template>
+        <el-menu-item index="/supervisor/question-banks" @click="handleRoute('/supervisor/question-banks')">
+          <el-icon><Reading /></el-icon>
+          <span>题库列表</span>
+        </el-menu-item>
+        <el-menu-item index="/supervisor/questions" @click="handleRoute('/supervisor/questions')">
+          <el-icon><QuestionFilled /></el-icon>
+          <span>题目管理</span>
+        </el-menu-item>
+      </el-sub-menu>
+      
+      <!-- 考试管理菜单 -->
+      <el-menu-item index="/supervisor/exams" @click="handleRoute('/supervisor/exams')">
+        <el-icon><Clock /></el-icon>
+        <template #title>
+          <span>考试管理</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
@@ -74,6 +112,20 @@
 
     <!-- 学生菜单 -->
     <template v-else>
+      <el-menu-item index="/student/tasks" @click="handleRoute('/student/tasks')">
+        <el-icon><Document /></el-icon>
+        <template #title>
+          <span>任务列表</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/student/exams" @click="handleRoute('/student/exams')">
+        <el-icon><Clock /></el-icon>
+        <template #title>
+          <span>考试中心</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/chat" @click="handleRoute('/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
@@ -106,7 +158,11 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Collection,
+  Reading,
+  QuestionFilled,
+  Clock
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

@@ -159,6 +159,159 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresSupervisor: true
         }
+      },
+      {
+        path: 'question-banks',
+        name: 'QuestionBankManagement',
+        component: () => import('../views/supervisor/QuestionBankManagement.vue'),
+        meta: { 
+          title: '题库列表', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'questions',
+        name: 'QuestionManagement',
+        component: () => import('../views/supervisor/QuestionManagement.vue'),
+        meta: { 
+          title: '题目管理', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'questions/create',
+        name: 'CreateQuestion',
+        component: () => import('../views/supervisor/CreateQuestion.vue'),
+        meta: { 
+          title: '创建题目', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'questions/:id/edit',
+        name: 'EditQuestion',
+        component: () => import('../views/supervisor/CreateQuestion.vue'),
+        meta: { 
+          title: '编辑题目', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'exams',
+        name: 'ExamManagement',
+        component: () => import('../views/supervisor/ExamManagement.vue'),
+        meta: { 
+          title: '考试管理', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'exams/create',
+        name: 'CreateExam',
+        component: () => import('../views/supervisor/CreateExam.vue'),
+        meta: { 
+          title: '创建考试', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'exams/:id',
+        name: 'ExamDetail',
+        component: () => import('../views/supervisor/CreateExam.vue'),
+        meta: { 
+          title: '考试详情', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'exams/:id/edit',
+        name: 'EditExam',
+        component: () => import('../views/supervisor/CreateExam.vue'),
+        props: route => ({ edit: true }),
+        meta: { 
+          title: '编辑考试', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      }
+    ]
+  },
+  {
+    path: '/student',
+    component: BaseLayout,
+    redirect: '/student/tasks',
+    meta: { 
+      requiresAuth: true,
+      requiresStudent: true
+    },
+    children: [
+      {
+        path: 'tasks',
+        name: 'StudentTaskList',
+        component: () => import('../views/student/TaskList.vue'),
+        meta: { 
+          title: '任务列表',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'tasks/:taskId',
+        name: 'StudentTaskView',
+        component: () => import('../views/student/TaskView.vue'),
+        meta: { 
+          title: '任务详情',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'exams',
+        name: 'StudentExamList',
+        component: () => import('../views/student/ExamList.vue'),
+        meta: { 
+          title: '考试列表',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'exams/:id',
+        name: 'StudentExamDetail',
+        component: () => import('../views/student/ExamDetail.vue'),
+        meta: { 
+          title: '考试详情',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'exams/:id/take',
+        name: 'StudentExamTake',
+        component: () => import('../views/student/ExamTake.vue'),
+        meta: { 
+          title: '参加考试',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'exams/:id/result',
+        name: 'StudentExamResult',
+        component: () => import('../views/student/ExamDetail.vue'),
+        props: { showResult: true },
+        meta: { 
+          title: '考试结果',
+          requiresAuth: true,
+          requiresStudent: true
+        }
       }
     ]
   }
@@ -191,7 +344,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // 检查特定角色要求之前，强制刷新用户信息以确保权限是最新的
-    if (to.meta.requiresAdmin || to.meta.requiresSupervisor) {
+    if (to.meta.requiresAdmin || to.meta.requiresSupervisor || to.meta.requiresStudent) {
       console.log('页面需要特定角色权限，刷新用户信息...')
       try {
         // 尝试刷新用户信息，但不强制刷新以避免可能的循环
@@ -203,6 +356,9 @@ router.beforeEach(async (to, from, next) => {
           needsForceRefresh = true
         } else if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
           console.log('需要教师权限但当前不是教师，尝试强制刷新')
+          needsForceRefresh = true
+        } else if (to.meta.requiresStudent && !userStore.isStudent) {
+          console.log('需要学生权限但当前不是学生，尝试强制刷新')
           needsForceRefresh = true
         }
         
@@ -224,6 +380,13 @@ router.beforeEach(async (to, from, next) => {
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
       console.log('需要教师权限，但用户不是教师，重定向到首页')
+      next('/chat')
+      return
+    }
+    
+    // 检查学生权限
+    if (to.meta.requiresStudent && !userStore.isStudent) {
+      console.log('需要学生权限，但用户不是学生，重定向到首页')
       next('/chat')
       return
     }
