@@ -3,6 +3,7 @@ package com.example.auth.service.impl;
 import com.example.auth.dto.ExamDTO;
 import com.example.auth.dto.ExamQuestionDTO;
 import com.example.auth.dto.ExamStudentDTO;
+import com.example.auth.dto.UserSimpleDTO;
 import com.example.auth.entity.Exam;
 import com.example.auth.entity.ExamAnswer;
 import com.example.auth.entity.ExamQuestion;
@@ -14,6 +15,7 @@ import com.example.auth.repository.ExamAnswerRepository;
 import com.example.auth.repository.ExamQuestionRepository;
 import com.example.auth.repository.ExamRepository;
 import com.example.auth.repository.ExamStudentRepository;
+import com.example.auth.repository.QuestionRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.service.ExamService;
 import org.springframework.beans.BeanUtils;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,6 +58,9 @@ public class ExamServiceImpl implements ExamService {
     
     @Autowired
     private ExamAnswerRepository examAnswerRepository;
+    
+    @Autowired
+    private QuestionRepository questionRepository;
     
     @Override
     @Transactional
@@ -321,28 +327,54 @@ public class ExamServiceImpl implements ExamService {
     
     private List<ExamQuestionDTO> addExamQuestionsInternal(Long examId, List<ExamQuestionDTO> questions) {
         List<ExamQuestion> examQuestions = new ArrayList<>();
+        List<Long> questionIds = questions.stream().map(ExamQuestionDTO::getQuestionId).filter(id -> id != null).collect(Collectors.toList());
+
+        // 优化：一次性查询所有需要的 Question 实体
+        Map<Long, com.example.auth.entity.Question> originalQuestionsMap = new HashMap<>();
+        if (!questionIds.isEmpty()) {
+            List<com.example.auth.entity.Question> originalQuestions = questionRepository.findAllById(questionIds);
+            originalQuestionsMap = originalQuestions.stream()
+                    .collect(Collectors.toMap(com.example.auth.entity.Question::getId, q -> q));
+        }
         
         for (int i = 0; i < questions.size(); i++) {
             ExamQuestionDTO questionDTO = questions.get(i);
-            ExamQuestion examQuestion = new ExamQuestion();
+            Long originalQuestionId = questionDTO.getQuestionId();
             
+            // 从预查询的 Map 中获取原始 Question 实体
+            com.example.auth.entity.Question originalQuestion = originalQuestionsMap.get(originalQuestionId);
+            
+            if (originalQuestion == null) {
+                System.err.println("警告: 在添加考试题目时未找到 ID 为 " + originalQuestionId + " 的原始题目，跳过此题。");
+                continue; // 跳过找不到原始题目的情况
+            }
+            
+            ExamQuestion examQuestion = new ExamQuestion();
             examQuestion.setExamId(examId);
-            examQuestion.setQuestionId(questionDTO.getQuestionId());
-            examQuestion.setQuestionTitle(questionDTO.getQuestionTitle());
-            examQuestion.setQuestionType(questionDTO.getQuestionType());
+            examQuestion.setQuestionId(originalQuestionId);
+            
+            // 从原始 Question 实体获取信息
+            examQuestion.setQuestionTitle(originalQuestion.getTitle()); 
+            examQuestion.setQuestionType(originalQuestion.getType());
+            examQuestion.setContent(originalQuestion.getOptions());
+            // 恢复之前的逻辑：如果 DTO 没有分数，使用默认值 5.0
             examQuestion.setQuestionScore(questionDTO.getQuestionScore() != null ? questionDTO.getQuestionScore() : new BigDecimal("5.0"));
-            examQuestion.setDisplayOrder(i); // 使用列表索引作为显示顺序
+            examQuestion.setDisplayOrder(i);
             
             examQuestions.add(examQuestion);
         }
         
         // 批量保存考试题目
-        List<ExamQuestion> savedQuestions = examQuestionRepository.saveAll(examQuestions);
-        
-        // 转换为DTO返回
-        return savedQuestions.stream()
-                .map(this::convertToQuestionDTO)
-                .collect(Collectors.toList());
+        if (!examQuestions.isEmpty()) {
+            List<ExamQuestion> savedQuestions = examQuestionRepository.saveAll(examQuestions);
+            
+            // 转换为DTO返回
+            return savedQuestions.stream()
+                    .map(this::convertToQuestionDTO)
+                    .collect(Collectors.toList());
+        } else {
+            return new ArrayList<>(); // 如果没有有效题目被添加，返回空列表
+        }
     }
     
     @Override
@@ -442,7 +474,22 @@ public class ExamServiceImpl implements ExamService {
      */
     private ExamQuestionDTO convertToQuestionDTO(ExamQuestion examQuestion) {
         ExamQuestionDTO dto = new ExamQuestionDTO();
-        BeanUtils.copyProperties(examQuestion, dto);
+        dto.setId(examQuestion.getId());
+        dto.setExamId(examQuestion.getExamId());
+        dto.setQuestionId(examQuestion.getQuestionId());
+        dto.setQuestionTitle(examQuestion.getQuestionTitle());
+        dto.setQuestionType(examQuestion.getQuestionType());
+        
+        // 添加日志：打印从实体获取的 content 值
+        String contentFromEntity = examQuestion.getContent();
+        System.out.println("Converting ExamQuestion ID: " + examQuestion.getId() + ", Content from entity: " + contentFromEntity);
+        dto.setContent(contentFromEntity); 
+        
+        dto.setQuestionScore(examQuestion.getQuestionScore());
+        dto.setDisplayOrder(examQuestion.getDisplayOrder());
+        if (examQuestion.getCreateTime() != null) {
+            dto.setCreateTime(LocalDateTime.ofInstant(examQuestion.getCreateTime(), ZoneId.systemDefault()));
+        }
         return dto;
     }
     
@@ -627,81 +674,283 @@ public class ExamServiceImpl implements ExamService {
     @Override
     @Transactional
     public ExamStudentDTO submitExam(Long examId, Long studentId, Map<String, String> answers) {
+        System.out.println("Submit Exam - ExamID: " + examId + ", StudentID: " + studentId);
+        System.out.println("Received answers map size: " + (answers != null ? answers.size() : "null"));
+        
         // 获取考试信息
         Exam exam = examRepository.findById(examId)
-                .orElseThrow(() -> new ResourceNotFoundException("考试不存在"));
+                .orElseThrow(() -> new ResourceNotFoundException("考试不存在, ID: " + examId));
+        System.out.println("Found exam: " + exam.getTitle());
         
         // 获取学生的考试状态
         ExamStudent examStudent = examStudentRepository.findByExamIdAndStudentId(examId, studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试"));
+                .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试, ExamID: " + examId + ", StudentID: " + studentId));
+        System.out.println("Found exam student record, Status: " + examStudent.getStatus());
         
         // 检查是否已经提交或评分
         if ("SUBMITTED".equals(examStudent.getStatus()) || "GRADED".equals(examStudent.getStatus())) {
+            System.err.println("Attempt to submit already submitted/graded exam");
             throw new IllegalStateException("考试已提交或已评分");
         }
         
         // 获取考试题目
         List<ExamQuestion> questions = examQuestionRepository.findByExamIdOrderByDisplayOrderAsc(examId);
+        if (questions.isEmpty()) {
+            System.err.println("No questions found for exam ID: " + examId);
+            // 即使没有题目，也应该允许提交（可能得0分），但标记为已提交
+        }
         Map<Long, ExamQuestion> questionMap = questions.stream()
                 .collect(Collectors.toMap(ExamQuestion::getId, q -> q));
-        
+        System.out.println("Found " + questions.size() + " questions for the exam.");
+                
         BigDecimal totalScore = BigDecimal.ZERO;
         
         // 删除之前的答案（如果有）
-        examAnswerRepository.deleteByExamIdAndStudentId(examId, studentId);
+        try {
+            examAnswerRepository.deleteByExamIdAndStudentId(examId, studentId);
+            System.out.println("Deleted previous answers for student.");
+        } catch (Exception e) {
+            System.err.println("Error deleting previous answers: " + e.getMessage());
+            // 不应该因为删除旧答案失败而阻止提交，但需要记录错误
+        }
         
+        List<ExamAnswer> answersToSave = new ArrayList<>();
         // 保存答案并计算分数
-        for (Map.Entry<String, String> entry : answers.entrySet()) {
-            Long questionId = Long.parseLong(entry.getKey());
-            String answer = entry.getValue();
-            
-            ExamQuestion question = questionMap.get(questionId);
-            if (question == null) {
-                continue; // 跳过无效题目
-            }
-            
-            ExamAnswer examAnswer = new ExamAnswer();
-            examAnswer.setExamId(examId);
-            examAnswer.setStudentId(studentId);
-            examAnswer.setQuestionId(questionId);
-            examAnswer.setAnswer(answer);
-            
-            // 自动评分（选择题和判断题）
-            if ("SINGLE_CHOICE".equals(question.getQuestionType()) || 
-                "MULTIPLE_CHOICE".equals(question.getQuestionType()) || 
-                "JUDGMENT".equals(question.getQuestionType())) {
-                boolean isCorrect = answer.equals(question.getAnswer());
-                examAnswer.setIsCorrect(isCorrect);
-                
-                if (isCorrect) {
-                    examAnswer.setScore(question.getQuestionScore());
-                    totalScore = totalScore.add(question.getQuestionScore());
-                } else {
-                    examAnswer.setScore(BigDecimal.ZERO);
+        if (answers != null) {
+            for (Map.Entry<String, String> entry : answers.entrySet()) {
+                Long questionEntityId = null; 
+                try {
+                    questionEntityId = Long.parseLong(entry.getKey()); 
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid question ID format in answer key: " + entry.getKey());
+                    continue; 
                 }
-            } else {
-                // 主观题需要人工评分
-                examAnswer.setIsCorrect(null);
-                examAnswer.setScore(null);
+                
+                String answer = entry.getValue();
+                System.out.println("Processing answer for ExamQuestion ID: " + questionEntityId + ", Answer: " + answer);
+                
+                ExamQuestion question = questionMap.get(questionEntityId);
+                if (question == null) {
+                    System.err.println("Warning: ExamQuestion with ID " + questionEntityId + " not found in exam's question list. Skipping answer.");
+                    continue; 
+                }
+                
+                ExamAnswer examAnswer = new ExamAnswer();
+                examAnswer.setExamId(examId);
+                examAnswer.setStudentId(studentId);
+                examAnswer.setQuestionId(question.getQuestionId());
+                examAnswer.setAnswer(answer != null ? answer : ""); 
+                
+                // 自动评分（选择题和判断题）
+                String questionType = question.getQuestionType();
+                String correctAnswer = question.getAnswer(); 
+                
+                 if (correctAnswer == null && ("SINGLE_CHOICE".equals(questionType) || "MULTIPLE_CHOICE".equals(questionType) || "JUDGMENT".equals(questionType))) {
+                     System.err.println("Warning: Correct answer is missing for question ID: " + questionEntityId + " (ExamQuestion ID: " + question.getId() + "). Cannot auto-grade.");
+                     examAnswer.setIsCorrect(null);
+                     examAnswer.setScore(BigDecimal.ZERO); // 或者设为 null，取决于业务逻辑
+                 } else if ("SINGLE_CHOICE".equals(questionType) || "JUDGMENT".equals(questionType)) {
+                     boolean isCorrect = answer != null && answer.equals(correctAnswer);
+                     examAnswer.setIsCorrect(isCorrect);
+                     examAnswer.setScore(isCorrect ? question.getQuestionScore() : BigDecimal.ZERO);
+                     if (isCorrect) totalScore = totalScore.add(question.getQuestionScore());
+                     System.out.println("  -> Single/Judgment: Correct Answer=" + correctAnswer + ", Submitted=" + answer + ", Correct?=" + isCorrect + ", Score=" + examAnswer.getScore());
+                 } else if ("MULTIPLE_CHOICE".equals(questionType)) {
+                     // 多选题答案处理，假设答案是逗号分隔的字符串，如 "A,B,C"
+                     String sortedStudentAnswer = (answer != null) 
+                         ? Arrays.stream(answer.split(",")).map(String::trim).filter(s -> !s.isEmpty()).sorted().collect(Collectors.joining(","))
+                         : "";
+                     String sortedCorrectAnswer = (correctAnswer != null)
+                         ? Arrays.stream(correctAnswer.split(",")).map(String::trim).filter(s -> !s.isEmpty()).sorted().collect(Collectors.joining(","))
+                         : "";
+                     boolean isCorrect = sortedStudentAnswer.equals(sortedCorrectAnswer);
+                     examAnswer.setIsCorrect(isCorrect);
+                     examAnswer.setScore(isCorrect ? question.getQuestionScore() : BigDecimal.ZERO);
+                     if (isCorrect) totalScore = totalScore.add(question.getQuestionScore());
+                     System.out.println("  -> Multiple Choice: Correct Answer=" + sortedCorrectAnswer + ", Submitted=" + sortedStudentAnswer + ", Correct?=" + isCorrect + ", Score=" + examAnswer.getScore());
+                 } else {
+                    // 主观题需要人工评分
+                    examAnswer.setIsCorrect(null);
+                    examAnswer.setScore(null);
+                    System.out.println("  -> Essay: Requires manual grading.");
+                }
+                
+                answersToSave.add(examAnswer);
             }
-            
-            examAnswerRepository.save(examAnswer);
+        }
+        
+        // 批量保存答案
+        try {
+            if (!answersToSave.isEmpty()) {
+                examAnswerRepository.saveAll(answersToSave);
+                System.out.println("Saved " + answersToSave.size() + " answers.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error saving answers: " + e.getMessage());
+            // 根据业务决定是否抛出异常或仅记录
+            throw new RuntimeException("保存答案时出错", e);
         }
         
         // 更新考试状态为已提交
         examStudent.setStatus("SUBMITTED");
         examStudent.setSubmitTime(Instant.now());
+        System.out.println("Student status updated to SUBMITTED.");
         
         // 如果全是客观题，自动设置分数；否则分数为null，等待人工评分
         boolean hasSubjectiveQuestions = questions.stream()
                 .anyMatch(q -> "ESSAY".equals(q.getQuestionType()));
-        
+        System.out.println("Has subjective questions: " + hasSubjectiveQuestions);
+                
         if (!hasSubjectiveQuestions) {
             examStudent.setScore(totalScore);
-            examStudent.setStatus("GRADED");
+            examStudent.setStatus("GRADED"); // 如果没有主观题，直接设为已评分
+            System.out.println("All objective questions. Final score: " + totalScore + ". Status set to GRADED.");
+        } else {
+             examStudent.setScore(null); // 包含主观题，分数待定
+             System.out.println("Contains subjective questions. Score set to null, requires grading.");
         }
         
         // 保存状态
+        try {
+            examStudent = examStudentRepository.save(examStudent);
+            System.out.println("ExamStudent status saved.");
+        } catch (Exception e) {
+            System.err.println("Error saving ExamStudent status: " + e.getMessage());
+            throw new RuntimeException("更新学生考试状态时出错", e);
+        }
+                
+        return convertToStudentDTO(examStudent);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getStudentExamAnswers(Long examId, Long studentId, Long creatorId) {
+        // 检查考试存在性和权限
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("考试不存在"));
+        
+        if (!exam.getCreatorId().equals(creatorId)) {
+            throw new UnauthorizedException("无权访问此考试");
+        }
+        
+        // 检查学生是否分配到此考试
+        ExamStudent examStudent = examStudentRepository.findByExamIdAndStudentId(examId, studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试"));
+        
+        // 检查状态是否为已提交
+        if (!"SUBMITTED".equals(examStudent.getStatus()) && !"GRADED".equals(examStudent.getStatus())) {
+            throw new IllegalStateException("考试尚未提交，无法查看答案");
+        }
+        
+        // 获取考试题目
+        List<ExamQuestion> questions = examQuestionRepository.findByExamIdOrderByDisplayOrderAsc(examId);
+        
+        // 获取学生答案
+        List<ExamAnswer> answers = examAnswerRepository.findByExamIdAndStudentId(examId, studentId);
+        
+        // 将答案按题目ID分组
+        Map<Long, ExamAnswer> answerMap = answers.stream()
+                .collect(Collectors.toMap(ExamAnswer::getQuestionId, a -> a));
+        
+        // 构建题目和答案的列表
+        List<Map<String, Object>> questionAnswers = new ArrayList<>();
+        
+        for (ExamQuestion question : questions) {
+            Map<String, Object> qaItem = new HashMap<>();
+            qaItem.put("question", convertToQuestionDTO(question));
+            
+            ExamAnswer answer = answerMap.get(question.getQuestionId());
+            if (answer != null) {
+                Map<String, Object> answerData = new HashMap<>();
+                answerData.put("id", answer.getId());
+                answerData.put("answer", answer.getAnswer());
+                answerData.put("isCorrect", answer.getIsCorrect());
+                answerData.put("score", answer.getScore());
+                qaItem.put("answer", answerData);
+            } else {
+                qaItem.put("answer", null);
+            }
+            
+            questionAnswers.add(qaItem);
+        }
+        
+        // 获取学生信息
+        User studentEntity = userRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("学生不存在"));
+        
+        // 创建 UserSimpleDTO
+        UserSimpleDTO studentDTO = new UserSimpleDTO(
+            studentEntity.getId(),
+            studentEntity.getUsername(),
+            studentEntity.getRealName(),
+            studentEntity.getNickname(),
+            studentEntity.getUserNumber()
+        );
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("exam", convertToDTO(exam));
+        result.put("student", studentDTO); // 使用 DTO 替换实体
+        result.put("examStudent", convertToStudentDTO(examStudent));
+        result.put("questionAnswers", questionAnswers);
+        
+        return result;
+    }
+    
+    @Override
+    @Transactional
+    public ExamStudentDTO gradeStudentExam(Long examId, Long studentId, Map<String, Object> gradeData, Long creatorId) {
+        // 检查考试存在性和权限
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("考试不存在"));
+        
+        if (!exam.getCreatorId().equals(creatorId)) {
+            throw new UnauthorizedException("无权批阅此考试");
+        }
+        
+        // 检查学生是否分配到此考试
+        ExamStudent examStudent = examStudentRepository.findByExamIdAndStudentId(examId, studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试"));
+        
+        // 检查状态是否为已提交
+        if (!"SUBMITTED".equals(examStudent.getStatus()) && !"GRADED".equals(examStudent.getStatus())) {
+            throw new IllegalStateException("考试尚未提交，无法批阅");
+        }
+        
+        // 获取答案评分数据
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> answersGrade = (List<Map<String, Object>>) gradeData.get("answers");
+        
+        if (answersGrade == null || answersGrade.isEmpty()) {
+            throw new IllegalArgumentException("未提供批阅数据");
+        }
+        
+        // 处理每个答案的评分
+        BigDecimal totalScore = BigDecimal.ZERO;
+        
+        for (Map<String, Object> answerGrade : answersGrade) {
+            Long answerId = Long.valueOf(answerGrade.get("id").toString());
+            BigDecimal score = new BigDecimal(answerGrade.get("score").toString());
+            Boolean isCorrect = (Boolean) answerGrade.get("isCorrect");
+            
+            // 更新答案
+            ExamAnswer answer = examAnswerRepository.findById(answerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("答案不存在"));
+            
+            // 确认答案属于正确的考试和学生
+            if (!answer.getExamId().equals(examId) || !answer.getStudentId().equals(studentId)) {
+                throw new IllegalArgumentException("答案ID与考试或学生不匹配");
+            }
+            
+            answer.setScore(score);
+            answer.setIsCorrect(isCorrect);
+            examAnswerRepository.save(answer);
+            
+            totalScore = totalScore.add(score);
+        }
+        
+        // 更新学生考试状态为已评分，并设置总分
+        examStudent.setStatus("GRADED");
+        examStudent.setScore(totalScore);
         examStudent = examStudentRepository.save(examStudent);
         
         return convertToStudentDTO(examStudent);

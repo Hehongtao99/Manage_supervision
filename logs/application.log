@@ -296,3 +296,1299 @@
 2025-04-28 00:20:12.801 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 返回考试数量: 2, 总数: 2
 2025-04-28 00:20:12.801 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
 2025-04-28 00:20:12.801 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 03:23:27.373 [MessageBroker-14] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 4 total, 0 closed abnormally (0 connect failure, 0 send limit, 2 transport error)], stompSubProtocol[processed CONNECT(4)-CONNECTED(4)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 6, active threads = 0, queued tasks = 0, completed tasks = 60], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 8], sockJsScheduler[pool size = 14, active threads = 2, queued tasks = 1, completed tasks = 94]
+2025-04-28 08:57:26.032 [MessageBroker-5] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 4 total, 0 closed abnormally (0 connect failure, 0 send limit, 2 transport error)], stompSubProtocol[processed CONNECT(4)-CONNECTED(4)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 6, active threads = 0, queued tasks = 0, completed tasks = 60], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 8], sockJsScheduler[pool size = 14, active threads = 2, queued tasks = 1, completed tasks = 2358]
+2025-04-28 08:57:26.496 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 08:57:26.496 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 08:57:26.496 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 08:57:26.496 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 08:57:34.631 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=8h34m22s836ms910µs100ns).
+2025-04-28 08:57:38.290 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 08:57:38.290 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 08:57:38.292 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 08:57:38.292 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:02:20.190 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 获取考试详情: 1
+2025-04-28 09:02:20.409 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:02:20.409 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:02:20.409 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:02:20.410 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:02:22.297 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 1
+2025-04-28 09:02:22.347 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 获取考试题目列表: 1
+2025-04-28 09:09:16.387 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:09:16.445 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 2
+2025-04-28 09:09:16.553 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:09:16.553 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:09:16.553 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:09:16.553 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:09:17.016 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=2
+2025-04-28 09:09:17.016 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 返回考试数量: 2, 总数: 2
+2025-04-28 09:09:17.016 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:09:17.016 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:09:27.925 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:09:27.969 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 2
+2025-04-28 09:09:28.180 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:09:28.180 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:09:28.181 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:09:28.181 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:09:28.541 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=2
+2025-04-28 09:09:28.541 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 返回考试数量: 2, 总数: 2
+2025-04-28 09:09:28.541 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:09:28.541 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:09:42.590 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 教师更新考试: 1, 教师ID: 3
+2025-04-28 09:09:42.745 [http-nio-8081-exec-9] ERROR c.e.auth.controller.ExamController - 更新考试失败
+java.lang.IllegalStateException: 已发布或进行中的考试不能修改
+	at com.example.auth.service.impl.ExamServiceImpl.updateExam(ExamServiceImpl.java:105)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:351)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.example.auth.service.impl.ExamServiceImpl$$SpringCGLIB$$0.updateExam(<generated>)
+	at com.example.auth.controller.ExamController.updateExam(ExamController.java:113)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:259)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:192)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:920)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:830)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPut(FrameworkServlet.java:925)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:593)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+2025-04-28 09:09:45.956 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:09:59.581 [http-nio-8081-exec-8] INFO  c.e.a.c.SupervisorController - Supervisor requested their assigned students list, ID: 3
+2025-04-28 09:09:59.581 [http-nio-8081-exec-8] INFO  c.e.a.service.impl.UserServiceImpl - 获取教师ID为3的学生列表
+2025-04-28 09:09:59.905 [http-nio-8081-exec-8] INFO  c.e.a.c.SupervisorController - 学生数据示例: id=4, name=null, userNumber=S25521158
+2025-04-28 09:10:03.418 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 教师创建考试: fdsaf, 教师ID: 3
+2025-04-28 09:10:04.395 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师发布考试: 3, 教师ID: 3
+2025-04-28 09:10:05.263 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:10:09.188 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:10:09.224 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:10:09.427 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:10:09.427 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:10:09.429 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:10:09.429 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:10:09.937 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:10:09.937 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:10:09.937 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:10:09.937 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:10:09.937 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:10:13.770 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:10:15.501 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:10:15.541 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:10:16.329 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:10:16.329 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:10:16.329 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:10:16.329 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:10:16.329 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:16:37.473 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:16:37.510 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:16:37.668 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:16:37.668 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:16:37.669 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:16:37.670 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:16:38.211 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:16:38.211 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:16:38.211 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:16:38.211 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:16:38.211 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:16:42.481 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:16:44.314 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:16:44.369 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:16:45.065 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:16:45.065 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:16:45.065 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:16:45.065 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:16:45.065 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:17:09.174 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:17:11.251 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:17:11.288 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:17:11.994 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:17:11.994 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:17:11.995 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:17:11.995 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:17:11.995 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:17:37.526 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:17:39.635 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:17:39.672 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:17:40.370 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:17:40.371 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:17:40.371 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:17:40.371 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:17:40.371 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:30.237 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:20:32.287 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:20:32.330 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:20:33.141 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:20:33.141 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:20:33.141 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:33.141 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:33.141 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:34.688 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:20:34.735 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:20:34.898 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:20:34.898 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:20:34.898 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:20:34.898 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:20:35.438 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:20:35.438 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:20:35.438 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:35.438 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:35.438 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:41.053 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:20:42.805 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:20:42.843 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:20:43.555 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:20:43.555 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:20:43.556 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:43.556 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:20:43.556 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:23:45.941 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:23:45.981 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:23:46.167 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:23:46.167 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:23:46.168 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:23:46.168 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:23:46.799 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:23:46.799 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:23:46.799 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:23:46.799 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:23:46.799 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:23:47.743 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:23:47.940 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:23:47.940 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:23:47.941 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:23:47.941 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:24:14.364 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:24:14.402 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:24:14.663 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:24:14.663 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:24:14.663 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:24:14.663 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:24:15.104 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:24:15.104 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:24:15.104 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:24:15.104 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:24:15.104 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:24:15.796 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:24:16.016 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:24:16.016 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:24:16.016 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:24:16.016 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:26:01.494 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:26:01.535 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:26:01.703 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:26:01.705 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:26:01.705 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:26:01.705 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:26:02.326 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:26:02.326 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:26:02.326 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:26:02.326 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:26:02.326 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:26:06.540 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:26:09.280 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:26:09.321 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:26:10.101 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:26:10.102 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:26:10.102 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:26:10.102 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:26:10.102 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:27:00.479 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:27:00.519 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:27:00.678 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:27:00.678 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:27:00.678 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:27:00.679 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:27:01.296 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:27:01.297 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:27:01.297 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:27:01.297 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:27:01.297 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:27:04.213 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:27:05.774 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 3
+2025-04-28 09:27:26.037 [MessageBroker-3] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 18 total, 0 closed abnormally (0 connect failure, 0 send limit, 2 transport error)], stompSubProtocol[processed CONNECT(18)-CONNECTED(18)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 15, active threads = 0, queued tasks = 0, completed tasks = 264], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 34], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 6753]
+2025-04-28 09:27:44.929 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 获取考试详情: 3
+2025-04-28 09:27:45.989 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 3
+2025-04-28 09:27:46.051 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 获取考试题目列表: 3
+2025-04-28 09:27:52.730 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:27:59.713 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:27:59.713 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:27:59.713 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:27:59.713 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:28:08.614 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:28:44.815 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:28:44.816 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:28:44.816 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:28:44.816 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:29:00.263 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:29:00.263 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:29:00.263 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:29:00.263 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:31:48.078 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:31:48.247 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:31:48.247 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:31:48.247 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:31:48.247 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:31:49.776 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 3
+2025-04-28 09:32:29.798 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:32:31.540 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 3
+2025-04-28 09:32:52.825 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:32:52.978 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:32:52.978 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:32:52.978 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:32:52.978 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:32:54.922 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 3
+2025-04-28 09:35:06.795 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 09:35:06.795 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1f97ea36]]
+2025-04-28 09:35:06.795 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 09:35:06.826 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 09:35:06.829 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 09:36:18.198 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 44888 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 09:36:18.199 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 09:36:18.707 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 09:36:18.800 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 85 ms. Found 17 JPA repository interfaces.
+2025-04-28 09:36:19.167 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 09:36:19.175 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:36:19.176 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 09:36:19.176 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 09:36:19.227 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 09:36:19.228 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 999 ms
+2025-04-28 09:36:19.346 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 09:36:19.406 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 09:36:19.436 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 09:36:19.663 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 09:36:20.233 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5613247e
+2025-04-28 09:36:20.234 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 09:36:20.330 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 09:36:20.331 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 09:36:21.098 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 09:36:23.701 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 09:36:25.145 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 09:36:25.147 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 09:36:25.154 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 09:36:25.154 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 09:36:25.530 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 09:36:25.575 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 09:36:25.623 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 09:36:25.626 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 09:36:25.626 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 09:36:25.686 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 09:36:25.803 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:36:25.817 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 09:36:25.818 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 09:36:25.819 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@47be1b38]]
+2025-04-28 09:36:25.819 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 09:36:25.822 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 8.05 seconds (process running for 8.555)
+2025-04-28 09:36:27.414 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 09:36:27.414 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 09:36:27.415 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 09:36:27.842 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:36:27.842 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:36:27.842 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:36:27.842 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:36:27.949 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:36:27.949 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:36:27.949 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:36:27.949 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:36:33.393 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:36:33.545 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:36:33.545 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:36:33.547 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:36:33.547 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:36:35.465 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 3
+2025-04-28 09:37:25.804 [MessageBroker-2] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 39], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 16]
+2025-04-28 09:37:35.052 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 09:37:35.052 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@47be1b38]]
+2025-04-28 09:37:35.052 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 09:37:35.076 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 09:37:35.083 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 09:37:38.627 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 53436 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 09:37:38.629 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 09:37:39.056 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 09:37:39.132 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 70 ms. Found 17 JPA repository interfaces.
+2025-04-28 09:37:39.454 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 09:37:39.460 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:37:39.461 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 09:37:39.462 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 09:37:39.505 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 09:37:39.506 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 848 ms
+2025-04-28 09:37:39.597 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 09:37:39.633 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 09:37:39.653 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 09:37:39.811 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 09:37:40.220 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@550fa96f
+2025-04-28 09:37:40.221 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 09:37:40.283 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 09:37:40.284 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 09:37:40.975 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 09:37:42.702 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 09:37:43.877 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 09:37:43.878 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 09:37:43.886 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 09:37:43.887 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 09:37:44.262 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 09:37:44.310 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 09:37:44.354 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 09:37:44.356 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 09:37:44.357 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 09:37:44.434 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 09:37:44.548 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:37:44.563 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 09:37:44.564 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 09:37:44.565 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4bc9c7e0]]
+2025-04-28 09:37:44.565 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 09:37:44.568 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 6.274 seconds (process running for 6.66)
+2025-04-28 09:37:45.471 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 09:37:45.475 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 09:37:45.478 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2025-04-28 09:37:45.880 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:37:45.880 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:37:45.975 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:37:45.975 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:37:47.655 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 3
+2025-04-28 09:37:47.822 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:37:47.823 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:37:47.823 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:37:47.823 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:37:49.468 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 3
+2025-04-28 09:38:07.309 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:38:22.134 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:38:22.134 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:38:22.134 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:38:22.134 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:38:23.998 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:38:24.039 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 3
+2025-04-28 09:38:24.766 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=3
+2025-04-28 09:38:24.767 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 返回考试数量: 3, 总数: 3
+2025-04-28 09:38:24.767 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:38:24.767 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:38:24.767 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:38:42.632 [http-nio-8081-exec-3] INFO  c.e.a.c.SupervisorController - Supervisor requested their assigned students list, ID: 3
+2025-04-28 09:38:42.632 [http-nio-8081-exec-3] INFO  c.e.a.service.impl.UserServiceImpl - 获取教师ID为3的学生列表
+2025-04-28 09:38:42.967 [http-nio-8081-exec-3] INFO  c.e.a.c.SupervisorController - 学生数据示例: id=4, name=null, userNumber=S25521158
+2025-04-28 09:38:44.552 [MessageBroker-13] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 39], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 15]
+2025-04-28 09:38:47.177 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师创建考试: 放大书法大赛阿凡达, 教师ID: 3
+2025-04-28 09:38:47.932 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 教师发布考试: 4, 教师ID: 3
+2025-04-28 09:38:49.166 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:38:49.747 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:38:49.811 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 4
+2025-04-28 09:38:50.169 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:38:50.169 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:38:50.169 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:38:50.169 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:38:50.990 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=4
+2025-04-28 09:38:50.990 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 返回考试数量: 4, 总数: 4
+2025-04-28 09:38:50.990 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:38:50.990 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:38:50.990 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:38:50.990 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:38:55.439 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 4
+2025-04-28 09:38:57.290 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 4
+2025-04-28 09:40:13.923 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 09:40:13.924 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4bc9c7e0]]
+2025-04-28 09:40:13.924 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 09:40:13.941 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 09:40:13.945 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 09:41:38.687 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 54896 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 09:41:38.689 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 09:41:39.141 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 09:41:39.216 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 70 ms. Found 17 JPA repository interfaces.
+2025-04-28 09:41:39.541 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 09:41:39.548 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:41:39.549 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 09:41:39.550 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 09:41:39.588 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 09:41:39.588 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 870 ms
+2025-04-28 09:41:39.673 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 09:41:39.707 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 09:41:39.726 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 09:41:39.890 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 09:41:40.380 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6253e59a
+2025-04-28 09:41:40.381 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 09:41:40.455 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 09:41:40.456 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 09:41:41.161 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 09:41:43.299 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 09:41:44.837 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 09:41:44.839 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 09:41:44.857 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 09:41:44.858 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 09:41:45.462 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 09:41:45.499 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 09:41:45.542 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 09:41:45.544 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 09:41:45.545 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 09:41:45.602 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 09:41:45.708 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:41:45.724 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 09:41:45.725 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 09:41:45.725 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@2b6deb26]]
+2025-04-28 09:41:45.726 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 09:41:45.729 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 7.403 seconds (process running for 7.801)
+2025-04-28 09:41:48.524 [http-nio-8081-exec-5] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 09:41:48.524 [http-nio-8081-exec-5] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 09:41:48.525 [http-nio-8081-exec-5] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 09:41:48.926 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:41:48.926 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:41:48.926 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:41:48.926 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:41:49.003 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:41:49.003 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:41:49.003 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:41:49.003 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:41:56.906 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 4
+2025-04-28 09:41:57.037 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:41:57.037 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:41:57.038 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:41:57.038 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:41:58.732 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 4
+2025-04-28 09:42:14.952 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 4
+2025-04-28 09:42:15.139 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:42:15.139 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:42:15.140 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:42:15.140 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:42:16.755 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 4
+2025-04-28 09:42:45.710 [MessageBroker-3] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 4 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(4)-CONNECTED(4)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 54], outboundChannel[pool size = 6, active threads = 0, queued tasks = 0, completed tasks = 6], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 15]
+2025-04-28 09:44:25.327 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 09:44:25.327 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@2b6deb26]]
+2025-04-28 09:44:25.327 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 09:44:25.346 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 09:44:25.351 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 09:44:29.056 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 1908 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 09:44:29.058 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 09:44:29.499 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 09:44:29.586 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 81 ms. Found 17 JPA repository interfaces.
+2025-04-28 09:44:30.050 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 09:44:30.060 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:44:30.062 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 09:44:30.062 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 09:44:30.125 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 09:44:30.126 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1039 ms
+2025-04-28 09:44:30.245 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 09:44:30.287 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 09:44:30.309 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 09:44:30.494 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 09:44:31.067 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@271e851e
+2025-04-28 09:44:31.069 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 09:44:31.138 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 09:44:31.138 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 09:44:31.838 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 09:44:33.962 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 09:44:35.169 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 09:44:35.170 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 09:44:35.175 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 09:44:35.175 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 09:44:35.534 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 09:44:35.568 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 09:44:35.608 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 09:44:35.610 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 09:44:35.611 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 09:44:35.660 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 09:44:35.752 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:44:35.768 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 09:44:35.770 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 09:44:35.771 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1ae4c84d]]
+2025-04-28 09:44:35.771 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 09:44:35.775 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 7.065 seconds (process running for 7.496)
+2025-04-28 09:44:36.522 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 09:44:36.522 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 09:44:36.523 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 09:44:37.039 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:44:37.040 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:44:37.044 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:44:37.044 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:44:37.160 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:44:37.160 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:44:37.160 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:44:37.160 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:44:43.903 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 4
+2025-04-28 09:44:44.092 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:44:44.092 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:44:44.094 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:44:44.094 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:44:45.766 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 4
+2025-04-28 09:45:35.763 [MessageBroker-6] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 39], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 16]
+2025-04-28 09:45:57.058 [http-nio-8081-exec-8] INFO  c.e.a.c.SupervisorController - Supervisor requested their assigned students list, ID: 3
+2025-04-28 09:45:57.058 [http-nio-8081-exec-8] INFO  c.e.a.service.impl.UserServiceImpl - 获取教师ID为3的学生列表
+2025-04-28 09:45:57.426 [http-nio-8081-exec-8] INFO  c.e.a.c.SupervisorController - 学生数据示例: id=4, name=null, userNumber=S25521158
+2025-04-28 09:46:01.658 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师创建考试: 发的撒旦法, 教师ID: 3
+2025-04-28 09:46:02.657 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 教师发布考试: 5, 教师ID: 3
+2025-04-28 09:46:03.533 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:46:09.556 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:46:09.612 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:46:10.910 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:46:14.562 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 5
+2025-04-28 09:46:16.045 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 5
+2025-04-28 09:47:29.394 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 5
+2025-04-28 09:47:31.106 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 5
+2025-04-28 09:49:33.534 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:49:33.535 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:49:33.536 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:49:33.536 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:49:35.290 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:49:35.339 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 09:49:36.820 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 09:49:36.821 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 09:49:36.821 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:49:36.821 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:49:36.821 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:49:36.821 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:49:36.821 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:49:43.946 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 5
+2025-04-28 09:49:45.511 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 5
+2025-04-28 09:50:08.867 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:50:08.867 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:50:08.868 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:50:08.868 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:53:18.660 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 09:53:18.661 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1ae4c84d]]
+2025-04-28 09:53:18.661 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 09:53:18.676 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 09:53:18.681 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 09:54:27.521 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 62984 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 09:54:27.523 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 09:54:28.045 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 09:54:28.131 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 79 ms. Found 17 JPA repository interfaces.
+2025-04-28 09:54:28.462 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 09:54:28.468 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:54:28.469 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 09:54:28.469 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 09:54:28.508 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 09:54:28.509 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 955 ms
+2025-04-28 09:54:28.594 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 09:54:28.628 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 09:54:28.646 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 09:54:28.846 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 09:54:29.281 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@778113f2
+2025-04-28 09:54:29.283 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 09:54:29.346 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 09:54:29.347 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 09:54:30.221 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 09:54:32.051 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 09:54:33.225 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 09:54:33.226 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 09:54:33.233 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 09:54:33.233 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 09:54:33.631 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 09:54:33.669 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 09:54:33.713 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 09:54:33.715 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 09:54:33.716 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 09:54:33.773 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 09:54:33.869 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 09:54:33.885 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 09:54:33.886 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 09:54:33.886 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@3ea9fd6c]]
+2025-04-28 09:54:33.888 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 09:54:33.892 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 6.742 seconds (process running for 7.196)
+2025-04-28 09:54:35.384 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 09:54:35.385 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 09:54:35.386 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 09:54:36.008 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:54:36.049 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 09:54:36.252 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:54:36.252 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:54:36.253 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 09:54:36.253 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 09:54:36.808 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:54:36.808 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:54:36.809 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:54:36.809 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:54:37.135 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 09:54:37.135 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 09:54:37.135 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:54:37.135 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:54:37.135 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:54:37.135 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:54:37.136 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:54:49.441 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 5
+2025-04-28 09:54:50.707 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 5
+2025-04-28 09:55:14.685 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生提交考试答案, 学生ID: 4, 考试ID: 5
+2025-04-28 09:55:22.239 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:55:22.420 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 09:55:22.420 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 09:55:22.421 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 09:55:22.421 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 09:55:27.886 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 09:55:28.807 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 09:55:28.855 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 获取考试题目列表: 5
+2025-04-28 09:55:30.965 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 09:55:33.877 [MessageBroker-8] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 39], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 15]
+2025-04-28 09:55:36.986 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:55:37.029 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:55:38.255 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:55:43.154 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 5
+2025-04-28 09:55:46.325 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 09:55:46.366 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:55:47.575 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 09:58:53.713 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:02:24.179 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 10:02:24.179 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@3ea9fd6c]]
+2025-04-28 10:02:24.179 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 10:02:24.195 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 10:02:24.200 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 10:02:35.564 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 57792 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 10:02:35.567 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 10:02:36.018 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 10:02:36.106 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 82 ms. Found 17 JPA repository interfaces.
+2025-04-28 10:02:36.439 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 10:02:36.446 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:02:36.448 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 10:02:36.448 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 10:02:36.492 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 10:02:36.492 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 897 ms
+2025-04-28 10:02:36.591 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 10:02:36.627 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 10:02:36.647 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 10:02:36.816 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 10:02:37.387 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5613247e
+2025-04-28 10:02:37.388 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 10:02:37.465 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 10:02:37.466 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 10:02:38.477 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 10:02:40.887 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 10:02:42.498 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 10:02:42.499 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 10:02:42.507 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 10:02:42.508 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 10:02:42.957 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 10:02:43.013 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 10:02:43.079 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 10:02:43.082 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 10:02:43.084 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 10:02:43.172 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 10:02:43.389 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:02:43.418 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 10:02:43.421 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 10:02:43.422 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@36e8fffc]]
+2025-04-28 10:02:43.423 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 10:02:43.430 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 8.205 seconds (process running for 8.611)
+2025-04-28 10:02:43.865 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 10:02:43.866 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 10:02:43.868 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 10:02:44.773 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:02:44.995 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:02:44.996 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:02:44.997 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:02:44.998 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:02:46.074 [http-nio-8081-exec-3] WARN  o.s.w.s.m.s.DefaultHandlerExceptionResolver - Resolved [org.springframework.http.converter.HttpMessageNotWritableException: Could not write JSON: Unsupported field: YearOfEra]
+2025-04-28 10:02:47.080 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:02:47.081 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:02:47.081 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:02:47.081 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:02:50.987 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:02:51.118 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:02:51.119 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:02:51.119 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:02:51.119 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:02:52.726 [http-nio-8081-exec-10] WARN  o.s.w.s.m.s.DefaultHandlerExceptionResolver - Resolved [org.springframework.http.converter.HttpMessageNotWritableException: Could not write JSON: Unsupported field: YearOfEra]
+2025-04-28 10:03:43.387 [MessageBroker-6] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 39], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 16]
+2025-04-28 10:04:29.741 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:04:29.927 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:04:29.927 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:04:29.930 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:04:29.930 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:04:31.104 [http-nio-8081-exec-4] WARN  o.s.w.s.m.s.DefaultHandlerExceptionResolver - Resolved [org.springframework.http.converter.HttpMessageNotWritableException: Could not write JSON: Unsupported field: YearOfEra]
+2025-04-28 10:04:31.416 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:04:31.417 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:04:31.417 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:04:31.418 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:04:33.472 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 10:04:33.473 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@36e8fffc]]
+2025-04-28 10:04:33.473 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 10:04:33.488 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 10:04:33.493 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 10:04:38.480 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 28028 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 10:04:38.483 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 10:04:39.310 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 10:04:39.433 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 114 ms. Found 17 JPA repository interfaces.
+2025-04-28 10:04:39.886 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 10:04:39.894 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:04:39.896 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 10:04:39.896 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 10:04:39.949 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 10:04:39.949 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1437 ms
+2025-04-28 10:04:40.060 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 10:04:40.099 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 10:04:40.125 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 10:04:40.357 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 10:04:40.853 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3de56885
+2025-04-28 10:04:40.855 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 10:04:40.921 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 10:04:40.922 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 10:04:41.671 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 10:04:43.775 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 10:04:45.006 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 10:04:45.007 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 10:04:45.013 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 10:04:45.013 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 10:04:45.393 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 10:04:45.438 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 10:04:45.492 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 10:04:45.495 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 10:04:45.495 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 10:04:45.551 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 10:04:45.659 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:04:45.673 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 10:04:45.674 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 10:04:45.675 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1d862e03]]
+2025-04-28 10:04:45.675 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 10:04:45.678 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 7.579 seconds (process running for 8.052)
+2025-04-28 10:04:47.896 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 10:04:47.896 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 10:04:47.898 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2025-04-28 10:04:48.572 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:04:48.767 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:04:48.767 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:04:48.768 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:04:48.768 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:04:51.811 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:04:51.811 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:04:51.812 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:04:51.813 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:05:17.202 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:05:17.243 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:05:18.450 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:05:19.722 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:05:19.775 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:05:21.250 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:05:21.250 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:05:21.250 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:05:21.250 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:05:21.250 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:05:21.251 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:05:21.251 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:05:24.196 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 2
+2025-04-28 10:05:27.304 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:05:27.346 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:05:28.594 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:05:28.594 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:05:28.594 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:05:28.594 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:05:28.594 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:05:28.594 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:05:28.595 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:05:45.658 [MessageBroker-13] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 2 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(2)-CONNECTED(2)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 24, active threads = 0, queued tasks = 0, completed tasks = 24], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 2], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 16]
+2025-04-28 10:09:28.798 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:09:28.856 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:09:28.907 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:09:30.391 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:10:40.888 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:10:41.068 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:10:41.068 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:10:41.068 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:10:41.068 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:10:42.711 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:10:42.751 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:10:43.026 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:10:43.026 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:10:43.026 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:10:43.026 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:10:43.934 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:10:43.934 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:10:43.934 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:10:43.934 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:10:43.935 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:10:43.935 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:10:43.935 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:11:12.276 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:12:14.637 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:12:14.773 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:12:14.773 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:12:14.774 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:12:14.774 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:12:16.988 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:12:17.045 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:12:17.527 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:12:17.527 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:12:17.528 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:12:17.528 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:12:18.272 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:12:18.273 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:12:18.273 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:12:18.273 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:12:18.273 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:12:18.273 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:12:18.273 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:12:44.608 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:13:07.617 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:13:28.217 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 10:13:28.219 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1d862e03]]
+2025-04-28 10:13:28.219 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 10:13:28.234 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 10:13:28.238 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 10:13:32.575 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 46148 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 10:13:32.577 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 10:13:33.010 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 10:13:33.088 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 72 ms. Found 17 JPA repository interfaces.
+2025-04-28 10:13:33.393 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 10:13:33.399 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:13:33.400 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 10:13:33.401 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 10:13:33.440 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 10:13:33.440 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 835 ms
+2025-04-28 10:13:33.525 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 10:13:33.559 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 10:13:33.578 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 10:13:33.740 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 10:13:34.162 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@9e50283
+2025-04-28 10:13:34.164 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 10:13:34.243 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 10:13:34.244 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 10:13:34.991 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 10:13:36.818 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 10:13:37.999 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 10:13:38.000 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 10:13:38.005 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 10:13:38.006 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 10:13:38.390 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 10:13:38.434 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 10:13:38.488 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 10:13:38.489 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 10:13:38.490 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 10:13:38.543 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 10:13:38.659 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:13:38.672 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 10:13:38.674 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 10:13:38.674 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@36c8c89]]
+2025-04-28 10:13:38.674 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 10:13:38.678 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 6.428 seconds (process running for 6.818)
+2025-04-28 10:13:38.840 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 10:13:38.840 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 10:13:38.841 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 10:13:39.241 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:13:39.241 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:13:39.366 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:13:39.367 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:13:39.892 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:13:39.892 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:13:39.893 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:13:39.893 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:13:47.843 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:13:48.025 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:13:48.025 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:13:48.027 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:13:48.027 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:13:49.723 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:13:49.761 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:13:49.972 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:13:49.973 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:13:49.974 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:13:49.974 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:13:50.848 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:13:50.848 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:13:50.848 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:13:50.849 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:13:50.849 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:13:50.849 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:13:50.849 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:14:36.879 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:14:37.888 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:14:37.921 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 获取考试题目列表: 5
+2025-04-28 10:14:38.670 [MessageBroker-2] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 4 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(4)-CONNECTED(4)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 54], outboundChannel[pool size = 6, active threads = 0, queued tasks = 0, completed tasks = 6], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 3, completed tasks = 15]
+2025-04-28 10:14:38.981 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:14:43.314 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:14:43.314 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:17:07.088 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:17:07.289 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:20:22.377 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:20:22.448 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:20:22.935 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:20:22.935 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:20:22.935 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:20:22.935 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:20:24.050 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:21:30.695 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:23:56.698 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:23:56.870 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:23:56.870 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:23:56.871 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:23:56.871 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:24:36.948 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:24:36.985 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:24:37.146 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:24:37.146 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:24:37.147 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:24:37.147 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:24:38.048 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:24:38.048 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:24:38.049 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:24:38.049 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:24:38.049 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:24:38.049 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:24:38.049 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:24:44.450 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 5
+2025-04-28 10:24:46.754 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:24:46.791 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 5
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=5
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 返回考试数量: 5, 总数: 5
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:24:47.876 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:24:53.550 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:24:53.662 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:24:53.662 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:24:53.663 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:24:53.663 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:25:10.565 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:25:17.815 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:25:54.200 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:26:24.647 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:26:24.797 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:26:24.798 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:26:24.798 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:26:24.798 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:26:35.530 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:26:35.764 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:26:35.765 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:26:35.765 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:26:35.765 [http-nio-8081-exec-1] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:26:48.402 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:26:52.591 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:26:52.766 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:26:52.767 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:26:52.767 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:26:52.767 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:27:40.784 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:27:41.706 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:27:41.743 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 获取考试题目列表: 5
+2025-04-28 10:27:46.223 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:27:50.550 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:27:50.858 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:27:56.085 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:28:09.545 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:28:09.813 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:28:09.813 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:28:09.813 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:28:09.813 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:28:14.285 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:28:14.285 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:28:18.195 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取学生考试答案: 考试ID=5, 学生ID=4, 教师ID=3
+2025-04-28 10:28:18.589 [http-nio-8081-exec-4] ERROR o.a.c.c.C.[.[.[.[dispatcherServlet] - Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: org.springframework.http.converter.HttpMessageConversionException: Type definition error: [simple type, class org.hibernate.proxy.pojo.bytebuddy.ByteBuddyInterceptor]] with root cause
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class org.hibernate.proxy.pojo.bytebuddy.ByteBuddyInterceptor and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS) (through reference chain: java.util.HashMap["data"]->java.util.HashMap["student"]->com.example.auth.entity.User$HibernateProxy$odOD6PwK["hibernateLazyInitializer"])
+	at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
+	at com.fasterxml.jackson.databind.SerializerProvider.reportBadDefinition(SerializerProvider.java:1308)
+	at com.fasterxml.jackson.databind.DatabindContext.reportBadDefinition(DatabindContext.java:414)
+	at com.fasterxml.jackson.databind.ser.impl.UnknownSerializer.failForEmpty(UnknownSerializer.java:53)
+	at com.fasterxml.jackson.databind.ser.impl.UnknownSerializer.serialize(UnknownSerializer.java:30)
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:732)
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:772)
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeFields(MapSerializer.java:808)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeWithoutTypeInfo(MapSerializer.java:764)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:720)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeFields(MapSerializer.java:808)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeWithoutTypeInfo(MapSerializer.java:764)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:720)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:479)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:318)
+	at com.fasterxml.jackson.databind.ObjectWriter$Prefetch.serialize(ObjectWriter.java:1572)
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1061)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:483)
+	at org.springframework.http.converter.AbstractGenericHttpMessageConverter.write(AbstractGenericHttpMessageConverter.java:114)
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:297)
+	at org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor.handleReturnValue(HttpEntityMethodProcessor.java:245)
+	at org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:78)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:920)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:830)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+2025-04-28 10:28:20.403 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 获取考试详情: 5
+2025-04-28 10:28:20.676 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 5
+2025-04-28 10:29:40.838 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 4
+2025-04-28 10:29:42.113 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 4
+2025-04-28 10:29:43.879 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:29:54.461 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 4
+2025-04-28 10:29:54.637 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:29:54.638 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:29:54.638 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:29:54.638 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:29:56.075 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 4
+2025-04-28 10:30:12.549 [http-nio-8081-exec-9] INFO  c.e.a.c.SupervisorController - Supervisor requested their assigned students list, ID: 3
+2025-04-28 10:30:12.549 [http-nio-8081-exec-9] INFO  c.e.a.service.impl.UserServiceImpl - 获取教师ID为3的学生列表
+2025-04-28 10:30:12.876 [http-nio-8081-exec-9] INFO  c.e.a.c.SupervisorController - 学生数据示例: id=4, name=null, userNumber=S25521158
+2025-04-28 10:30:17.048 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 教师创建考试: 啊啊啊啊啊啊啊啊啊啊啊, 教师ID: 3
+2025-04-28 10:30:18.037 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师发布考试: 6, 教师ID: 3
+2025-04-28 10:30:18.935 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:30:20.284 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 学生提交考试答案, 学生ID: 4, 考试ID: 4
+2025-04-28 10:30:22.511 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:30:22.547 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 6
+2025-04-28 10:30:23.823 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=6
+2025-04-28 10:30:23.823 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 返回考试数量: 6, 总数: 6
+2025-04-28 10:30:23.824 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:30:23.824 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=SUBMITTED
+2025-04-28 10:30:23.824 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:30:23.824 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:30:23.824 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:30:23.824 [http-nio-8081-exec-8] INFO  c.e.auth.controller.ExamController - 考试记录: ID=6, 标题=啊啊啊啊啊啊啊啊啊啊啊, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:30:27.633 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试详情, 学生ID: 4, 考试ID: 6
+2025-04-28 10:30:28.878 [http-nio-8081-exec-1] INFO  c.e.auth.controller.ExamController - 学生开始考试, 学生ID: 4, 考试ID: 6
+2025-04-28 10:30:40.406 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 学生提交考试答案, 学生ID: 4, 考试ID: 6
+2025-04-28 10:30:43.912 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: , 页码: 0, 大小: 10
+2025-04-28 10:30:43.949 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 6
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=10, 总页数=1, 总元素数=6
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 返回考试数量: 6, 总数: 6
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=6, 标题=啊啊啊啊啊啊啊啊啊啊啊, 状态=ONGOING, 学生状态=SUBMITTED
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=SUBMITTED
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:30:45.218 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-04-28 10:30:47.747 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-04-28 10:30:47.943 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:30:47.943 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:30:47.944 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:30:47.944 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:30:59.118 [http-nio-8081-exec-5] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 6
+2025-04-28 10:30:59.118 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 获取考试详情: 6
+2025-04-28 10:31:03.751 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取学生考试答案: 考试ID=6, 学生ID=4, 教师ID=3
+2025-04-28 10:31:04.266 [http-nio-8081-exec-10] ERROR o.a.c.c.C.[.[.[.[dispatcherServlet] - Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: org.springframework.http.converter.HttpMessageConversionException: Type definition error: [simple type, class org.hibernate.proxy.pojo.bytebuddy.ByteBuddyInterceptor]] with root cause
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class org.hibernate.proxy.pojo.bytebuddy.ByteBuddyInterceptor and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS) (through reference chain: java.util.HashMap["data"]->java.util.HashMap["student"]->com.example.auth.entity.User$HibernateProxy$odOD6PwK["hibernateLazyInitializer"])
+	at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
+	at com.fasterxml.jackson.databind.SerializerProvider.reportBadDefinition(SerializerProvider.java:1308)
+	at com.fasterxml.jackson.databind.DatabindContext.reportBadDefinition(DatabindContext.java:414)
+	at com.fasterxml.jackson.databind.ser.impl.UnknownSerializer.failForEmpty(UnknownSerializer.java:53)
+	at com.fasterxml.jackson.databind.ser.impl.UnknownSerializer.serialize(UnknownSerializer.java:30)
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:732)
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:772)
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeFields(MapSerializer.java:808)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeWithoutTypeInfo(MapSerializer.java:764)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:720)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeFields(MapSerializer.java:808)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeWithoutTypeInfo(MapSerializer.java:764)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:720)
+	at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:479)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:318)
+	at com.fasterxml.jackson.databind.ObjectWriter$Prefetch.serialize(ObjectWriter.java:1572)
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1061)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:483)
+	at org.springframework.http.converter.AbstractGenericHttpMessageConverter.write(AbstractGenericHttpMessageConverter.java:114)
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:297)
+	at org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor.handleReturnValue(HttpEntityMethodProcessor.java:245)
+	at org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:78)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:136)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:920)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:830)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+2025-04-28 10:33:19.712 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-04-28 10:33:19.712 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@36c8c89]]
+2025-04-28 10:33:19.712 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-04-28 10:33:19.729 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-04-28 10:33:19.734 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-04-28 10:33:23.412 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 46672 (C:\Users\37602\Desktop\f_e\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\f_e)
+2025-04-28 10:33:23.414 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-04-28 10:33:23.834 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-28 10:33:23.914 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 77 ms. Found 17 JPA repository interfaces.
+2025-04-28 10:33:24.211 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-04-28 10:33:24.217 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:33:24.218 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-04-28 10:33:24.218 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-04-28 10:33:24.263 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-04-28 10:33:24.264 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 823 ms
+2025-04-28 10:33:24.352 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-28 10:33:24.385 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-04-28 10:33:24.403 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-04-28 10:33:24.575 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-04-28 10:33:25.090 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@586737ff
+2025-04-28 10:33:25.092 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-04-28 10:33:25.162 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-04-28 10:33:25.163 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-04-28 10:33:25.834 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-28 10:33:27.937 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-04-28 10:33:29.160 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-04-28 10:33:29.161 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-04-28 10:33:29.166 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-04-28 10:33:29.167 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-04-28 10:33:29.517 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-04-28 10:33:29.567 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-28 10:33:29.613 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-04-28 10:33:29.615 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-04-28 10:33:29.616 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-04-28 10:33:29.665 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\f_e\uploads/
+2025-04-28 10:33:29.756 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-04-28 10:33:29.770 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-04-28 10:33:29.771 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-04-28 10:33:29.772 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@33697548]]
+2025-04-28 10:33:29.772 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-04-28 10:33:29.775 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 6.685 seconds (process running for 7.061)
+2025-04-28 10:33:31.514 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-28 10:33:31.514 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-04-28 10:33:31.515 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-04-28 10:33:31.901 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:33:31.901 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-04-28 10:33:31.901 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:33:31.901 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-04-28 10:33:31.970 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-04-28 10:33:31.971 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-04-28 10:33:31.971 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-04-28 10:33:31.971 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-04-28 10:33:40.240 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 获取考试详情: 6
+2025-04-28 10:33:40.527 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 获取考试学生列表: 6
+2025-04-28 10:33:44.800 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取学生考试答案: 考试ID=6, 学生ID=4, 教师ID=3

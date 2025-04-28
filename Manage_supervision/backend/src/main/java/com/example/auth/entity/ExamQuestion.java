@@ -36,6 +36,9 @@ public class ExamQuestion {
     @Column(name = "question_type", nullable = false)
     private String questionType;
     
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
+    
     @Column(name = "question_score", nullable = false)
     private BigDecimal questionScore;
     

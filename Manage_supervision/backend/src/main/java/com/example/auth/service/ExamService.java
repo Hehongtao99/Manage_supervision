@@ -123,4 +123,14 @@ public interface ExamService {
      * 学生提交考试答案
      */
     ExamStudentDTO submitExam(Long examId, Long studentId, Map<String, String> answers);
+    
+    /**
+     * 获取学生考试答案和评分详情
+     */
+    Map<String, Object> getStudentExamAnswers(Long examId, Long studentId, Long creatorId);
+    
+    /**
+     * 批阅学生考试（为主观题打分）
+     */
+    ExamStudentDTO gradeStudentExam(Long examId, Long studentId, Map<String, Object> gradeData, Long creatorId);
 } 

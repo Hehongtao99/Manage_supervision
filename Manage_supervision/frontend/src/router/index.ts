@@ -240,6 +240,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresSupervisor: true
         }
+      },
+      {
+        path: 'exams/:examId/grade/:studentId',
+        name: 'ExamGrading',
+        component: () => import('../views/supervisor/ExamGrading.vue'),
+        meta: { 
+          title: '批阅试卷', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'exams/:id/students',
+        name: 'ExamStudentList',
+        component: () => import('../views/supervisor/ExamStudentList.vue'),
+        meta: { 
+          title: '考试学生列表', 
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
       }
     ]
   },
@@ -299,7 +319,9 @@ const routes: RouteRecordRaw[] = [
         meta: { 
           title: '参加考试',
           requiresAuth: true,
-          requiresStudent: true
+          requiresStudent: true,
+          keepAlive: true,
+          examPage: true
         }
       },
       {
@@ -325,6 +347,27 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   console.log('路由导航开始，目标路径:', to.path)
   const userStore = useUserStore()
+  
+  // 检查是否是考试页面的路由
+  const isExamPage = to.meta.examPage === true
+  
+  // 从localStorage检查是否有正在进行的考试
+  const currentExamId = localStorage.getItem('current_exam_id')
+  const examStartTime = localStorage.getItem('exam_start_time')
+  
+  // 如果是考试页面，且有考试正在进行，优先处理
+  if (isExamPage && currentExamId && examStartTime) {
+    console.log('检测到正在进行的考试，考试ID:', currentExamId, '开始时间:', examStartTime)
+    
+    // 如果当前请求的考试页面ID与localStorage中的考试ID一致，则直接放行
+    if (to.params.id && to.params.id.toString() === currentExamId) {
+      console.log('考试ID匹配，直接放行到考试页面')
+      // 设置页面标题
+      document.title = `${to.meta.title || '考试'} - 毕业设计督导系统`
+      next()
+      return
+    }
+  }
   
   // 初始化用户认证状态
   if (!userStore.initialized) {

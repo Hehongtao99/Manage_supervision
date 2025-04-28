@@ -1,6 +1,6 @@
 <template>
   <div class="exam-take-container">
-    <el-card v-loading="loading" class="exam-card">
+    <el-card v-loading="loading" element-loading-text="正在准备考试，请稍候..." :element-loading-spinner="loadingSpinner" :element-loading-background="loadingBackground" class="exam-card">
       <!-- 考试信息和倒计时 -->
       <div class="exam-header">
         <div class="exam-title">{{ exam ? exam.title : '加载中...' }}</div>
@@ -8,6 +8,29 @@
           <el-icon><Timer /></el-icon>
           <span class="remaining-time">剩余时间: {{ formatRemainingTime }}</span>
         </div>
+      </div>
+      
+      <!-- 欢迎提示 -->
+      <div v-if="initSuccess && !loading && questions.length > 0 && !submitted" class="exam-welcome" v-show="showWelcome">
+        <el-alert
+          type="success"
+          show-icon
+          :closable="true"
+          @close="showWelcome = false"
+        >
+          <template #title>
+            <div class="welcome-title">考试已开始</div>
+          </template>
+          <div class="welcome-content">
+            <p>欢迎开始《{{ exam.title }}》考试，请注意以下事项：</p>
+            <ol>
+              <li>考试时长 {{ exam.duration }} 分钟，计时已开始</li>
+              <li>本次考试共 {{ questions.length }} 道题目</li>
+              <li>请合理安排答题时间，确保能够完成所有题目</li>
+              <li>时间结束前，请务必点击【提交考试】按钮</li>
+            </ol>
+          </div>
+        </el-alert>
       </div>
       
       <!-- 考试主体 -->
@@ -56,20 +79,22 @@
           
           <!-- 单选题 -->
           <div v-if="currentQuestion.questionType === 'SINGLE_CHOICE'" class="question-options">
-            <el-radio-group v-model="answers[currentQuestion.id]">
+            <el-radio-group v-if="Object.keys(parseOptions(currentQuestion)).length > 0" v-model="answers[currentQuestion.id]">
               <el-radio v-for="(option, optionKey) in parseOptions(currentQuestion)" :key="optionKey" :label="optionKey">
                 {{ optionKey }}. {{ option }}
               </el-radio>
             </el-radio-group>
+            <el-alert v-else title="题目选项加载失败" type="error" description="无法解析题目选项，请联系管理员。" show-icon :closable="false" />
           </div>
           
           <!-- 多选题 -->
           <div v-else-if="currentQuestion.questionType === 'MULTIPLE_CHOICE'" class="question-options">
-            <el-checkbox-group v-model="multipleChoiceAnswers[currentQuestion.id]" @change="updateMultipleChoiceAnswer">
+            <el-checkbox-group v-if="Object.keys(parseOptions(currentQuestion)).length > 0" v-model="multipleChoiceAnswers[currentQuestion.id]" @change="updateMultipleChoiceAnswer">
               <el-checkbox v-for="(option, optionKey) in parseOptions(currentQuestion)" :key="optionKey" :label="optionKey">
                 {{ optionKey }}. {{ option }}
               </el-checkbox>
             </el-checkbox-group>
+            <el-alert v-else title="题目选项加载失败" type="error" description="无法解析题目选项，请联系管理员。" show-icon :closable="false" />
           </div>
           
           <!-- 判断题 -->
@@ -148,7 +173,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showSubmitConfirm = false">取消</el-button>
-          <el-button type="primary" @click="submitExam" :loading="submitting">
+          <el-button type="primary" @click="handleExamSubmit" :loading="submitting">
             确认提交
           </el-button>
         </span>
@@ -168,7 +193,7 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="submitExam" :loading="submitting">
+          <el-button type="primary" @click="handleExamSubmit" :loading="submitting">
             确认
           </el-button>
         </span>
@@ -179,16 +204,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Timer } from '@element-plus/icons-vue';
-import { getStudentExam, startExam, submitExam } from '@/api/exam';
+import { getStudentExam, startExam, submitExam as submitExamApi } from '@/api/exam';
 
 const router = useRouter();
 const route = useRoute();
 const examId = route.params.id;
 
-const loading = ref(false);
+const loading = ref(true);
 const submitting = ref(false);
 const submitted = ref(false);
 const exam = ref(null);
@@ -200,6 +225,10 @@ const remainingSeconds = ref(0);
 const timer = ref(null);
 const showSubmitConfirm = ref(false);
 const showTimeUpDialog = ref(false);
+const initSuccess = ref(false);
+const showWelcome = ref(true);
+const loadingSpinner = 'el-icon-loading';
+const loadingBackground = 'rgba(255, 255, 255, 0.9)';
 
 // 计算当前题目
 const currentQuestion = computed(() => {
@@ -219,18 +248,34 @@ const formatRemainingTime = computed(() => {
 // 获取考试详情并开始考试
 const initExam = async () => {
   loading.value = true;
+  console.log('ExamTake初始化，考试ID:', examId);
+  
+  // 检查是否有从上一页面传来的exam_start_time
+  const startTimeFromStorage = localStorage.getItem('exam_start_time');
+  const examIdFromStorage = localStorage.getItem('current_exam_id');
+  
+  if (startTimeFromStorage && examIdFromStorage === examId.toString()) {
+    console.log('检测到localStorage中有考试开始信息，时间:', startTimeFromStorage);
+  }
+  
   try {
     // 获取考试详情
+    console.log('正在获取考试详情...');
     const detailResponse = await getStudentExam(Number(examId));
+    console.log('获取考试详情响应:', detailResponse);
     
-    if (!detailResponse.data || !detailResponse.data.success) {
+    if (!detailResponse.data || detailResponse.data.code !== 200) {
+      console.error('获取考试详情失败:', detailResponse.data);
       ElMessage.error(detailResponse.data?.message || '获取考试详情失败');
-      router.push('/student/exams');
+      setTimeout(() => router.push('/student/exams'), 1000);
       return;
     }
     
     const examData = detailResponse.data.data.exam;
     const studentStatus = detailResponse.data.data.studentStatus;
+    
+    console.log('考试详情数据:', examData);
+    console.log('学生状态数据:', studentStatus);
     
     // 检查考试是否可以参加
     const now = new Date().getTime();
@@ -238,35 +283,71 @@ const initExam = async () => {
     const endTime = new Date(examData.endTime).getTime();
     
     if (now < startTime) {
+      console.error('考试尚未开始');
       ElMessage.error('考试尚未开始');
-      router.push(`/student/exams/${examId}`);
+      setTimeout(() => router.push(`/student/exams/${examId}`), 1000);
       return;
     }
     
     if (now > endTime) {
+      console.error('考试已经结束');
       ElMessage.error('考试已经结束');
-      router.push(`/student/exams/${examId}`);
+      setTimeout(() => router.push(`/student/exams/${examId}`), 1000);
       return;
     }
     
     if (studentStatus.status === 'SUBMITTED' || studentStatus.status === 'GRADED') {
+      console.error('考试已提交');
       ElMessage.error('您已经提交过该考试');
-      router.push(`/student/exams/${examId}`);
+      setTimeout(() => router.push(`/student/exams/${examId}`), 1000);
       return;
     }
     
-    // 开始考试
-    const startResponse = await startExam(Number(examId));
-    
-    if (!startResponse.data || !startResponse.data.success) {
-      ElMessage.error(startResponse.data?.message || '开始考试失败');
-      router.push('/student/exams');
-      return;
+    // 如果考试还未开始，调用开始考试API
+    if (studentStatus.status !== 'IN_PROGRESS') {
+      console.log('需要开始考试，正在调用开始考试API...');
+      // 开始考试
+      const startResponse = await startExam(Number(examId));
+      console.log('开始考试API响应:', startResponse);
+      
+      if (!startResponse.data || startResponse.data.code !== 200) {
+        console.error('开始考试失败:', startResponse.data);
+        ElMessage.error(startResponse.data?.message || '开始考试失败');
+        setTimeout(() => router.push('/student/exams'), 1000);
+        return;
+      }
+      
+      const data = startResponse.data.data;
+      exam.value = examData;
+      questions.value = data.questions;
+      
+      console.log('成功获取到题目数量:', questions.value.length);
+      
+      // 显示成功消息
+      ElMessage.success('考试已成功开始，请认真答题！');
+    } else {
+      console.log('考试进行中，正在恢复考试状态...');
+      // 如果考试已经在进行中，直接恢复状态
+      // 再次调用开始API获取题目列表
+      const startResponse = await startExam(Number(examId));
+      console.log('恢复考试状态API响应:', startResponse);
+      
+      if (!startResponse.data || startResponse.data.code !== 200) {
+        console.error('恢复考试失败:', startResponse.data);
+        ElMessage.error(startResponse.data?.message || '恢复考试失败');
+        setTimeout(() => router.push('/student/exams'), 1000);
+        return;
+      }
+      
+      const data = startResponse.data.data;
+      exam.value = examData;
+      questions.value = data.questions;
+      
+      console.log('成功恢复题目数量:', questions.value.length);
+      
+      // 显示恢复消息
+      ElMessage.info('已成功恢复考试，请继续答题！');
     }
-    
-    const data = startResponse.data.data;
-    exam.value = examData;
-    questions.value = data.questions;
     
     // 初始化多选题答案
     questions.value.forEach(q => {
@@ -282,17 +363,30 @@ const initExam = async () => {
       const startTimeMs = new Date(studentStatus.startTime).getTime();
       const elapsedMs = now - startTimeMs;
       elapsedMinutes = Math.floor(elapsedMs / (1000 * 60));
+      console.log('已经过时间(分钟):', elapsedMinutes);
     }
     
     const remainingMinutes = Math.max(0, examData.duration - elapsedMinutes);
     remainingSeconds.value = remainingMinutes * 60;
+    console.log('剩余时间(秒):', remainingSeconds.value);
     
     // 开始倒计时
     startTimer();
     
+    // 标记初始化成功
+    initSuccess.value = true;
+    
+    // 清除localStorage中的考试开始信息
+    localStorage.removeItem('exam_start_time');
+    localStorage.removeItem('current_exam_id');
+    
   } catch (error) {
     console.error('初始化考试失败', error);
-    ElMessage.error('初始化考试失败');
+    ElMessage.error('初始化考试失败，请刷新页面重试');
+    // 5秒后自动返回考试列表
+    setTimeout(() => {
+      router.push('/student/exams');
+    }, 5000);
   } finally {
     loading.value = false;
   }
@@ -316,12 +410,60 @@ const startTimer = () => {
 
 // 解析选项
 const parseOptions = (question) => {
-  if (!question || !question.content) return {};
+  console.log(`Parsing options for question ID: ${question?.id}, Type: ${question?.questionType}`);
+  const rawContent = question?.content;
+  console.log('Raw question content:', rawContent);
+  
+  if (!rawContent) {
+    console.warn('Question content is missing or empty');
+    return {};
+  }
   
   try {
-    const content = JSON.parse(question.content);
-    return content.options || {};
+    const parsedData = JSON.parse(rawContent);
+    console.log('Parsed content data:', parsedData);
+    
+    // 检查解析后的数据是否为数组
+    if (Array.isArray(parsedData)) {
+      const optionsObject = {};
+      let isValidArray = true;
+      
+      // 遍历数组，构建 optionsObject
+      for (const item of parsedData) {
+        if (item && typeof item === 'object' && item.key && item.value) {
+          optionsObject[item.key] = item.value;
+        } else {
+          console.warn('Invalid item format in options array:', item);
+          isValidArray = false;
+          break; // 发现无效项，停止处理
+        }
+      }
+      
+      if (isValidArray && Object.keys(optionsObject).length > 0) {
+        console.log('Successfully parsed options array into object:', optionsObject);
+        return optionsObject;
+      } else if (!isValidArray) {
+         console.error('Options array contains invalid items.');
+         return {};
+      } else {
+         console.warn('Parsed options array is empty or could not be transformed.');
+         return {};
+      }
+      
+    } else {
+      // 如果不是数组，可能是旧格式或其他错误格式
+      console.warn('Parsed content is not an array as expected. Attempting fallback (expecting {options: ...})');
+      // 尝试按旧格式解析（作为后备），尽管我们知道当前格式是数组
+      if (parsedData && typeof parsedData === 'object' && parsedData.options && typeof parsedData.options === 'object') {
+          console.log('Fallback successful, returning options from object:', parsedData.options);
+          return parsedData.options;
+      }
+      console.error('Parsed content is not a valid options array and fallback failed.');
+      return {};
+    }
   } catch (e) {
+    console.error('Failed to parse question content JSON:', e);
+    console.error('Invalid JSON string was:', rawContent);
     return {};
   }
 };
@@ -344,7 +486,6 @@ const updateMultipleChoiceAnswer = () => {
   
   const questionId = currentQuestion.value.id;
   if (multipleChoiceAnswers.value[questionId]) {
-    // 将多选的选项合并为字符串，如 "A,B,C"
     answers.value[questionId] = multipleChoiceAnswers.value[questionId].sort().join(',');
   }
 };
@@ -355,25 +496,53 @@ const isQuestionAnswered = (questionId) => {
 };
 
 // 提交考试
-const submitExam = async () => {
+const handleExamSubmit = async (isAutoSubmit = false) => {
+  // 标记为提交中，防止重复提交
+  if (submitting.value) return;
   submitting.value = true;
+  
+  // 如果是自动提交，显示提示
+  if (isAutoSubmit) {
+      ElMessage.info('正在自动提交您的答案...');
+  }
+  
   try {
-    const response = await submitExam(Number(examId), answers.value);
+    console.log('Submitting answers (Auto:' + isAutoSubmit + '):', answers.value);
+    const response = await submitExamApi(Number(examId), answers.value);
     
-    if (response.data && response.data.success) {
-      submitted.value = true;
+    if (response.data && response.data.code === 200) { 
+      submitted.value = true; // 标记为已提交
       showSubmitConfirm.value = false;
       showTimeUpDialog.value = false;
-      clearInterval(timer.value);
-      ElMessage.success('考试提交成功');
+      if (timer.value) clearInterval(timer.value);
+      
+      if (!isAutoSubmit) {
+          ElMessage.success('考试提交成功');
+      } else {
+          // 自动提交成功后可能需要不同的提示或不提示
+          console.log('自动提交成功');
+      }
+      return true; // 返回成功状态
     } else {
-      ElMessage.error(response.data?.message || '提交考试失败');
+      if (!isAutoSubmit) {
+          ElMessage.error(response.data?.message || '提交考试失败'); 
+      }
+      console.error('提交失败，后端信息:', response.data?.message);
+      return false; // 返回失败状态
     }
   } catch (error) {
-    console.error('提交考试失败', error);
-    ElMessage.error('提交考试失败');
+    console.error('提交考试请求异常:', error);
+    const errorMsg = error.response?.data?.message || error.message || '提交考试失败，请确保网络连接正常后重试';
+    if (!isAutoSubmit) {
+        ElMessage.error(errorMsg);
+    }
+    return false; // 返回失败状态
   } finally {
-    submitting.value = false;
+    // 只有在非自动提交时才重置 submitting 状态，允许后续路由跳转
+    if (!isAutoSubmit) {
+         submitting.value = false;
+    }
+    // 对于自动提交，我们希望在提交完成后能顺利离开，所以不重置 submitting
   }
 };
 
@@ -382,36 +551,57 @@ const goToExamList = () => {
   router.push('/student/exams');
 };
 
-// 离开页面前确认
-const confirmLeave = (e) => {
-  if (!submitted.value) {
-    e.preventDefault();
-    e.returnValue = '';
-    return '';
+// 添加路由离开守卫
+onBeforeRouteLeave(async (to, from, next) => {
+  // 如果考试已经提交或没有成功初始化，则直接离开
+  if (submitted.value || !initSuccess.value) {
+    next();
+    return;
   }
-};
 
-// 监听路由变化
-watch(() => route.path, (newPath, oldPath) => {
-  if (oldPath.includes('/take') && !submitted.value) {
-    const confirmed = confirm('考试尚未提交，确定要离开吗？');
-    if (!confirmed) {
-      router.push(oldPath);
+  // 如果考试正在进行中，弹出确认框
+  try {
+    await ElMessageBox.confirm(
+      '您正在离开考试页面，系统将自动提交您当前的答案。确定要离开吗？',
+      '离开确认',
+      {
+        confirmButtonText: '确认离开并提交',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    // 用户点击了"确认离开并提交"
+    console.log('用户确认离开，执行自动提交...');
+    const submitSuccess = await handleExamSubmit(true); // 调用提交函数，标记为自动提交
+    if (submitSuccess) {
+        console.log('自动提交成功，允许离开');
+        next(); // 允许路由跳转
+    } else {
+        console.error('自动提交失败，阻止离开');
+         ElMessage.error('自动提交失败，无法离开页面，请尝试手动提交或联系管理员');
+        next(false); // 阻止路由跳转
+    }
+  } catch (action) {
+    // 用户点击了"取消"或者关闭了对话框
+    if (action === 'cancel') {
+      console.log('用户取消离开');
+      next(false); // 阻止路由跳转
+    } else {
+      // 其他关闭情况（如按 ESC），也阻止离开
+      console.log('用户关闭了确认框');
+      next(false);
     }
   }
 });
 
 onMounted(() => {
   initExam();
-  // 添加页面离开确认
-  window.addEventListener('beforeunload', confirmLeave);
 });
 
 onBeforeUnmount(() => {
   if (timer.value) {
     clearInterval(timer.value);
   }
-  window.removeEventListener('beforeunload', confirmLeave);
 });
 </script>
 
@@ -447,6 +637,29 @@ onBeforeUnmount(() => {
 
 .exam-timer .el-icon {
   margin-right: 5px;
+}
+
+/* 欢迎提示样式 */
+.exam-welcome {
+  margin-bottom: 20px;
+}
+
+.welcome-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.welcome-content {
+  margin-top: 10px;
+}
+
+.welcome-content p {
+  margin-bottom: 10px;
+}
+
+.welcome-content ol {
+  margin-left: 20px;
+  line-height: 1.6;
 }
 
 .exam-body {

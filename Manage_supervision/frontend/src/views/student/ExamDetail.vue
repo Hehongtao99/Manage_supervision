@@ -72,9 +72,13 @@
           <el-button
             v-if="canTakeExam()"
             type="primary"
-            @click="startExam"
+            size="large"
+            :icon="studentStatus && studentStatus.status === 'IN_PROGRESS' ? 'el-icon-video-play' : 'el-icon-video-play'"
+            @click="showStartConfirm"
             :disabled="!canTakeExam()"
+            class="start-exam-btn"
           >
+            <el-icon class="start-icon"><VideoPlay /></el-icon>
             {{ studentStatus && studentStatus.status === 'IN_PROGRESS' ? '继续考试' : '开始考试' }}
           </el-button>
           
@@ -107,6 +111,35 @@
         </div>
       </div>
     </el-card>
+    
+    <!-- 开始考试确认对话框 -->
+    <el-dialog
+      v-model="startConfirmVisible"
+      title="开始考试确认"
+      width="30%"
+      :close-on-click-modal="false"
+    >
+      <div class="start-confirm-content">
+        <p class="confirm-title">您即将开始 <strong>{{ exam?.title }}</strong> 考试</p>
+        <ul class="confirm-info">
+          <li>考试时长：{{ exam?.duration }} 分钟</li>
+          <li>考试题目数量：{{ exam?.examQuestions ? exam?.examQuestions.length : 0 }} 题</li>
+          <li>总分：{{ exam?.totalScore }} 分</li>
+        </ul>
+        <p class="confirm-notice">
+          <el-icon><Warning /></el-icon> 
+          开始考试后，计时将立即开始。请确保您已准备好并有充足的时间完成考试。
+        </p>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="startConfirmVisible = false">取消</el-button>
+          <el-button type="primary" @click="startExam" :loading="startLoading">
+            确认开始
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -114,8 +147,8 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { Calendar, Timer, Reading, Pointer, List, ArrowLeft } from '@element-plus/icons-vue';
-import { getStudentExam } from '@/api/exam';
+import { Calendar, Timer, Reading, Pointer, List, ArrowLeft, VideoPlay, Warning } from '@element-plus/icons-vue';
+import { getStudentExam, startExam as startExamApi } from '@/api/exam';
 import { formatDateTime } from '@/utils/formatter';
 
 const router = useRouter();
@@ -123,8 +156,10 @@ const route = useRoute();
 const examId = route.params.id;
 
 const loading = ref(false);
+const startLoading = ref(false);
 const exam = ref(null);
 const studentStatus = ref(null);
+const startConfirmVisible = ref(false);
 
 // 获取考试详情
 const fetchExamDetail = async () => {
@@ -251,9 +286,60 @@ const isAfterExam = () => {
   return now > endTime;
 };
 
+// 显示开始考试确认对话框
+const showStartConfirm = () => {
+  startConfirmVisible.value = true;
+};
+
 // 开始考试
-const startExam = () => {
-  router.push(`/student/exams/${examId}/take`);
+const startExam = async () => {
+  startLoading.value = true;
+  console.log('开始考试函数被调用，考试ID:', examId);
+  
+  try {
+    // 提前保存考试状态到localStorage，以便在API调用期间路由守卫可以正确处理
+    localStorage.setItem('current_exam_id', examId.toString());
+    localStorage.setItem('exam_start_time', new Date().toString());
+    
+    // 调用后端API真正开始考试
+    console.log('正在调用开始考试API...');
+    const response = await startExamApi(Number(examId));
+    console.log('开始考试API响应:', response);
+    
+    if (response.data && response.data.success) {
+      console.log('开始考试成功，准备跳转到考试页面');
+      ElMessage.success('正在进入考试...');
+      startConfirmVisible.value = false;
+      
+      // 延迟跳转，确保消息显示
+      setTimeout(() => {
+        // 使用replace而不是push，避免用户可以返回回来
+        console.log('跳转到考试页面:', `/student/exams/${examId}/take`);
+        
+        // 添加时间戳防止缓存并使用replace模式
+        router.replace({
+          path: `/student/exams/${examId}/take`, 
+          query: { t: Date.now().toString() }
+        });
+      }, 500);
+    } else {
+      console.error('开始考试API返回失败:', response.data);
+      ElMessage.error(response.data?.message || '开始考试失败');
+      
+      // 清除localStorage中的考试状态
+      localStorage.removeItem('current_exam_id');
+      localStorage.removeItem('exam_start_time');
+    }
+  } catch (error) {
+    console.error('开始考试请求异常:', error);
+    ElMessage.error('开始考试失败，请重试');
+    
+    // 清除localStorage中的考试状态
+    localStorage.removeItem('current_exam_id');
+    localStorage.removeItem('exam_start_time');
+  } finally {
+    startLoading.value = false;
+  }
 };
 
 // 查看结果
@@ -358,5 +444,61 @@ onMounted(() => {
 
 .exam-hint {
   margin-top: 25px;
+}
+
+/* 新增样式 */
+.start-exam-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.start-exam-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
+}
+
+.start-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.start-confirm-content {
+  text-align: center;
+  padding: 0 20px;
+}
+
+.confirm-title {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #303133;
+}
+
+.confirm-info {
+  text-align: left;
+  margin: 0 auto 20px;
+  width: fit-content;
+  list-style-type: none;
+  padding: 0;
+}
+
+.confirm-info li {
+  margin-bottom: 8px;
+  color: #606266;
+}
+
+.confirm-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fef0f0;
+  color: #f56c6c;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.confirm-notice .el-icon {
+  margin-right: 8px;
+  font-size: 18px;
 }
 </style> 

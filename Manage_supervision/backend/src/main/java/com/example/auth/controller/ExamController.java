@@ -663,8 +663,7 @@ public class ExamController {
     }
     
     /**
-     * 调试接口：为当前用户添加测试考试数据
-     * 仅在开发环境使用，生产环境应移除
+     * 调试API：创建测试考试数据
      */
     @PostMapping("/student/exams/test-data")
     @RequireRole("USER")
@@ -717,6 +716,69 @@ public class ExamController {
         } catch (Exception e) {
             logger.error("创建测试考试数据失败", e);
             return ResponseEntity.badRequest().body(ResponseUtil.error("创建测试数据失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取学生考试答案详情（教师批阅用）
+     */
+    @GetMapping("/supervisor/exams/{examId}/students/{studentId}/answers")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getStudentExamAnswers(
+            @PathVariable Long examId,
+            @PathVariable Long studentId,
+            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(ResponseUtil.error("用户不存在"));
+            }
+            
+            logger.info("教师获取学生考试答案: 考试ID={}, 学生ID={}, 教师ID={}", examId, studentId, user.getId());
+            
+            // 获取学生考试答案
+            Map<String, Object> result = examService.getStudentExamAnswers(examId, studentId, user.getId());
+            
+            return ResponseEntity.ok(ResponseUtil.success(result));
+        } catch (Exception e) {
+            logger.error("获取学生考试答案失败", e);
+            return ResponseEntity.badRequest().body(ResponseUtil.error("获取学生考试答案失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 批阅学生考试
+     */
+    @PostMapping("/supervisor/exams/{examId}/students/{studentId}/grade")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> gradeStudentExam(
+            @PathVariable Long examId,
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> gradeData,
+            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(ResponseUtil.error("用户不存在"));
+            }
+            
+            logger.info("教师批阅学生考试: 考试ID={}, 学生ID={}, 教师ID={}", examId, studentId, user.getId());
+            
+            // 批阅学生考试
+            ExamStudentDTO result = examService.gradeStudentExam(examId, studentId, gradeData, user.getId());
+            
+            return ResponseEntity.ok(ResponseUtil.success(result));
+        } catch (Exception e) {
+            logger.error("批阅学生考试失败", e);
+            return ResponseEntity.badRequest().body(ResponseUtil.error("批阅学生考试失败: " + e.getMessage()));
         }
     }
 } 

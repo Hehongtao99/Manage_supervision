@@ -25,6 +25,8 @@ public class ExamQuestionDTO {
     
     private String questionType;
     
+    private String content;
+    
     private BigDecimal questionScore;
     
     private Integer displayOrder;

@@ -185,26 +185,47 @@ export default {
       
       try {
         const status = activeTab.value.toUpperCase();
-        const response = searchKeyword.value
-          ? await QuestionBankService.searchQuestionBanks(
-              searchKeyword.value,
-              currentUser.value.id,
-              status,
-              currentPage.value - 1,
-              pageSize.value
-            )
-          : await QuestionBankService.getQuestionBanksByCreator(
-              currentUser.value.id,
-              status,
-              currentPage.value - 1,
-              pageSize.value
-            );
+        let response;
         
-        questionBanks.value = response.data.content;
-        totalItems.value = response.data.totalItems;
+        if (searchKeyword.value) {
+          console.log('调用搜索接口');
+          response = await QuestionBankService.searchQuestionBanks(
+            searchKeyword.value,
+            currentUser.value.id,
+            status,
+            currentPage.value - 1,
+            pageSize.value
+          );
+          console.log('搜索接口响应:', response);
+          // 搜索接口直接返回 Map，数据在 response.data
+          questionBanks.value = response.data.content;
+          totalItems.value = response.data.totalItems;
+        } else {
+          console.log('调用按创建者获取接口');
+          response = await QuestionBankService.getQuestionBanksByCreator(
+            currentUser.value.id,
+            status,
+            currentPage.value - 1,
+            pageSize.value
+          );
+          console.log('按创建者获取接口响应:', response);
+          // 按创建者获取接口返回 Result 对象，数据在 response.data.data
+          if (response.data && response.data.code === 200 && response.data.data) {
+            questionBanks.value = response.data.data.content;
+            totalItems.value = response.data.data.totalItems;
+          } else {
+            console.error('按创建者获取接口返回数据格式错误或失败:', response.data);
+            ElMessage.error(response.data?.message || '获取题库列表失败');
+            questionBanks.value = [];
+            totalItems.value = 0;
+          }
+        }
+        
       } catch (error) {
         console.error('获取题库列表失败', error);
         ElMessage.error('获取题库列表失败');
+        questionBanks.value = [];
+        totalItems.value = 0;
       }
     };
     

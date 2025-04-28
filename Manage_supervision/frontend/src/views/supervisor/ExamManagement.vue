@@ -65,7 +65,12 @@
         </el-table-column>
         <el-table-column label="进度" width="160">
           <template #default="scope">
-            {{ scope.row.submittedCount || 0 }}/{{ scope.row.totalStudents || 0 }} 已提交
+            <div>
+              {{ scope.row.submittedCount || 0 }}/{{ scope.row.totalStudents || 0 }} 已提交
+            </div>
+            <div v-if="needsGrading(scope.row)" style="margin-top: 5px;">
+              <el-tag type="warning" size="small">待批阅</el-tag>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
@@ -95,6 +100,17 @@
                     command="publish"
                   >
                     发布
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="needsGrading(scope.row)"
+                    command="gradeExams"
+                  >
+                    批阅试卷
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    command="viewStudents"
+                  >
+                    查看学生
                   </el-dropdown-item>
                   <el-dropdown-item
                     v-if="scope.row.status !== 'ONGOING'"
@@ -207,6 +223,11 @@ const viewExam = (exam: any) => {
   router.push(`/supervisor/exams/${exam.id}`);
 };
 
+// 查看考试学生列表
+const viewExamStudents = (exam: any) => {
+  router.push(`/supervisor/exams/${exam.id}/students`);
+};
+
 // 编辑考试
 const editExam = (exam: any) => {
   router.push(`/supervisor/exams/${exam.id}/edit`);
@@ -218,6 +239,10 @@ const handleCommand = (command: string, exam: any) => {
     publishExamAction(exam);
   } else if (command === 'delete') {
     confirmDeleteExam(exam);
+  } else if (command === 'gradeExams') {
+    showGradeExamDialog(exam);
+  } else if (command === 'viewStudents') {
+    viewExamStudents(exam);
   }
 };
 
@@ -294,6 +319,21 @@ const getStatusText = (status: string) => {
     'FINISHED': '已结束'
   };
   return textMap[status] || status;
+};
+
+// 判断是否需要批阅（已提交但未评分的考试）
+const needsGrading = (exam: any) => {
+  return (
+    exam.submittedCount > 0 && 
+    exam.gradedCount < exam.submittedCount && 
+    (exam.status === 'ONGOING' || exam.status === 'FINISHED')
+  );
+};
+
+// 显示批阅考试对话框
+const showGradeExamDialog = async (exam: any) => {
+  // 直接跳转到学生列表页面
+  router.push(`/supervisor/exams/${exam.id}/students`);
 };
 </script>
 

@@ -141,4 +141,18 @@ export const getStudentExamsRaw = async (params: {
   console.log('响应数据类型:', typeof response.data);
   console.log('响应数据结构:', JSON.stringify(response.data, null, 2));
   return response;
+};
+
+/**
+ * 获取学生考试答案详情（教师批阅用）
+ */
+export const getStudentExamAnswers = async (examId: number, studentId: number) => {
+  return await axios.get(`/api/supervisor/exams/${examId}/students/${studentId}/answers`);
+};
+
+/**
+ * 批阅学生考试
+ */
+export const gradeStudentExam = async (examId: number, studentId: number, gradeData: any) => {
+  return await axios.post(`/api/supervisor/exams/${examId}/students/${studentId}/grade`, gradeData);
 }; 
