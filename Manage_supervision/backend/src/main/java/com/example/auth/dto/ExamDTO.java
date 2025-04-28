@@ -50,14 +50,18 @@ public class ExamDTO {
     // 考试学生列表
     private List<ExamStudentDTO> examStudents;
     
-    // 统计信息
-    private Long totalStudents;
-    private Long submittedCount;
-    private Long gradedCount;
+    // 统计信息 (教师视角)
+    private Long totalStudents;      // 总参与人数
+    private Long submittedCount;     // 已提交待批阅数量 (SUBMITTED)
+    private Long pendingPublishCount; // 待发布成绩数量 (PENDING_PUBLISH)
+    private Long publishedCount;     // 已发布成绩数量 (PUBLISHED)
     
     // 学生状态信息（学生查看考试时使用）
     private String studentStatus;
     private BigDecimal studentScore;
     private Instant studentStartTime;
     private Instant studentSubmitTime;
+
+    // 用于前端显示的精确状态
+    private String displayStatus;
 } 

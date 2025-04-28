@@ -26,7 +26,7 @@
       <el-table :data="exams" style="width: 100%" v-loading="loading">
         <el-table-column prop="title" label="考试名称" min-width="180">
           <template #default="scope">
-            <el-link :underline="false" type="primary" @click="viewExam(scope.row)">{{ scope.row.title }}</el-link>
+            <span>{{ scope.row.title }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="startTime" label="开始时间" min-width="170">
@@ -51,30 +51,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="studentScore" label="成绩" min-width="80">
+        <el-table-column prop="studentScore" label="成绩" align="center" width="120">
           <template #default="scope">
-            <span v-if="scope.row.studentStatus === 'GRADED'">{{ scope.row.studentScore }} / {{ scope.row.totalScore }}</span>
+            <span v-if="scope.row.studentStatus === 'PUBLISHED'">{{ scope.row.studentScore }} / {{ scope.row.totalScore }}</span>
+            <span v-else-if="scope.row.studentStatus === 'PENDING_PUBLISH'">成绩待发布</span>
             <span v-else>-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="120">
-          <template #default="scope">
-            <el-button
-              v-if="canTakeExam(scope.row)"
-              type="primary"
-              size="small"
-              @click="startExam(scope.row)"
-            >
-              {{ scope.row.studentStatus === 'IN_PROGRESS' ? '继续考试' : '开始考试' }}
-            </el-button>
-            <el-button
-              v-else-if="scope.row.studentStatus === 'SUBMITTED' || scope.row.studentStatus === 'GRADED'"
-              type="info"
-              size="small"
-              @click="viewExamResult(scope.row)"
-            >
-              查看结果
-            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -197,67 +178,80 @@ const handleCurrentChange = (page: number) => {
 
 // 获取考试状态类型
 const getStatusType = (examStatus: string, studentStatus: string) => {
-  if (studentStatus === 'GRADED') {
+  // 优先根据学生状态判断
+  if (studentStatus === 'PUBLISHED') { // 后端已改为 PUBLISHED 表示最终完成状态
     return 'success';
   }
-  
+  if (studentStatus === 'PENDING_PUBLISH') { // 新增处理
+    return 'warning'; // 待发布用 warning 颜色
+  }
   if (studentStatus === 'SUBMITTED') {
-    return 'info';
+    return 'info'; // 已提交用 info
   }
-  
   if (studentStatus === 'IN_PROGRESS') {
-    return 'warning';
+    return 'warning'; // 进行中用 warning
   }
-  
-  // 检查考试整体状态
+  // 如果学生状态不是以上几种，再根据考试整体状态判断
   switch (examStatus) {
     case 'PUBLISHED':
-      return 'primary';
+      return 'primary'; // 考试已发布，但学生未开始
     case 'ONGOING':
-      return 'warning';
+      return 'warning'; // 考试进行中，但学生未开始
     case 'FINISHED':
-      return 'info';
-    default:
+      return 'info'; // 考试已结束，学生未参加
+    default: // 默认为 DRAFT 或其他未知状态
       return 'info';
   }
 };
 
 // 获取状态文本
 const getStatusText = (examStatus: string, studentStatus: string) => {
-  if (studentStatus === 'GRADED') {
+  // 优先根据学生状态判断
+  if (studentStatus === 'PUBLISHED') { // 后端已改为 PUBLISHED 表示最终完成状态
     return '已完成';
   }
-  
-  if (studentStatus === 'SUBMITTED') {
-    return '已提交';
+  if (studentStatus === 'PENDING_PUBLISH') { // 新增处理
+    return '待发布'; // 教师已批阅，等待发布成绩
   }
-  
+  if (studentStatus === 'SUBMITTED') {
+    return '已提交'; // 学生已提交，等待教师批阅
+  }
   if (studentStatus === 'IN_PROGRESS') {
     return '进行中';
   }
-  
   if (studentStatus === 'NOT_STARTED') {
+    // 学生未开始时，根据考试状态和时间判断
+    const now = new Date().getTime();
+    // 需要从表格行数据中获取 exam.startTime
+    // 由于这里无法直接访问 scope.row，此部分逻辑需要调整或在模板中处理
+    // 暂时简化处理，可在模板中或 fetchExams 后处理更精确状态
     switch (examStatus) {
       case 'PUBLISHED':
       case 'ONGOING':
+        // 这里无法准确判断是否已过开始时间，笼统显示为待参加
         return '待参加';
       case 'FINISHED':
-        return '已结束';
-      default:
+        return '已结束 (未参加)'; // 明确是已结束且未参加
+      default: // DRAFT 等
         return '未开始';
     }
   }
-  
-  return '未知状态';
+
+  // 如果 studentStatus 为空或未知，但考试已结束
+  if (examStatus === 'FINISHED' && !studentStatus) {
+      return '已结束 (未参加)';
+  }
+
+  return '未知状态'; // 其他所有情况
 };
 
 // 判断是否可以参加考试
 const canTakeExam = (exam: any) => {
-  // 如果已经提交或评分，则不能再次参加
-  if (exam.studentStatus === 'SUBMITTED' || exam.studentStatus === 'GRADED') {
+  // 如果学生状态是已提交, 待发布, 或已发布，则不能再次参加
+  if (['SUBMITTED', 'PENDING_PUBLISH', 'PUBLISHED'].includes(exam.studentStatus)) {
     return false;
   }
-  
+
   // 如果考试状态是进行中或发布，且当前时间在考试时间范围内
   const now = new Date().getTime();
   const startTime = new Date(exam.startTime).getTime();
@@ -267,19 +261,39 @@ const canTakeExam = (exam: any) => {
          now >= startTime && now <= endTime;
 };
 
-// 查看考试详情
-const viewExam = (exam: any) => {
-  router.push(`/student/exams/${exam.id}`);
+// 获取学生状态文本
+const getStudentStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'NOT_STARTED': '未开始',
+    'IN_PROGRESS': '进行中',
+    'SUBMITTED': '已提交',
+    'PENDING_PUBLISH': '待发布',
+    'PUBLISHED': '已完成'
+  };
+  return statusMap[status] || status;
+};
+
+// 获取学生状态类型
+const getStudentStatusType = (status: string) => {
+  const typeMap: Record<string, string> = {
+    'NOT_STARTED': 'info',
+    'IN_PROGRESS': 'warning',
+    'SUBMITTED': 'primary',
+    'PENDING_PUBLISH': 'warning',
+    'PUBLISHED': 'success'
+  };
+  return typeMap[status] || '';
+};
+
+// 判断考试是否可以进入查看详情
+const canViewExamDetail = (exam: any) => {
+  // 检查考试状态
+  return exam.status === 'PUBLISHED' || exam.status === 'ONGOING' || exam.status === 'FINISHED';
 };
 
 // 开始考试
 const startExam = (exam: any) => {
   router.push(`/student/exams/${exam.id}/take`);
-};
-
-// 查看考试结果
-const viewExamResult = (exam: any) => {
-  router.push(`/student/exams/${exam.id}/result`);
 };
 
 // 创建测试数据

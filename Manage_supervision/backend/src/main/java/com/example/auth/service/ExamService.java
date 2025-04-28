@@ -3,6 +3,8 @@ package com.example.auth.service;
 import com.example.auth.dto.ExamDTO;
 import com.example.auth.dto.ExamQuestionDTO;
 import com.example.auth.dto.ExamStudentDTO;
+import com.example.auth.dto.ExamPendingGradingDTO;
+import com.example.auth.dto.StudentScoreDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -130,7 +132,48 @@ public interface ExamService {
     Map<String, Object> getStudentExamAnswers(Long examId, Long studentId, Long creatorId);
     
     /**
-     * 批阅学生考试（为主观题打分）
+     * 批阅学生考试
+     * 
+     * @param examId 考试ID
+     * @param studentId 学生ID
+     * @param gradeData 评分数据
+     * @param creatorId 教师ID
+     * @return 更新后的考试学生关联DTO
      */
     ExamStudentDTO gradeStudentExam(Long examId, Long studentId, Map<String, Object> gradeData, Long creatorId);
+
+    /**
+     * 获取教师名下有待批阅学生的考试列表
+     */
+    List<ExamPendingGradingDTO> getExamsWithPendingGrading(Long creatorId);
+
+    /**
+     * 获取指定考试的学生成绩列表（分页和排序）
+     */
+    Page<StudentScoreDTO> getExamScores(Long examId, Long creatorId, Pageable pageable);
+
+    /**
+     * 学生获取自己的考试结果详情
+     */
+    Map<String, Object> getStudentExamResultDetails(Long examId, Long studentId);
+
+    /**
+     * 获取教师的批阅概览考试列表（分页和筛选）
+     *
+     * @param creatorId 教师ID
+     * @param gradingStatus 批阅状态 ("pending", "graded", 或 null/空表示全部)
+     * @param pageable 分页信息
+     * @return 分页后的考试DTO列表，包含学生统计信息
+     */
+    Page<ExamDTO> getGradingOverviewExams(Long creatorId, String gradingStatus, Pageable pageable);
+
+    /**
+     * 发布学生成绩
+     * 
+     * @param examId 考试ID
+     * @param studentId 学生ID (如果为空则发布所有学生成绩)
+     * @param creatorId 教师ID
+     * @return 更新后的考试学生关联DTO列表
+     */
+    List<ExamStudentDTO> publishStudentGrades(Long examId, Long studentId, Long creatorId);
 } 

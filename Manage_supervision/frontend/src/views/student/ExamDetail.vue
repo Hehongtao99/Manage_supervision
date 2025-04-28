@@ -44,22 +44,41 @@
           </el-tag>
         </div>
         
-        <div v-if="studentStatus && (studentStatus.status === 'SUBMITTED' || studentStatus.status === 'GRADED')" class="exam-result">
-          <div class="result-item">
-            <div class="result-label">开始时间：</div>
-            <div class="result-value">{{ formatDateTime(studentStatus.startTime) }}</div>
-          </div>
-          <div class="result-item">
-            <div class="result-label">提交时间：</div>
-            <div class="result-value">{{ formatDateTime(studentStatus.submitTime) }}</div>
-          </div>
-          <div class="result-item">
-            <div class="result-label">得分：</div>
-            <div class="result-value">
-              <strong>{{ studentStatus.score }}</strong> / {{ exam.totalScore }}
-              <el-tag v-if="studentStatus.isPassed" type="success" style="margin-left: 10px">及格</el-tag>
-              <el-tag v-else type="danger" style="margin-left: 10px">不及格</el-tag>
-            </div>
+        <div v-if="studentStatus && (studentStatus.status === 'SUBMITTED' || studentStatus.status === 'PENDING_PUBLISH' || studentStatus.status === 'PUBLISHED')" class="exam-result">
+          <el-divider>考试结果</el-divider>
+          
+          <div class="result-info">
+            <template v-if="studentStatus.status === 'SUBMITTED' || studentStatus.status === 'PENDING_PUBLISH'">
+              <el-alert
+                title="试卷已提交，教师正在批阅中"
+                type="info"
+                :closable="false"
+              >
+                <template #default>
+                  <p>您的试卷已提交成功，请耐心等待教师批阅。成绩发布后将在此显示。</p>
+                </template>
+              </el-alert>
+            </template>
+            
+            <template v-if="studentStatus.status === 'PUBLISHED'">
+              <div class="result-card">
+                <div class="result-score">
+                  <div class="score-title">您的得分</div>
+                  <div class="score-value" :class="{'pass': isPassed, 'fail': !isPassed}">
+                    {{ studentStatus.score }}
+                  </div>
+                  <div class="score-total">满分：{{ exam.totalScore }}</div>
+                </div>
+                <div class="result-status">
+                  <div class="status-label">状态</div>
+                  <div class="status-value">
+                    <el-tag :type="isPassed ? 'success' : 'danger'" effect="dark" size="large">
+                      {{ isPassed ? '及格' : '不及格' }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
         
@@ -184,8 +203,12 @@ const fetchExamDetail = async () => {
 
 // 获取考试状态样式
 const getStatusType = (examStatus: string, studentStatus: string) => {
-  if (studentStatus === 'GRADED') {
+  if (studentStatus === 'PUBLISHED') {
     return 'success';
+  }
+  
+  if (studentStatus === 'PENDING_PUBLISH') {
+    return 'warning';
   }
   
   if (studentStatus === 'SUBMITTED') {
@@ -211,8 +234,12 @@ const getStatusType = (examStatus: string, studentStatus: string) => {
 
 // 获取状态文本
 const getStatusText = (examStatus: string, studentStatus: string) => {
-  if (studentStatus === 'GRADED') {
+  if (studentStatus === 'PUBLISHED') {
     return '已完成';
+  }
+  
+  if (studentStatus === 'PENDING_PUBLISH') {
+    return '待发布';
   }
   
   if (studentStatus === 'SUBMITTED') {
@@ -253,7 +280,9 @@ const canTakeExam = () => {
   if (!exam.value) return false;
   
   // 如果已经提交或评分，则不能再次参加
-  if (studentStatus.value && (studentStatus.value.status === 'SUBMITTED' || studentStatus.value.status === 'GRADED')) {
+  if (studentStatus.value && (studentStatus.value.status === 'SUBMITTED' || 
+      studentStatus.value.status === 'PENDING_PUBLISH' || 
+      studentStatus.value.status === 'PUBLISHED')) {
     return false;
   }
   
@@ -344,7 +373,13 @@ const startExam = async () => {
 
 // 查看结果
 const viewResult = () => {
-  router.push(`/student/exams/${examId}/result`);
+  // 只有发布状态的成绩才能查看
+  if (studentStatus.value && studentStatus.value.status === 'PUBLISHED') {
+    router.push(`/student/exams/${examId}/result`);
+  } else if (studentStatus.value && (studentStatus.value.status === 'SUBMITTED' || 
+             studentStatus.value.status === 'PENDING_PUBLISH')) {
+    ElMessage.info('成绩尚未发布，请等待教师发布成绩');
+  }
 };
 
 // 返回考试列表

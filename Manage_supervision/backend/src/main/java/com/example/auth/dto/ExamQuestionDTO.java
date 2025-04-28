@@ -36,4 +36,7 @@ public class ExamQuestionDTO {
     
     // 关联的完整题目信息（可选）
     private QuestionDTO question;
+    
+    // 正确答案（用于结果展示）
+    private String answer;
 } 

@@ -11,6 +11,13 @@ import java.time.Instant;
 
 /**
  * 考试学生关联实体
+ * 状态说明：
+ * NOT_STARTED: 未开始
+ * IN_PROGRESS: 进行中
+ * SUBMITTED: 已提交
+ * GRADED: 已评分（教师已批阅但未发布）
+ * PENDING_PUBLISH: 待发布（教师已批阅但未发布）
+ * PUBLISHED: 已发布（学生可查看成绩）
  */
 @Data
 @Entity

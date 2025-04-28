@@ -25,4 +25,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             Pageable pageable);
     
     List<User> findByRolesContaining(Role role);
+    
+    /**
+     * 根据角色名称统计用户数量
+     */
+    long countByRolesName(String roleName);
 } 

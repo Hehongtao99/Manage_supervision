@@ -43,8 +43,8 @@
         <el-table-column prop="title" label="考试名称" min-width="200" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)" size="small">
-              {{ getStatusText(scope.row.status) }}
+            <el-tag :type="getStatusType(scope.row.displayStatus)" size="small">
+              {{ getStatusText(scope.row.displayStatus) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -63,13 +63,19 @@
             {{ scope.row.duration }} 分钟
           </template>
         </el-table-column>
-        <el-table-column label="进度" width="160">
+        <el-table-column label="进度" width="200">
           <template #default="scope">
-            <div>
-              {{ scope.row.submittedCount || 0 }}/{{ scope.row.totalStudents || 0 }} 已提交
-            </div>
-            <div v-if="needsGrading(scope.row)" style="margin-top: 5px;">
-              <el-tag type="warning" size="small">待批阅</el-tag>
+            <div style="line-height: 1.5;">
+              <div>总人数: {{ scope.row.totalStudents || 0 }}</div>
+              <div v-if="scope.row.submittedCount > 0">
+                 <el-tag type="warning" size="small" effect="plain">待批阅: {{ scope.row.submittedCount }}</el-tag>
+              </div>
+              <div v-if="scope.row.pendingPublishCount > 0">
+                 <el-tag type="primary" size="small" effect="plain">待发布: {{ scope.row.pendingPublishCount }}</el-tag>
+              </div>
+               <div v-if="scope.row.publishedCount > 0">
+                 <el-tag type="success" size="small" effect="plain">已发布: {{ scope.row.publishedCount }}</el-tag>
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -102,7 +108,7 @@
                     发布
                   </el-dropdown-item>
                   <el-dropdown-item
-                    v-if="needsGrading(scope.row)"
+                    v-if="hasPendingGrading(scope.row)"
                     command="gradeExams"
                   >
                     批阅试卷
@@ -299,35 +305,44 @@ const deleteExamAction = async (examId: number) => {
   }
 };
 
-// 获取状态样式
+// 获取状态文本
+const getStatusText = (status: string) => {
+  const statusMap: Record<string, string> = {
+    DRAFT: '草稿',
+    PUBLISHED: '已发布',
+    ONGOING: '进行中',
+    FINISHED: '已结束',
+    COMPLETED: '已完成',
+    PENDING: '待批阅',
+    '草稿': '草稿',
+    '已发布': '已发布',
+    '进行中': '进行中',
+    '已完成': '已完成',
+    '已结束': '已结束'
+  };
+  return statusMap[status] || status;
+};
+
+// 获取状态标签类型
 const getStatusType = (status: string) => {
   const typeMap: Record<string, string> = {
-    'DRAFT': 'info',
-    'PUBLISHED': 'success',
-    'ONGOING': 'warning',
-    'FINISHED': ''
+    DRAFT: 'info',
+    PUBLISHED: 'primary',
+    ONGOING: 'warning',
+    FINISHED: 'info',
+    COMPLETED: 'success',
+    '草稿': 'info',
+    '已发布': 'primary',
+    '进行中': 'warning',
+    '已完成': 'success',
+    '已结束': 'info'
   };
   return typeMap[status] || 'info';
 };
 
-// 获取状态文本
-const getStatusText = (status: string) => {
-  const textMap: Record<string, string> = {
-    'DRAFT': '草稿',
-    'PUBLISHED': '已发布',
-    'ONGOING': '进行中',
-    'FINISHED': '已结束'
-  };
-  return textMap[status] || status;
-};
-
-// 判断是否需要批阅（已提交但未评分的考试）
-const needsGrading = (exam: any) => {
-  return (
-    exam.submittedCount > 0 && 
-    exam.gradedCount < exam.submittedCount && 
-    (exam.status === 'ONGOING' || exam.status === 'FINISHED')
-  );
+// 判断是否有待批阅的学生
+const hasPendingGrading = (exam: any) => {
+  return exam.submittedCount > 0;
 };
 
 // 显示批阅考试对话框

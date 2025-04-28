@@ -4,11 +4,15 @@ import com.example.auth.dto.ExamDTO;
 import com.example.auth.dto.ExamQuestionDTO;
 import com.example.auth.dto.ExamStudentDTO;
 import com.example.auth.dto.UserSimpleDTO;
+import com.example.auth.dto.ExamPendingGradingDTO;
+import com.example.auth.dto.StudentScoreDTO;
+import com.example.auth.dto.NotificationRequest;
 import com.example.auth.entity.Exam;
 import com.example.auth.entity.ExamAnswer;
 import com.example.auth.entity.ExamQuestion;
 import com.example.auth.entity.ExamStudent;
 import com.example.auth.entity.User;
+import com.example.auth.entity.Notification;
 import com.example.auth.exception.ResourceNotFoundException;
 import com.example.auth.exception.UnauthorizedException;
 import com.example.auth.repository.ExamAnswerRepository;
@@ -18,6 +22,7 @@ import com.example.auth.repository.ExamStudentRepository;
 import com.example.auth.repository.QuestionRepository;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.service.ExamService;
+import com.example.auth.service.NotificationService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +67,9 @@ public class ExamServiceImpl implements ExamService {
     
     @Autowired
     private QuestionRepository questionRepository;
+    
+    @Autowired
+    private NotificationService notificationService;
     
     @Override
     @Transactional
@@ -180,14 +189,19 @@ public class ExamServiceImpl implements ExamService {
         List<ExamStudentDTO> students = getExamStudents(examId);
         examDTO.setExamStudents(students);
         
-        // 获取统计信息
+        // 获取更新后的统计信息
         Long totalStudents = examStudentRepository.countByExamId(examId);
-        Long submittedCount = examStudentRepository.countByExamIdAndStatusIn(examId, Arrays.asList("SUBMITTED", "GRADED"));
-        Long gradedCount = examStudentRepository.countGradedByExamId(examId);
+        Long submittedCount = examStudentRepository.countSubmittedByExamId(exam.getId()); // 使用新的方法
+        Long pendingPublishCount = examStudentRepository.countPendingPublishByExamId(exam.getId()); // 使用新的方法
+        Long publishedCount = examStudentRepository.countPublishedByExamId(exam.getId()); // 使用新的方法
         
         examDTO.setTotalStudents(totalStudents);
         examDTO.setSubmittedCount(submittedCount);
-        examDTO.setGradedCount(gradedCount);
+        examDTO.setPendingPublishCount(pendingPublishCount);
+        examDTO.setPublishedCount(publishedCount);
+        
+        // 计算并设置显示状态 (如果 getExamById 也需要这个状态)
+        examDTO.setDisplayStatus(calculateDisplayStatus(exam, totalStudents, submittedCount, pendingPublishCount, publishedCount));
         
         return examDTO;
     }
@@ -208,14 +222,19 @@ public class ExamServiceImpl implements ExamService {
                 .map(exam -> {
                     ExamDTO dto = convertToDTO(exam);
                     
-                    // 获取统计信息
+                    // 获取更新后的统计信息
                     Long totalStudents = examStudentRepository.countByExamId(exam.getId());
-                    Long submittedCount = examStudentRepository.countByExamIdAndStatusIn(exam.getId(), Arrays.asList("SUBMITTED", "GRADED"));
-                    Long gradedCount = examStudentRepository.countGradedByExamId(exam.getId());
+                    Long submittedCount = examStudentRepository.countSubmittedByExamId(exam.getId()); // SUBMITTED
+                    Long pendingPublishCount = examStudentRepository.countPendingPublishByExamId(exam.getId()); // PENDING_PUBLISH
+                    Long publishedCount = examStudentRepository.countPublishedByExamId(exam.getId()); // PUBLISHED
                     
                     dto.setTotalStudents(totalStudents);
                     dto.setSubmittedCount(submittedCount);
-                    dto.setGradedCount(gradedCount);
+                    dto.setPendingPublishCount(pendingPublishCount);
+                    dto.setPublishedCount(publishedCount);
+
+                    // 重新计算显示状态
+                    dto.setDisplayStatus(calculateDisplayStatus(exam, totalStudents, submittedCount, pendingPublishCount, publishedCount));
                     
                     return dto;
                 })
@@ -232,14 +251,19 @@ public class ExamServiceImpl implements ExamService {
                 .map(exam -> {
                     ExamDTO dto = convertToDTO(exam);
                     
-                    // 获取统计信息
+                     // 获取更新后的统计信息
                     Long totalStudents = examStudentRepository.countByExamId(exam.getId());
-                    Long submittedCount = examStudentRepository.countByExamIdAndStatusIn(exam.getId(), Arrays.asList("SUBMITTED", "GRADED"));
-                    Long gradedCount = examStudentRepository.countGradedByExamId(exam.getId());
+                    Long submittedCount = examStudentRepository.countSubmittedByExamId(exam.getId()); // SUBMITTED
+                    Long pendingPublishCount = examStudentRepository.countPendingPublishByExamId(exam.getId()); // PENDING_PUBLISH
+                    Long publishedCount = examStudentRepository.countPublishedByExamId(exam.getId()); // PUBLISHED
                     
                     dto.setTotalStudents(totalStudents);
                     dto.setSubmittedCount(submittedCount);
-                    dto.setGradedCount(gradedCount);
+                    dto.setPendingPublishCount(pendingPublishCount);
+                    dto.setPublishedCount(publishedCount);
+                    
+                    // 重新计算显示状态
+                     dto.setDisplayStatus(calculateDisplayStatus(exam, totalStudents, submittedCount, pendingPublishCount, publishedCount));
                     
                     return dto;
                 })
@@ -282,8 +306,8 @@ public class ExamServiceImpl implements ExamService {
         }
         
         // 检查考试是否有学生
-        Long studentCount = examStudentRepository.countByExamId(examId);
-        if (studentCount == 0) {
+        List<ExamStudent> assignedStudents = examStudentRepository.findByExamId(examId);
+        if (assignedStudents.isEmpty()) {
             throw new IllegalStateException("考试需要至少一名学生参加");
         }
         
@@ -291,8 +315,49 @@ public class ExamServiceImpl implements ExamService {
         exam.setStatus("PUBLISHED");
         
         // 保存考试
-        exam = examRepository.save(exam);
-        return convertToDTO(exam);
+        Exam savedExam = examRepository.save(exam);
+        
+        // --- 发送考试发布通知 --- 
+        try {
+            User teacher = userRepository.findById(creatorId).orElse(null);
+            if (teacher != null) {
+                String teacherName = teacher.getRealName();
+                if (teacherName == null || teacherName.trim().isEmpty()) {
+                    teacherName = teacher.getUsername();
+                }
+                if (teacherName == null || teacherName.trim().isEmpty()) {
+                    teacherName = "教师"; // Default if both are empty
+                }
+                
+                String notificationTitle = "新考试发布";
+                String notificationContent = String.format("教师 %s 发布了新的考试: %s", 
+                        teacherName, savedExam.getTitle());
+                
+                List<Long> recipientIds = assignedStudents.stream()
+                        .map(ExamStudent::getStudentId)
+                        .collect(Collectors.toList());
+                
+                if (!recipientIds.isEmpty()) {
+                    NotificationRequest notificationRequest = new NotificationRequest();
+                    notificationRequest.setTitle(notificationTitle);
+                    notificationRequest.setContent(notificationContent);
+                    notificationRequest.setRecipientIds(recipientIds);
+                    
+                    // 调用通知服务创建并发送通知
+                    notificationService.createNotification(creatorId, notificationRequest);
+                    System.out.println("已为考试 " + savedExam.getId() + " 发送发布通知给 " + recipientIds.size() + " 名学生");
+                }
+            } else {
+                System.err.println("发送考试发布通知失败：找不到教师 ID " + creatorId);
+            }
+        } catch (Exception e) {
+            // 记录通知发送失败的日志，但不影响考试发布的流程
+            System.err.println("发送考试发布通知时发生异常: " + e.getMessage());
+            e.printStackTrace(); // Consider using logger
+        }
+        // --- 通知发送结束 ---
+        
+        return convertToDTO(savedExam);
     }
     
     @Override
@@ -803,11 +868,13 @@ public class ExamServiceImpl implements ExamService {
                 
         if (!hasSubjectiveQuestions) {
             examStudent.setScore(totalScore);
-            examStudent.setStatus("GRADED"); // 如果没有主观题，直接设为已评分
-            System.out.println("All objective questions. Final score: " + totalScore + ". Status set to GRADED.");
+            // 如果全是客观题，状态变为待发布，等待教师确认发布
+            examStudent.setStatus("PENDING_PUBLISH"); 
+            System.out.println("All objective questions. Final score: " + totalScore + ". Status set to PENDING_PUBLISH.");
         } else {
              examStudent.setScore(null); // 包含主观题，分数待定
-             System.out.println("Contains subjective questions. Score set to null, requires grading.");
+             // 状态保持为 SUBMITTED，等待教师批阅
+             System.out.println("Contains subjective questions. Score set to null. Status remains SUBMITTED.");
         }
         
         // 保存状态
@@ -912,7 +979,8 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试"));
         
         // 检查状态是否为已提交
-        if (!"SUBMITTED".equals(examStudent.getStatus()) && !"GRADED".equals(examStudent.getStatus())) {
+        if (!"SUBMITTED".equals(examStudent.getStatus()) && !"GRADED".equals(examStudent.getStatus()) 
+            && !"PENDING_PUBLISH".equals(examStudent.getStatus()) && !"PUBLISHED".equals(examStudent.getStatus())) {
             throw new IllegalStateException("考试尚未提交，无法批阅");
         }
         
@@ -948,11 +1016,349 @@ public class ExamServiceImpl implements ExamService {
             totalScore = totalScore.add(score);
         }
         
-        // 更新学生考试状态为已评分，并设置总分
-        examStudent.setStatus("GRADED");
+        // 更新学生考试状态为待发布，并设置总分
+        examStudent.setStatus("PENDING_PUBLISH");
         examStudent.setScore(totalScore);
         examStudent = examStudentRepository.save(examStudent);
         
         return convertToStudentDTO(examStudent);
     }
-} 
+
+    @Override
+    public List<ExamPendingGradingDTO> getExamsWithPendingGrading(Long creatorId) {
+        // 1. 查找该教师创建的所有考试
+        List<Exam> exams = examRepository.findByCreatorId(creatorId);
+        if (exams.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> examIds = exams.stream().map(Exam::getId).collect(Collectors.toList());
+
+        // 2. 查找这些考试中所有状态为 'SUBMITTED' 的学生记录
+        List<ExamStudent> submittedStudents = examStudentRepository.findByExamIdInAndStatus(examIds, "SUBMITTED");
+
+        // 3. 按 examId 统计待批阅学生数量
+        Map<Long, Long> pendingCounts = submittedStudents.stream()
+                .collect(Collectors.groupingBy(ExamStudent::getExamId, Collectors.counting()));
+
+        // 4. 构建 DTO 列表
+        return exams.stream()
+                .filter(exam -> pendingCounts.containsKey(exam.getId()) && pendingCounts.get(exam.getId()) > 0)
+                .map(exam -> new ExamPendingGradingDTO(
+                        exam.getId(),
+                        exam.getTitle(),
+                        exam.getStartTime(),
+                        exam.getEndTime(),
+                        pendingCounts.getOrDefault(exam.getId(), 0L)
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<StudentScoreDTO> getExamScores(Long examId, Long creatorId, Pageable pageable) {
+        // 1. 检查考试存在性和权限
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("考试不存在"));
+        if (!exam.getCreatorId().equals(creatorId)) {
+            throw new UnauthorizedException("无权访问此考试的成绩");
+        }
+
+        // 2. 查询状态为 'GRADED' 的学生记录（带分页和排序）
+        // 注意: Pageable 对象已经包含了排序信息，Spring Data JPA 会自动应用
+        Page<ExamStudent> gradedStudentsPage = examStudentRepository.findByExamIdAndStatus(examId, "GRADED", pageable);
+
+        // 3. 获取学生 ID 列表
+        List<Long> studentIds = gradedStudentsPage.getContent().stream()
+                                    .map(ExamStudent::getStudentId)
+                                    .collect(Collectors.toList());
+
+        // 4. 批量查询学生信息
+        Map<Long, User> studentMap = new HashMap<>();
+        if (!studentIds.isEmpty()) {
+            List<User> students = userRepository.findAllById(studentIds);
+            studentMap = students.stream().collect(Collectors.toMap(User::getId, user -> user));
+        }
+        final Map<Long, User> finalStudentMap = studentMap; // 需要 final 或 effectively final
+
+        // 5. 转换为 StudentScoreDTO
+        List<StudentScoreDTO> scoreDTOs = gradedStudentsPage.getContent().stream()
+            .map(es -> {
+                User student = finalStudentMap.get(es.getStudentId());
+                String studentName = (student != null) ? (student.getRealName() != null ? student.getRealName() : student.getUsername()) : "未知学生";
+                String studentUserNumber = (student != null) ? student.getUserNumber() : "N/A";
+                return new StudentScoreDTO(
+                    es.getStudentId(),
+                    studentName,
+                    studentUserNumber,
+                    es.getScore() // 分数直接从 ExamStudent 获取
+                );
+            })
+            .collect(Collectors.toList());
+
+        // 6. 返回分页结果
+        return new PageImpl<>(scoreDTOs, pageable, gradedStudentsPage.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getStudentExamResultDetails(Long examId, Long studentId) {
+        // 1. 检查考试是否存在
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("考试不存在"));
+
+        // 2. 检查学生是否分配到此考试
+        ExamStudent examStudent = examStudentRepository.findByExamIdAndStudentId(examId, studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("您未参加此考试"));
+
+        // 3. 检查状态是否为已发布（学生只能查看已发布的成绩）
+        if (!"PUBLISHED".equals(examStudent.getStatus())) {
+            throw new IllegalStateException("成绩尚未发布，无法查看结果");
+        }
+
+        // 4. 获取考试题目 (此处需要包含正确答案以供对比)
+        List<ExamQuestion> questions = examQuestionRepository.findByExamIdOrderByDisplayOrderAsc(examId);
+
+        // 5. 获取学生答案
+        List<ExamAnswer> answers = examAnswerRepository.findByExamIdAndStudentId(examId, studentId);
+        Map<Long, ExamAnswer> answerMap = answers.stream()
+                .collect(Collectors.toMap(ExamAnswer::getQuestionId, a -> a)); // 使用原始 Question ID
+
+        // 6. 构建题目和答案的列表
+        List<Map<String, Object>> questionAnswers = new ArrayList<>();
+        for (ExamQuestion question : questions) {
+            Map<String, Object> qaItem = new HashMap<>();
+             // 注意：这里需要转换，确保 QuestionDTO 包含正确答案字段
+            ExamQuestionDTO questionDTO = convertToQuestionDTOWithAnswer(question); 
+            qaItem.put("question", questionDTO);
+
+            // 使用 ExamQuestion 的原始 questionId 从 answerMap 获取答案
+            ExamAnswer answer = answerMap.get(question.getQuestionId()); 
+            if (answer != null) {
+                Map<String, Object> answerData = new HashMap<>();
+                answerData.put("id", answer.getId());
+                answerData.put("answer", answer.getAnswer());
+                answerData.put("isCorrect", answer.getIsCorrect());
+                answerData.put("score", answer.getScore());
+                qaItem.put("answer", answerData);
+            } else {
+                qaItem.put("answer", null); // 学生未作答此题
+            }
+            questionAnswers.add(qaItem);
+        }
+
+        // 7. 获取学生信息 (使用 DTO 避免懒加载问题)
+        User studentEntity = userRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("学生信息不存在"));
+        UserSimpleDTO studentDTO = new UserSimpleDTO(
+            studentEntity.getId(),
+            studentEntity.getUsername(),
+            studentEntity.getRealName(),
+            studentEntity.getNickname(),
+            studentEntity.getUserNumber()
+        );
+        
+        // 8. 组装结果返回
+        Map<String, Object> result = new HashMap<>();
+        result.put("exam", convertToDTO(exam)); // Exam 基本信息 DTO
+        result.put("student", studentDTO); // 学生基本信息 DTO
+        result.put("examStudent", convertToStudentDTO(examStudent)); // 学生考试状态 DTO
+        result.put("questionAnswers", questionAnswers); // 包含题目和答案的列表
+
+        return result;
+    }
+    
+    // 辅助方法：转换 ExamQuestion 为 DTO，包含答案
+    private ExamQuestionDTO convertToQuestionDTOWithAnswer(ExamQuestion examQuestion) {
+        ExamQuestionDTO dto = convertToQuestionDTO(examQuestion); // 复用现有转换方法
+        // 确保从原始 Question 实体获取正确答案
+        com.example.auth.entity.Question originalQuestion = questionRepository.findById(examQuestion.getQuestionId()).orElse(null);
+        if(originalQuestion != null) {
+             dto.setAnswer(originalQuestion.getAnswer()); 
+        }
+        return dto;
+    }
+
+    @Override
+    public Page<ExamDTO> getGradingOverviewExams(Long creatorId, String gradingStatus, Pageable pageable) {
+        // 1. 获取教师创建的所有考试（不分页，后续手动处理）
+        List<Exam> exams = examRepository.findByCreatorId(creatorId);
+        if (exams.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // 2. 准备 DTO 列表并计算统计数据
+        List<ExamDTO> examDTOs = new ArrayList<>();
+        for (Exam exam : exams) {
+            ExamDTO dto = convertToDTO(exam);
+            // 获取更新后的统计信息
+            Long totalStudents = examStudentRepository.countByExamId(exam.getId());
+            Long submittedCount = examStudentRepository.countSubmittedByExamId(exam.getId());
+            Long pendingPublishCount = examStudentRepository.countPendingPublishByExamId(exam.getId());
+            Long publishedCount = examStudentRepository.countPublishedByExamId(exam.getId());
+
+            dto.setTotalStudents(totalStudents);
+            dto.setSubmittedCount(submittedCount);
+            dto.setPendingPublishCount(pendingPublishCount);
+            dto.setPublishedCount(publishedCount);
+            examDTOs.add(dto);
+        }
+
+        // 3. 根据 gradingStatus 筛选
+        List<ExamDTO> filteredExams;
+        if ("pending".equalsIgnoreCase(gradingStatus)) {
+            filteredExams = examDTOs.stream()
+                    .filter(dto -> dto.getSubmittedCount() != null && dto.getSubmittedCount() > 0)
+                    .collect(Collectors.toList());
+        } else if ("graded".equalsIgnoreCase(gradingStatus)) {
+            filteredExams = examDTOs.stream()
+                    .filter(dto -> dto.getPendingPublishCount() != null && dto.getPendingPublishCount() > 0)
+                     .collect(Collectors.toList());
+        } else if ("published".equalsIgnoreCase(gradingStatus)) {
+            filteredExams = examDTOs.stream()
+                    .filter(dto -> dto.getPublishedCount() != null && dto.getPublishedCount() > 0)
+                    .collect(Collectors.toList());
+        }
+        else {
+            // 不筛选或 gradingStatus 为空/null
+            filteredExams = examDTOs;
+        }
+
+        // 4. 手动分页
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredExams.size());
+        
+        List<ExamDTO> pageContent = new ArrayList<>();
+        if (start <= end && start < filteredExams.size()) { // 确保 start 不大于 end 且在列表范围内
+             pageContent = filteredExams.subList(start, end);
+        }
+       
+        return new PageImpl<>(pageContent, pageable, filteredExams.size());
+    }
+
+    // 辅助方法：计算考试的显示状态 (更新版)
+    private String calculateDisplayStatus(Exam exam, Long totalStudents, Long submittedCount, Long pendingPublishCount, Long publishedCount) {
+        Instant now = Instant.now();
+        String originalStatus = exam.getStatus();
+        Instant startTime = exam.getStartTime();
+        Instant endTime = exam.getEndTime();
+        
+        totalStudents = totalStudents == null ? 0L : totalStudents;
+        submittedCount = submittedCount == null ? 0L : submittedCount;
+        pendingPublishCount = pendingPublishCount == null ? 0L : pendingPublishCount;
+        publishedCount = publishedCount == null ? 0L : publishedCount;
+        
+        // 检查是否所有人都已完成（状态为 PUBLISHED）
+        boolean allCompleted = totalStudents > 0 && publishedCount >= totalStudents;
+        
+        if ("DRAFT".equals(originalStatus)) {
+            return "草稿";
+        }
+        
+        if (("PUBLISHED".equals(originalStatus) || "ONGOING".equals(originalStatus)) && startTime != null && now.isBefore(startTime)) {
+            return "已发布"; // 还未到开始时间
+        }
+        
+        // 检查是否所有人都已完成
+        if (allCompleted) {
+             return "已完成"; // 所有人都已发布成绩
+        }
+        
+        // 检查是否已过结束时间
+        if (endTime != null && now.isAfter(endTime)) {
+             // 即使过了结束时间，如果还有人未完成（未发布成绩），状态也不是"已完成"
+             return "已结束"; 
+        }
+        
+        // 在考试进行时间内
+        if (("PUBLISHED".equals(originalStatus) || "ONGOING".equals(originalStatus)) && 
+            (startTime == null || !now.isBefore(startTime)) && 
+            (endTime == null || !now.isAfter(endTime))) {
+                // 在进行中，但需要细分状态
+                 if (pendingPublishCount > 0 || publishedCount > 0) {
+                     return "批阅中"; // 有人已提交，且有人处于待发布或已发布状态
+                 } else if (submittedCount > 0) {
+                     return "批阅中"; // 有人提交，但还没人被批阅
+                 } else {
+                     return "进行中"; // 还没人提交
+                 }
+        }
+
+        // 其他情况（理论上主要是考试结束后未完成的情况）
+        if (pendingPublishCount > 0 || submittedCount > 0) {
+            return "待批阅/发布"; // 结束后，还有待处理的学生
+        } else if (publishedCount > 0 && publishedCount < totalStudents) {
+             return "已结束 (部分完成)"; // 结束后，有人完成但不是全部
+        }
+        
+        return "已结束"; // 默认的结束状态
+    }
+
+    @Override
+    @Transactional
+    public List<ExamStudentDTO> publishStudentGrades(Long examId, Long studentId, Long creatorId) {
+        // 检查考试存在性和权限
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("考试不存在"));
+        
+        if (!exam.getCreatorId().equals(creatorId)) {
+            throw new UnauthorizedException("无权发布此考试成绩");
+        }
+        
+        List<ExamStudent> studentsToPublish;
+        
+        // 如果提供了学生ID，只发布该学生的成绩
+        if (studentId != null) {
+            ExamStudent examStudent = examStudentRepository.findByExamIdAndStudentId(examId, studentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试"));
+            
+            // 检查状态是否为待发布
+            if (!"PENDING_PUBLISH".equals(examStudent.getStatus()) && !"GRADED".equals(examStudent.getStatus())) {
+                throw new IllegalStateException("该学生成绩未完成批阅，无法发布");
+            }
+            
+            studentsToPublish = List.of(examStudent);
+        } else {
+            // 否则，发布所有待发布状态的学生成绩
+            studentsToPublish = examStudentRepository.findByExamIdAndStatusIn(
+                    examId, Arrays.asList("PENDING_PUBLISH", "GRADED"));
+            
+            if (studentsToPublish.isEmpty()) {
+                throw new IllegalStateException("没有待发布的学生成绩");
+            }
+        }
+        
+        // 更新状态为已发布
+        List<ExamStudentDTO> publishedStudents = new ArrayList<>();
+        for (ExamStudent student : studentsToPublish) {
+            student.setStatus("PUBLISHED");
+            ExamStudent savedStudent = examStudentRepository.save(student);
+            publishedStudents.add(convertToStudentDTO(savedStudent));
+            
+            // 发送成绩通知给学生
+            try {
+                User studentUser = userRepository.findById(student.getStudentId()).orElse(null);
+                if (studentUser != null) {
+                    String notificationContent = String.format(
+                            "您的考试 '%s' 成绩已发布，您的得分为：%s。",
+                            exam.getTitle(),
+                            student.getScore()
+                    );
+                    
+                    // 创建 NotificationRequest 对象
+                    NotificationRequest notificationRequest = new NotificationRequest();
+                    notificationRequest.setTitle("考试成绩发布");
+                    notificationRequest.setContent(notificationContent);
+                    notificationRequest.setRecipientIds(Collections.singletonList(student.getStudentId()));
+                    
+                    // 调用通知服务
+                    notificationService.createNotification(creatorId, notificationRequest);
+                }
+            } catch (Exception e) {
+                // 记录错误但不中断流程
+                System.err.println("发送成绩通知失败: " + e.getMessage());
+            }
+        }
+        
+        return publishedStudents;
+    }
+}

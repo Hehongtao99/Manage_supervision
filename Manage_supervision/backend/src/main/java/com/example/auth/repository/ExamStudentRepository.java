@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ExamStudentRepository extends JpaRepository<ExamStudent, Long> {
@@ -65,13 +66,64 @@ public interface ExamStudentRepository extends JpaRepository<ExamStudent, Long> 
     Long countByExamIdAndStatusIn(Long examId, List<String> statuses);
     
     /**
-     * 统计已批改的学生数量
+     * 统计指定考试中处于特定状态的学生数量
      */
-    @Query("SELECT COUNT(es) FROM ExamStudent es WHERE es.examId = :examId AND es.status = 'GRADED'")
-    Long countGradedByExamId(@Param("examId") Long examId);
+    Long countByExamIdAndStatus(Long examId, String status);
+
+    /**
+     * 统计已提交待批阅的学生数量 (SUBMITTED)
+     */
+    default Long countSubmittedByExamId(Long examId) {
+        return countByExamIdAndStatus(examId, "SUBMITTED");
+    }
+
+    /**
+     * 统计待发布成绩的学生数量 (PENDING_PUBLISH)
+     */
+    default Long countPendingPublishByExamId(Long examId) {
+        return countByExamIdAndStatus(examId, "PENDING_PUBLISH");
+    }
+
+    /**
+     * 统计已发布成绩的学生数量 (PUBLISHED)
+     */
+    default Long countPublishedByExamId(Long examId) {
+        return countByExamIdAndStatus(examId, "PUBLISHED");
+    }
+
+    /**
+     * 根据考试ID和状态列表查询学生考试记录
+     */
+    List<ExamStudent> findByExamIdAndStatusIn(Long examId, List<String> statuses);
+    
+    /**
+     * 根据多个考试ID和状态查询学生考试记录
+     */
+    List<ExamStudent> findByExamIdInAndStatus(List<Long> examIds, String status);
     
     /**
      * 统计学生参加的考试数量
      */
     Long countByStudentId(Long studentId);
+
+    /**
+     * 根据考试ID和状态查询学生考试记录（分页）
+     */
+    Page<ExamStudent> findByExamIdAndStatus(Long examId, String status, Pageable pageable);
+
+    /**
+     * 根据多个考试ID查询学生考试记录
+     */
+    List<ExamStudent> findByExamIdIn(List<Long> examIds);
+
+    /**
+     * 根据考试ID和状态查询学生考试记录列表（非分页）
+     */
+    List<ExamStudent> findAllByExamIdAndStatus(Long examId, String status);
+
+    /**
+     * 根据多个考试ID查询唯一的学生ID列表
+     */
+    @Query("SELECT DISTINCT es.studentId FROM ExamStudent es WHERE es.examId IN :examIds")
+    Set<Long> findDistinctStudentIdsByExamIdIn(@Param("examIds") List<Long> examIds);
 } 

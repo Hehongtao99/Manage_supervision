@@ -231,8 +231,8 @@ onMounted(async () => {
       formModel.value.phone = userStore.user.phone || ''
       formModel.value.bio = userStore.user.bio || ''
       
-      // 获取教师仪表盘数据，包括真实学生数量
-      await fetchSupervisorStats()
+      // Remove the call to fetchSupervisorStats as the endpoint is deleted
+      // await fetchSupervisorStats()
     } else {
       // 不要显示错误消息，避免多次显示
       console.warn('获取用户信息未成功，可能需要重新登录')
@@ -248,88 +248,80 @@ onMounted(async () => {
 
 // 处理头像上传
 const handleAvatarUpload = () => {
-  // 触发隐藏的文件输入点击事件
-  if (fileInputRef.value) {
-    fileInputRef.value.click();
-  }
+  fileInputRef.value?.click();
 };
 
 // 处理文件选择
 const handleFileSelected = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (!target.files || target.files.length === 0) {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) {
     return;
   }
-  
-  const file = target.files[0];
-  
-  // 检查文件类型
+  const file = input.files[0];
+
   if (!file.type.startsWith('image/')) {
     ElMessage.error('请选择图片文件');
     return;
   }
   
-  // 检查文件大小（限制为2MB）
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.error('图片大小不能超过2MB');
-    return;
-  }
-  
-  // 创建FormData对象
   const formData = new FormData();
-  formData.append('file', file);
-  
-  // 显示加载指示器
-  const loadingInstance = ElLoading.service({
+  formData.append('avatar', file);
+
+  const loading = ElLoading.service({
+    lock: true,
     text: '正在上传头像...',
-    background: 'rgba(0, 0, 0, 0.7)'
+    background: 'rgba(0, 0, 0, 0.7)',
   });
-  
+
   try {
-    // 使用现有的/api/user/avatar接口上传头像
-    const response = await axios.post('/api/user/avatar', formData, {
+    const response = await axios.post<{ avatar: string }>('/api/users/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
     
-    // 上传成功后更新头像
-    ElMessage.success('头像上传成功');
-    
-    // 更新Vuex store中的头像
-    userStore.setUserAvatar(response.data.url);
-    
-    // 重置文件输入
+    if (response.data && response.data.avatar) {
+      // 更新用户头像
+      userStore.user.avatar = response.data.avatar;
+      ElMessage.success('头像更新成功');
+    }
+  } catch (error) {
+    ElMessage.error('头像上传失败');
+    console.error('头像上传失败:', error);
+  } finally {
+    loading.close();
+    // 重置文件输入，以便可以再次选择相同的文件
     if (fileInputRef.value) {
       fileInputRef.value.value = '';
     }
-  } catch (error) {
-    console.error('头像上传失败:', error);
-    ElMessage.error('头像上传失败，请稍后重试');
-  } finally {
-    // 关闭加载指示器
-    loadingInstance.close();
   }
 };
 
-// 处理基本信息保存
-const handleSubmit = async () => {
+// 提交基本信息表单
+const handleSubmit = () => {
   if (!formRef.value) return;
   
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
-        // 这里添加保存用户信息的API调用
-        // await userStore.updateUserInfo(formModel.value);
-        ElMessage.success('用户信息已更新');
+        const updateData = {
+          realName: formModel.value.realName,
+          nickname: formModel.value.nickname,
+          email: formModel.value.email,
+          phone: formModel.value.phone,
+          bio: formModel.value.bio
+        };
+        await userStore.updateProfile(updateData);
+        ElMessage.success('个人信息已更新');
       } catch (error) {
-        ElMessage.error('保存失败，请稍后重试');
+        ElMessage.error('更新失败，请稍后重试');
+        console.error('信息更新失败:', error);
       }
     }
   });
 };
 
-// 处理密码修改
+// 提交密码修改表单
 const handlePasswordChange = () => {
   if (!passwordFormRef.value) return;
   
@@ -349,21 +341,22 @@ const handlePasswordChange = () => {
   });
 };
 
-// 获取教师仪表盘数据
-const fetchSupervisorStats = async () => {
-  statsLoading.value = true;
-  try {
-    const response = await axios.get<SupervisorDashboardDTO>('/api/dashboard/supervisor/stats');
-    // 更新学生数量
-    userStats.studentCount = response.data.studentCount;
-    console.log('获取教师学生数量成功:', response.data.studentCount);
-  } catch (error) {
-    console.error('获取教师数据失败:', error);
-    ElMessage.error('获取统计数据失败，请稍后重试');
-  } finally {
-    statsLoading.value = false;
-  }
-};
+// Remove the fetchSupervisorStats function as it's no longer needed
+// // 获取教师仪表盘数据
+// const fetchSupervisorStats = async () => {
+//   statsLoading.value = true;
+//   try {
+//     const response = await axios.get<SupervisorDashboardDTO>('/api/dashboard/supervisor/stats');
+//     // 更新学生数量
+//     userStats.studentCount = response.data.studentCount;
+//     console.log('获取教师学生数量成功:', response.data.studentCount);
+//   } catch (error) {
+//     console.error('获取教师数据失败:', error);
+//     ElMessage.error('获取统计数据失败，请稍后重试');
+//   } finally {
+//     statsLoading.value = false;
+//   }
+// };
 </script>
 
 <style scoped>

@@ -4,7 +4,7 @@
     <div class="sidebar-container" :class="{ 'is-collapsed': isCollapsed }">
       <div class="logo-container">
         <img src="../assets/logo.png" alt="Logo" class="logo-image" />
-        <span class="logo-text" v-show="!isCollapsed">管理系统</span>
+        <span class="logo-text" v-show="!isCollapsed">考试系统</span>
       </div>
       
       <el-scrollbar>
@@ -32,6 +32,15 @@
               <el-icon :size="20"><ChatDotRound /></el-icon>
             </el-badge>
           </div>
+          
+          <!-- 通知图标和数量提示 -->
+          <!--
+          <div class="notification-item" @click="navigateToNotifications">
+            <el-badge :value="notificationCount > 0 ? notificationCount : ''" :max="99" :hidden="notificationCount <= 0">
+              <el-icon :size="20"><Bell /></el-icon>
+            </el-badge>
+          </div>
+          -->
           
           <!-- 角色标识 -->
           <div class="role-indicator">
@@ -91,6 +100,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useChatStore } from '../stores/chat'
+import { useNotificationStore } from '../stores/notification'
 import SideMenu from '../components/SideMenu.vue'
 import Breadcrumb from '../components/Breadcrumb.vue'
 import { ElMessageBox } from 'element-plus'
@@ -102,12 +112,14 @@ import {
   CaretBottom,
   Setting,
   Monitor,
-  ChatDotRound
+  ChatDotRound,
+  Bell
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const chatStore = useChatStore()
+const notificationStore = useNotificationStore()
 const isCollapsed = ref(false)
 
 // 未读消息计数
@@ -155,6 +167,18 @@ const navigateToChat = () => {
   }
 }
 
+// 加入通知功能
+const notificationCount = computed(() => notificationStore.notificationCount)
+
+// 导航到通知页面
+const navigateToNotifications = () => {
+  if (userStore.isSupervisor) {
+    router.push('/supervisor/notifications')
+  } else if (userStore.isStudent) {
+    router.push('/student/notifications')
+  }
+}
+
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
@@ -170,10 +194,23 @@ const handleLogout = () => {
   })
 }
 
-// 初始化聊天服务
+// 组件挂载时初始化
 onMounted(async () => {
+  // 如果用户已登录，初始化聊天和通知
   if (userStore.isLoggedIn) {
-    await chatStore.initChat()
+    try {
+      console.log('初始化聊天服务...')
+      chatStore.initChat()
+      
+      // 加载通知
+      if (userStore.isStudent) {
+        await notificationStore.loadReceivedNotifications()
+      } else if (userStore.isSupervisor) {
+        await notificationStore.loadSentNotifications()
+      }
+    } catch (error) {
+      console.error('初始化聊天或通知服务失败:', error)
+    }
   }
 })
 

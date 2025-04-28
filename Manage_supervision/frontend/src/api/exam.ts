@@ -155,4 +155,54 @@ export const getStudentExamAnswers = async (examId: number, studentId: number) =
  */
 export const gradeStudentExam = async (examId: number, studentId: number, gradeData: any) => {
   return await axios.post(`/api/supervisor/exams/${examId}/students/${studentId}/grade`, gradeData);
+};
+
+/**
+ * 发布学生成绩
+ * @param examId 考试ID
+ * @param studentId 学生ID (可选，如果不提供则发布所有待发布的学生成绩)
+ */
+export const publishStudentGrades = async (examId: number, studentId?: number) => {
+  let url = `/api/supervisor/exams/${examId}/students/publish`;
+  if (studentId) {
+    url += `?studentId=${studentId}`;
+  }
+  return await axios.post(url);
+};
+
+/**
+ * 获取教师待批阅的考试列表
+ */
+export const getPendingGradingExams = async () => {
+  return await axios.get('/api/supervisor/exams/pending-grading');
+};
+
+/**
+ * 获取指定考试的学生成绩列表（带分页和排序）
+ */
+export const getExamScores = async (examId: number, params: {
+  page?: number;
+  size?: number;
+  sort?: string; // 例如：'score,asc' 或 'score,desc'
+}) => {
+  return await axios.get(`/api/supervisor/exams/${examId}/scores`, { params });
+};
+
+/**
+ * 学生获取自己的考试结果详情
+ */
+export const getStudentExamResultDetails = async (examId: number) => {
+  return await axios.get(`/api/student/exams/${examId}/answers`);
+};
+
+/**
+ * 获取教师的批阅概览考试列表（分页和筛选）
+ */
+export const getGradingOverviewExams = async (params: {
+  page?: number;
+  size?: number;
+  gradingStatus?: string; // '', 'pending', 'graded'
+  sort?: string;
+}) => {
+  return await axios.get(`/api/supervisor/exams/grading-overview`, { params });
 }; 

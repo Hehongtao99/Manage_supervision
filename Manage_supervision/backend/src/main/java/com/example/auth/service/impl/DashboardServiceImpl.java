@@ -2,7 +2,6 @@ package com.example.auth.service.impl;
 
 import com.example.auth.dto.DashboardStats;
 import com.example.auth.dto.StudentProjectProgressDTO;
-import com.example.auth.dto.SupervisorDashboardDTO;
 import com.example.auth.entity.Project;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.Task;
@@ -11,7 +10,12 @@ import com.example.auth.repository.ProjectRepository;
 import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.TaskRepository;
 import com.example.auth.repository.UserRepository;
+import com.example.auth.repository.ExamRepository;
+import com.example.auth.repository.ExamStudentRepository;
 import com.example.auth.service.DashboardService;
+import com.example.auth.dto.TeacherDashboardStatsDTO;
+import com.example.auth.entity.ExamStudent;
+import com.example.auth.entity.Exam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +26,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.util.LinkedHashMap;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.TreeMap;
+import java.time.ZoneId;
+import java.util.Set;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
@@ -37,6 +51,12 @@ public class DashboardServiceImpl implements DashboardService {
     
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private ExamRepository examRepository;
+
+    @Autowired
+    private ExamStudentRepository examStudentRepository;
 
     private DashboardStats.SystemInfo getSystemInfo() {
         DashboardStats.SystemInfo systemInfo = new DashboardStats.SystemInfo();
@@ -111,154 +131,183 @@ public class DashboardServiceImpl implements DashboardService {
         
         return stats;
     }
-    
+
     @Override
-    public SupervisorDashboardDTO getSupervisorDashboardStats(Long supervisorId) {
-        SupervisorDashboardDTO stats = new SupervisorDashboardDTO();
-        
-        // 查找督导员所负责的所有学生
-        List<User> students = userRepository.findAll().stream()
-            .filter(user -> user.getRoles().stream().anyMatch(role -> "STUDENT".equals(role.getName())))
-            .collect(Collectors.toList());
-            
-        // 设置学生总数
-        stats.setStudentCount(students.size());
-        
-        // 计算今日活跃学生数（使用状态字段代替登录时间）
-        int activeTodayCount = (int) students.stream()
-            .filter(student -> "active".equals(student.getStatus()))
-            .count();
-        stats.setActiveToday(activeTodayCount);
-        
-        // 查找督导员负责的所有任务，手动筛选未完成的
-        List<Task> allTasks = taskRepository.findBySupervisorId(supervisorId);
-        List<Task> pendingTasks = allTasks.stream()
-            .filter(task -> !task.getCompleted())
-            .collect(Collectors.toList());
-        stats.setPendingTasks(pendingTasks.size());
-        
-        // 计算本周活动数
-        LocalDateTime weekStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).minusDays(LocalDateTime.now().getDayOfWeek().getValue() - 1);
-        int weeklyEventsCount = (int) pendingTasks.stream()
-            .filter(task -> task.getCreateTime() != null && task.getCreateTime().isAfter(weekStart))
-            .count();
-        stats.setWeeklyEvents(weeklyEventsCount);
-        
-        // 计算学生课题进度
-        List<StudentProjectProgressDTO> progressList = new ArrayList<>();
-        
-        // 查找督导员负责的所有课题
-        List<Project> supervisorProjects = projectRepository.findBySupervisorId(supervisorId);
-        
-        for (Project project : supervisorProjects) {
-            // 如果课题分配给了学生
-            if (project.getAssigneeId() != null) {
-                // 查找该学生
-                User student = userRepository.findById(project.getAssigneeId()).orElse(null);
-                if (student != null) {
-                    StudentProjectProgressDTO progressDTO = new StudentProjectProgressDTO();
-                    
-                    // 设置学生信息
-                    progressDTO.setStudentId(student.getId());
-                    progressDTO.setStudentName(student.getRealName() != null && !student.getRealName().isEmpty() 
-                        ? student.getRealName() 
-                        : student.getUsername());
-                    progressDTO.setStudentNumber(student.getId().toString());
-                    
-                    // 设置课题信息
-                    progressDTO.setProjectId(project.getId());
-                    progressDTO.setProjectTitle(project.getTitle());
-                    progressDTO.setProjectStatus(project.getStatus());
-                    
-                    // 设置期限信息
-                    progressDTO.setDeadline(project.getEndTime());
-                    progressDTO.setIsOverdue(project.getEndTime() != null && 
-                                            LocalDateTime.now().isAfter(project.getEndTime()));
-                    
-                    // 查询该课题的所有任务
-                    List<Task> projectTasks = taskRepository.findByProjectId(project.getId());
-                    int totalTasks = projectTasks.size();
-                    progressDTO.setTotalTasks(totalTasks);
-                    
-                    // 查询已完成的任务
-                    List<Task> completedTasks = projectTasks.stream()
-                        .filter(Task::getCompleted)
-                        .collect(Collectors.toList());
-                    int completedTasksCount = completedTasks.size();
-                    progressDTO.setCompletedTasks(completedTasksCount);
-                    
-                    // 计算进度百分比
-                    double progressPercentage = totalTasks > 0 ? 
-                            ((double) completedTasksCount / totalTasks) * 100 : 0;
-                    progressDTO.setProgressPercentage(progressPercentage);
-                    
-                    // 根据用户状态判断活跃状态
-                    progressDTO.setStatus("active".equals(student.getStatus()) ? 
-                                        "active" : "inactive");
-                    
-                    // 最近活动情况（简化处理）
-                    if (!projectTasks.isEmpty()) {
-                        Task latestTask = projectTasks.stream()
-                                .max((t1, t2) -> t1.getUpdateTime().compareTo(t2.getUpdateTime()))
-                                .orElse(null);
-                        if (latestTask != null) {
-                            progressDTO.setLastActivity(latestTask.getUpdateTime());
-                            progressDTO.setLastActivityDescription("更新了任务: " + latestTask.getTitle());
-                        }
-                    }
-                    
-                    progressList.add(progressDTO);
-                }
-            }
+    public TeacherDashboardStatsDTO getTeacherDashboardStats(Long teacherId) {
+        TeacherDashboardStatsDTO stats = new TeacherDashboardStatsDTO();
+
+        // 1. 获取该教师创建的所有考试 ID
+        List<Long> examIds = examRepository.findExamIdsByCreatorId(teacherId);
+
+        long studentCount = 0;
+        if (!examIds.isEmpty()) {
+            // 2. 查找这些考试关联的所有唯一学生ID
+            Set<Long> studentIds = examStudentRepository.findDistinctStudentIdsByExamIdIn(examIds);
+            studentCount = studentIds.size();
         }
-        
-        stats.setStudentProjectProgresses(progressList);
-        
-        // 设置最近活动
-        List<SupervisorDashboardDTO.ActivityItem> activities = new ArrayList<>();
-        
-        // 任务活动（简化示例）
-        for (Task task : pendingTasks.stream()
-                .sorted((t1, t2) -> t2.getUpdateTime().compareTo(t1.getUpdateTime()))
-                .limit(5)
-                .collect(Collectors.toList())) {
-            
-            // 添加空值检查，确保assigneeId不为null
-            if (task.getAssigneeId() == null) {
-                continue; // 跳过没有分配任务人的任务
-            }
-            
-            User assignee = userRepository.findById(task.getAssigneeId()).orElse(null);
-            if (assignee != null) {
-                SupervisorDashboardDTO.ActivityItem activity = new SupervisorDashboardDTO.ActivityItem();
-                
-                // 设置活动信息
-                activity.setTitle("学生" + assignee.getUsername() + "的任务状态更新");
-                activity.setDescription(assignee.getUsername() + (task.getCompleted() ? "完成了" : "更新了") + "《" + task.getTitle() + "》");
-                
-                // 格式化时间
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                LocalDateTime updateTime = task.getUpdateTime();
-                LocalDateTime now = LocalDateTime.now();
-                
-                String timeDisplay;
-                if (updateTime.toLocalDate().equals(now.toLocalDate())) {
-                    timeDisplay = "今天 " + updateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
-                } else if (updateTime.toLocalDate().equals(now.toLocalDate().minusDays(1))) {
-                    timeDisplay = "昨天 " + updateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
-                } else {
-                    timeDisplay = updateTime.format(formatter);
-                }
-                
-                activity.setTime(timeDisplay);
-                activity.setType("任务更新");
-                
-                activities.add(activity);
-            }
-        }
-        
-        stats.setRecentActivities(activities);
-        
+        stats.setStudentCount(studentCount);
+
+        // 3. 获取该教师发布的考试数量
+        long examCount = examRepository.countByCreatorId(teacherId);
+        stats.setExamCount(examCount);
+
         return stats;
+    }
+
+    @Override
+    public Map<String, Long> getExamGradeDistribution(Long examId) {
+        // 获取该考试所有已发布成绩的学生记录 (PUBLISHED 状态)
+        List<ExamStudent> gradedStudents = examStudentRepository.findAllByExamIdAndStatus(examId, "PUBLISHED");
+
+        Map<String, Long> distribution = new LinkedHashMap<>(); // Use LinkedHashMap to keep insertion order
+        distribution.put("不及格", 0L);
+        distribution.put("60-70分", 0L);
+        distribution.put("70-80分", 0L);
+        distribution.put("80-90分", 0L);
+        distribution.put("90-100分", 0L);
+
+        for (ExamStudent student : gradedStudents) {
+            BigDecimal score = student.getScore();
+            if (score == null) continue; // Skip if score is null
+
+            int scoreVal = score.intValue();
+
+            if (scoreVal < 60) {
+                distribution.compute("不及格", (k, v) -> (v == null ? 0 : v) + 1);
+            } else if (scoreVal < 70) {
+                distribution.compute("60-70分", (k, v) -> (v == null ? 0 : v) + 1);
+            } else if (scoreVal < 80) {
+                distribution.compute("70-80分", (k, v) -> (v == null ? 0 : v) + 1);
+            } else if (scoreVal < 90) {
+                distribution.compute("80-90分", (k, v) -> (v == null ? 0 : v) + 1);
+            } else {
+                distribution.compute("90-100分", (k, v) -> (v == null ? 0 : v) + 1);
+            }
+        }
+
+        return distribution;
+    }
+
+    @Override
+    public Map<String, Long> getExamParticipationStats(Long teacherId) {
+        // 1. 获取该教师创建的所有考试 ID
+        List<Long> examIds = examRepository.findExamIdsByCreatorId(teacherId);
+
+        if (examIds.isEmpty()) {
+            return Map.of("未开始", 0L, "进行中", 0L, "待批阅", 0L, "已完成", 0L);
+        }
+
+        // 2. 获取这些考试的所有学生参与记录
+        List<ExamStudent> allParticipations = examStudentRepository.findByExamIdIn(examIds);
+
+        // 3. 统计各种状态的数量
+        Map<String, Long> participationStats = new LinkedHashMap<>();
+        participationStats.put("未开始", 0L);   // NOT_STARTED
+        participationStats.put("进行中", 0L);   // IN_PROGRESS
+        participationStats.put("待批阅", 0L);   // SUBMITTED or PENDING_PUBLISH
+        participationStats.put("已完成", 0L);   // PUBLISHED
+
+        for (ExamStudent participation : allParticipations) {
+            String status = participation.getStatus();
+            if (status == null) continue;
+
+            switch (status) {
+                case "NOT_STARTED":
+                    participationStats.compute("未开始", (k, v) -> v + 1);
+                    break;
+                case "IN_PROGRESS":
+                    participationStats.compute("进行中", (k, v) -> v + 1);
+                    break;
+                case "SUBMITTED":
+                case "PENDING_PUBLISH": // Consider PENDING_PUBLISH as '待批阅' for the chart
+                    participationStats.compute("待批阅", (k, v) -> v + 1);
+                    break;
+                case "PUBLISHED":
+                    participationStats.compute("已完成", (k, v) -> v + 1);
+                    break;
+                // Ignore other potential statuses like GRADED if PUBLISHED is the final display state
+            }
+        }
+
+        return participationStats;
+    }
+
+    @Override
+    public Map<String, Object> getGradeTrendData(Long teacherId, String range) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDateTime;
+        LocalDateTime endDateTime = now; // End date is always now
+
+        // Determine the start date based on the range
+        switch (range) {
+            case "week":
+                startDateTime = now.with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                break;
+            case "month":
+                startDateTime = now.with(TemporalAdjusters.firstDayOfMonth()).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                break;
+            case "semester":
+                // Assuming a semester is roughly 6 months
+                startDateTime = now.minusMonths(6).with(TemporalAdjusters.firstDayOfMonth()).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                break;
+            default:
+                // Default to month if range is invalid
+                startDateTime = now.with(TemporalAdjusters.firstDayOfMonth()).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        }
+
+        // 1. Find exams created by the teacher within the date range and are finished/graded (status PUBLISHED)
+        //    We need exams that *ended* within the range to calculate trends based on completion time.
+        List<Exam> relevantExams = examRepository.findByCreatorIdAndEndTimeBetween(teacherId, startDateTime.atZone(ZoneId.systemDefault()).toInstant(), endDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        if (relevantExams.isEmpty()) {
+            return Map.of("dates", Collections.emptyList(), "averageScores", Collections.emptyList(), "highestScores", Collections.emptyList());
+        }
+
+        List<Long> relevantExamIds = relevantExams.stream().map(Exam::getId).collect(Collectors.toList());
+
+        // 2. Find all student results for these exams with status PUBLISHED
+        List<ExamStudent> results = examStudentRepository.findByExamIdInAndStatus(relevantExamIds, "PUBLISHED");
+
+        // 3. Group results by exam end date (or a suitable grouping factor like week/month)
+        //    Let's group by exam completion date (approximated by exam end time for simplicity)
+        Map<LocalDate, List<ExamStudent>> resultsByDate = results.stream()
+                .collect(Collectors.groupingBy(es -> {
+                    Exam exam = relevantExams.stream().filter(e -> e.getId().equals(es.getExamId())).findFirst().orElse(null);
+                    return exam != null && exam.getEndTime() != null 
+                           ? LocalDateTime.ofInstant(exam.getEndTime(), ZoneId.systemDefault()).toLocalDate() 
+                           : LocalDate.MIN; // Should not happen ideally
+                }, TreeMap::new, Collectors.toList())); // Use TreeMap to sort by date
+
+        List<String> dates = new ArrayList<>();
+        List<Double> averageScores = new ArrayList<>();
+        List<Double> highestScores = new ArrayList<>();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM-dd"); // Format for display
+
+        // 4. Calculate average and highest score for each date group
+        resultsByDate.forEach((date, studentResults) -> {
+            if (date.equals(LocalDate.MIN) || studentResults.isEmpty()) return; // Skip invalid dates or empty lists
+
+            double sum = 0;
+            double maxScore = 0;
+            int count = 0;
+            for (ExamStudent result : studentResults) {
+                if (result.getScore() != null) {
+                    double score = result.getScore().doubleValue();
+                    sum += score;
+                    if (score > maxScore) {
+                        maxScore = score;
+                    }
+                    count++;
+                }
+            }
+
+            if (count > 0) {
+                dates.add(date.format(dateFormatter));
+                averageScores.add(sum / count);
+                highestScores.add(maxScore);
+            }
+        });
+
+        return Map.of("dates", dates, "averageScores", averageScores, "highestScores", highestScores);
     }
 } 

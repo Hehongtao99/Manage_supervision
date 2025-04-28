@@ -2,14 +2,19 @@ package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.dto.DashboardStats;
-import com.example.auth.dto.SupervisorDashboardDTO;
+import com.example.auth.dto.TeacherDashboardStatsDTO;
 import com.example.auth.service.DashboardService;
 import com.example.auth.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -34,14 +39,52 @@ public class DashboardController {
     }
     
     /**
-     * 获取督导员仪表盘数据
-     * @return 督导员仪表盘数据
+     * 获取教师仪表盘统计数据
+     * @return 教师仪表盘统计数据
      */
-    @GetMapping("/supervisor/stats")
+    @GetMapping("/teacher/stats")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<SupervisorDashboardDTO> getSupervisorDashboardStats() {
-        // 获取当前登录的督导员ID
-        Long supervisorId = userContext.getCurrentUser().getId();
-        return ResponseEntity.ok(dashboardService.getSupervisorDashboardStats(supervisorId));
+    public ResponseEntity<TeacherDashboardStatsDTO> getTeacherDashboardStats() {
+        Long teacherId = userContext.getCurrentUser().getId();
+        return ResponseEntity.ok(dashboardService.getTeacherDashboardStats(teacherId));
+    }
+
+    /**
+     * 获取指定考试的学生成绩分布
+     * @param examId 考试ID
+     * @return 成绩分布数据 (例如：{"不及格": 2, "60-70分": 3, ...})
+     */
+    @GetMapping("/teacher/exam/{examId}/grades")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<Map<String, Long>> getExamGradeDistribution(@PathVariable Long examId) {
+        // 权限验证：确保当前教师有权访问此考试信息 (通常在service层处理更佳)
+        // Long teacherId = userContext.getCurrentUser().getId();
+        // examService.validateExamCreator(examId, teacherId);
+        return ResponseEntity.ok(dashboardService.getExamGradeDistribution(examId));
+    }
+
+    /**
+     * 获取教师创建的所有考试的整体参与情况统计
+     * @return Map<String, Long> Key为参与状态描述, Value为该状态总人数
+     */
+    @GetMapping("/teacher/participation-stats")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<Map<String, Long>> getExamParticipationStats() {
+        Long teacherId = userContext.getCurrentUser().getId();
+        return ResponseEntity.ok(dashboardService.getExamParticipationStats(teacherId));
+    }
+
+    /**
+     * 获取教师考试成绩趋势
+     * @param range 时间范围 ("week", "month", "semester")
+     * @return 包含日期、平均分、最高分列表的数据
+     */
+    @GetMapping("/teacher/grade-trend")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<Map<String, Object>> getGradeTrendData(
+            @RequestParam(defaultValue = "month") String range) {
+        Long teacherId = userContext.getCurrentUser().getId();
+        Map<String, Object> trendData = dashboardService.getGradeTrendData(teacherId, range);
+        return ResponseEntity.ok(trendData);
     }
 } 

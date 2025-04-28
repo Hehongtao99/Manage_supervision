@@ -3,6 +3,7 @@ import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import axios from '../utils/axios';
 import { useUserStore } from '../stores/user';
+import notificationService from './notification';
 
 export interface ChatMessage {
   id: number;
@@ -209,6 +210,10 @@ class ChatService {
         console.log(`订阅错误通道: /user/${userId}/queue/errors`);
         this.client.subscribe(`/user/${userId}/queue/errors`, this.onErrorReceived.bind(this));
         
+        // 订阅通知
+        console.log('订阅通知通道');
+        notificationService.subscribeToNotifications(this.client);
+        
         // 发送连接消息
         console.log('发送连接消息到: /app/chat.connect');
         this.client.publish({
@@ -225,6 +230,9 @@ class ChatService {
     console.log('WebSocket断开连接');
     this.connected = false;
     this.connecting = false;
+    
+    // 取消订阅通知
+    notificationService.unsubscribeFromNotifications();
     
     // 尝试重新连接
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
@@ -546,6 +554,9 @@ class ChatService {
     if (this.client && (this.connected || this.connecting)) {
       console.log('正在断开WebSocket连接...');
       try {
+        // 取消订阅通知
+        notificationService.unsubscribeFromNotifications();
+        
         this.client.deactivate();
         this.connected = false;
         this.connecting = false;

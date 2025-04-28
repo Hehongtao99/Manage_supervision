@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -53,4 +54,20 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
      * 根据ID集合查询考试列表
      */
     List<Exam> findByIdIn(List<Long> ids);
+
+    /**
+     * 根据创建者ID查询考试ID列表
+     */
+    @Query("SELECT e.id FROM Exam e WHERE e.creatorId = :creatorId")
+    List<Long> findExamIdsByCreatorId(@Param("creatorId") Long creatorId);
+
+    /**
+     * 根据创建者ID和结束时间范围查询考试列表
+     */
+    List<Exam> findByCreatorIdAndEndTimeBetween(Long creatorId, Instant startTime, Instant endTime);
+
+    /**
+     * 根据创建者ID统计考试数量
+     */
+    long countByCreatorId(Long creatorId);
 } 

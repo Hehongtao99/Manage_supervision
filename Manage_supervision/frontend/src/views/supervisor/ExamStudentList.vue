@@ -2,46 +2,36 @@
   <div class="exam-student-list-container">
     <div class="page-header">
       <div class="left">
-        <h2>{{ exam ? exam.title : '考试学生列表' }}</h2>
-        <el-button @click="goBack" plain>返回</el-button>
-      </div>
-      <div class="right">
-        <el-input
-          v-model="searchKeyword"
-          placeholder="按姓名或学号搜索"
-          clearable
-          style="width: 220px"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
+        <el-button @click="goBack" icon="ArrowLeft">返回</el-button>
+        <h2>{{ exam?.title }} - 学生列表</h2>
       </div>
     </div>
-
-    <el-card v-loading="loading" class="student-list-card">
-      <template #header>
-        <div class="card-header">
-          <span>学生提交情况</span>
-          <div class="status-filter">
-            <el-radio-group v-model="statusFilter" @change="applyFilter">
-              <el-radio-button label="">全部</el-radio-button>
-              <el-radio-button label="SUBMITTED">待批阅</el-radio-button>
-              <el-radio-button label="GRADED">已评分</el-radio-button>
-              <el-radio-button label="NOT_STARTED">未开始</el-radio-button>
-              <el-radio-button label="IN_PROGRESS">进行中</el-radio-button>
-            </el-radio-group>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="filteredStudents.length === 0" class="empty-data">
-        <el-empty description="暂无符合条件的学生数据" />
+    
+    <el-card class="student-list-card">
+      <div class="filter-bar mb-4">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索学生姓名或学号"
+          prefix-icon="Search"
+          clearable
+          @change="applyFilter"
+          class="search-input mr-3"
+          style="width: 250px"
+        />
+        
+        <el-radio-group v-model="statusFilter" @change="applyFilter">
+          <el-radio-button label="">全部状态</el-radio-button>
+          <el-radio-button label="NOT_STARTED">未开始</el-radio-button>
+          <el-radio-button label="IN_PROGRESS">进行中</el-radio-button>
+          <el-radio-button label="SUBMITTED">待批阅</el-radio-button>
+          <el-radio-button label="PENDING_PUBLISH">待发布</el-radio-button>
+          <el-radio-button label="PUBLISHED">已发布</el-radio-button>
+        </el-radio-group>
       </div>
-
-      <el-table v-else :data="filteredStudents" style="width: 100%">
-        <el-table-column prop="studentName" label="姓名" width="120" />
-        <el-table-column prop="studentUserNumber" label="学号" width="150" />
+      
+      <el-table :data="filteredStudents" v-loading="loading" border stripe>
+        <el-table-column prop="studentUserNumber" label="学号" width="150"></el-table-column>
+        <el-table-column prop="studentName" label="姓名" width="120"></el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
@@ -61,7 +51,7 @@
         </el-table-column>
         <el-table-column prop="score" label="分数" width="100">
           <template #default="scope">
-            <template v-if="scope.row.status === 'GRADED'">
+            <template v-if="scope.row.status === 'PENDING_PUBLISH' || scope.row.status === 'PUBLISHED'">
               {{ scope.row.score }}
             </template>
             <template v-else>-</template>
@@ -69,14 +59,14 @@
         </el-table-column>
         <el-table-column prop="isPassed" label="是否及格" width="100">
           <template #default="scope">
-            <template v-if="scope.row.status === 'GRADED'">
+            <template v-if="scope.row.status === 'PENDING_PUBLISH' || scope.row.status === 'PUBLISHED'">
               <el-tag type="success" v-if="scope.row.isPassed">及格</el-tag>
               <el-tag type="danger" v-else>不及格</el-tag>
             </template>
             <template v-else>-</template>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column label="操作" width="220">
           <template #default="scope">
             <el-button 
               type="primary" 
@@ -87,8 +77,16 @@
               批阅
             </el-button>
             <el-button 
+              type="success"
               size="small" 
-              v-if="scope.row.status === 'GRADED'"
+              v-if="scope.row.status === 'PENDING_PUBLISH'"
+              @click="publishGrade(scope.row)"
+            >
+              发布
+            </el-button>
+            <el-button 
+              size="small" 
+              v-if="scope.row.status === 'PENDING_PUBLISH' || scope.row.status === 'PUBLISHED'"
               @click="gradeExam(scope.row)"
             >
               查看
@@ -105,7 +103,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
-import { getExam, getExamStudents } from '../../api/exam';
+import { getExam, getExamStudents, publishStudentGrades } from '../../api/exam';
 import { formatDateTime } from '../../utils/dateUtil';
 
 const route = useRoute();
@@ -187,6 +185,27 @@ const gradeExam = (student: any) => {
   router.push(`/supervisor/exams/${examId}/grade/${student.studentId}`);
 };
 
+// 发布学生成绩
+const publishGrade = async (student: any) => {
+  try {
+    loading.value = true;
+    const response = await publishStudentGrades(examId, student.studentId);
+    
+    if (response.data && response.data.code === 200) {
+      ElMessage.success('成绩发布成功');
+      // 重新加载学生列表
+      await loadExamStudents();
+    } else {
+      ElMessage.error(response.data?.message || '发布成绩失败');
+    }
+  } catch (error: any) {
+    console.error('发布成绩失败:', error);
+    ElMessage.error('发布成绩失败: ' + (error.response?.data?.message || '请检查网络连接'));
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 返回上一页
 const goBack = () => {
   router.back();
@@ -198,7 +217,8 @@ const getStatusType = (status: string) => {
     'NOT_STARTED': 'info',
     'IN_PROGRESS': 'warning',
     'SUBMITTED': 'danger',
-    'GRADED': 'success'
+    'PENDING_PUBLISH': 'warning',
+    'PUBLISHED': 'success'
   };
   return typeMap[status] || 'default';
 };
@@ -209,7 +229,8 @@ const getStatusText = (status: string) => {
     'NOT_STARTED': '未开始',
     'IN_PROGRESS': '进行中',
     'SUBMITTED': '待批阅',
-    'GRADED': '已评分'
+    'PENDING_PUBLISH': '待发布',
+    'PUBLISHED': '已发布'
   };
   return textMap[status] || status;
 };
@@ -245,21 +266,5 @@ onMounted(() => {
 
 .student-list-card {
   margin-bottom: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.status-filter {
-  margin-left: auto;
-}
-
-.empty-data {
-  display: flex;
-  justify-content: center;
-  padding: 40px 0;
 }
 </style> 

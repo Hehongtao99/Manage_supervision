@@ -17,9 +17,9 @@ app.use(ElementPlus)
 // 设置全局axios实例
 app.config.globalProperties.$axios = axios
 
-// 初始化认证状态
-const userStore = useUserStore()
-await userStore.initializeAuth()
+// 初始化认证状态 (移动到 App.vue 或路由守卫中更安全)
+// const userStore = useUserStore()
+// await userStore.initializeAuth()
 
 // 注意：WebSocket连接初始化已经在App.vue中处理
 // 不需要在这里重复初始化

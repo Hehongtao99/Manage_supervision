@@ -50,8 +50,24 @@
 
     <!-- 督导员菜单 -->
     <template v-else-if="userStore.isSupervisor">
+      <!-- Remove Supervisor Dashboard menu item -->
+      <!-- <el-menu-item index="/supervisor/dashboard" @click="handleRoute('/supervisor/dashboard')">
+        <el-icon><Odometer /></el-icon>
+        <template #title>
+          <span>督导仪表盘</span>
+        </template>
+      </el-menu-item> -->
+      
+      <!-- 添加教师仪表盘入口 -->
+      <el-menu-item index="/teacher/dashboard" @click="handleRoute('/teacher/dashboard')">
+        <el-icon><Monitor /></el-icon>
+        <template #title>
+          <span>教师仪表盘</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
+        <el-icon><Avatar /></el-icon>
         <template #title>
           <span>学生管理</span>
         </template>
@@ -95,6 +111,30 @@
         </template>
       </el-menu-item>
 
+      <!-- 批阅管理菜单 -->
+      <el-menu-item index="/supervisor/grading" @click="handleRoute('/supervisor/grading')">
+        <el-icon><DocumentChecked /></el-icon>
+        <template #title>
+          <span>批阅管理</span>
+        </template>
+      </el-menu-item>
+
+      <!-- 分数管理菜单 -->
+      <el-menu-item index="/supervisor/scores" @click="handleRoute('/supervisor/scores')">
+        <el-icon><DataAnalysis /></el-icon>
+        <template #title>
+          <span>分数管理</span>
+        </template>
+      </el-menu-item>
+
+      <!-- 通知管理菜单 -->
+      <el-menu-item index="/supervisor/notifications" @click="handleRoute('/supervisor/notifications')">
+        <el-icon><Bell /></el-icon>
+        <template #title>
+          <span>通知管理</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
@@ -112,10 +152,11 @@
 
     <!-- 学生菜单 -->
     <template v-else>
-      <el-menu-item index="/student/tasks" @click="handleRoute('/student/tasks')">
-        <el-icon><Document /></el-icon>
+      <!-- 添加仪表盘菜单项 -->
+      <el-menu-item index="/student/dashboard" @click="handleRoute('/student/dashboard')">
+        <el-icon><Monitor /></el-icon>
         <template #title>
-          <span>任务列表</span>
+          <span>仪表盘</span>
         </template>
       </el-menu-item>
       
@@ -123,6 +164,22 @@
         <el-icon><Clock /></el-icon>
         <template #title>
           <span>考试中心</span>
+        </template>
+      </el-menu-item>
+
+      <!-- 我的成绩菜单 -->
+      <el-menu-item index="/student/grades" @click="handleRoute('/student/grades')">
+        <el-icon><Tickets /></el-icon>
+        <template #title>
+          <span>我的成绩</span>
+        </template>
+      </el-menu-item>
+
+      <!-- 我的通知菜单 -->
+      <el-menu-item index="/student/notifications" @click="handleRoute('/student/notifications')">
+        <el-icon><Bell /></el-icon>
+        <template #title>
+          <span>我的通知</span>
         </template>
       </el-menu-item>
 
@@ -162,7 +219,12 @@ import {
   Collection,
   Reading,
   QuestionFilled,
-  Clock
+  Clock,
+  DocumentChecked,
+  DataAnalysis,
+  Tickets,
+  Bell,
+  Odometer
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

@@ -170,30 +170,44 @@ onMounted(() => {
 const fetchStudents = async () => {
   loading.value = true;
   try {
-    const data = await getAssignedStudents();
-    console.log('获取的学生数据:', JSON.stringify(data));
-    
-    if (Array.isArray(data)) {
-      console.log('第一条学生数据:', data.length > 0 ? JSON.stringify(data[0]) : '无数据');
-      students.value = data;
-      totalStudents.value = data.length;
-      if (data.length > 0) {
+    const response = await getAssignedStudents();
+    console.log('获取的学生数据:', JSON.stringify(response));
+
+    // Check if the response structure is { code: ..., message: ..., data: [...] }
+    if (response && typeof response === 'object' && Array.isArray(response.data)) {
+      console.log('第一条学生数据:', response.data.length > 0 ? JSON.stringify(response.data[0]) : '无数据');
+      students.value = response.data;
+      totalStudents.value = response.data.length;
+      if (response.data.length > 0) {
         ElMessage.success('成功获取学生数据');
       } else {
         ElMessage.info('暂无分配的学生');
       }
-    } else if (data && typeof data === 'object' && Array.isArray(data.content)) {
-      console.log('分页学生数据第一条:', data.content.length > 0 ? JSON.stringify(data.content[0]) : '无数据');
-      // 处理分页响应格式
-      students.value = data.content;
-      totalStudents.value = data.totalElements || data.content.length;
-      if (data.content.length > 0) {
+    }
+    // Keep the check for paginated data structure { content: [...] } just in case
+    else if (response && typeof response === 'object' && Array.isArray(response.content)) {
+      console.log('分页学生数据第一条:', response.content.length > 0 ? JSON.stringify(response.content[0]) : '无数据');
+      students.value = response.content;
+      totalStudents.value = response.totalElements || response.content.length;
+      if (response.content.length > 0) {
         ElMessage.success('成功获取学生数据');
       } else {
         ElMessage.info('暂无分配的学生');
       }
-    } else {
-      console.error('返回的学生数据格式不正确:', data);
+    } 
+    // Handle cases where data might be directly an array (less likely now but good to keep)
+    else if (Array.isArray(response)) {
+        console.log('直接获取到学生数组:', response.length > 0 ? JSON.stringify(response[0]) : '无数据');
+        students.value = response;
+        totalStudents.value = response.length;
+        if (response.length > 0) {
+          ElMessage.success('成功获取学生数据');
+        } else {
+          ElMessage.info('暂无分配的学生');
+        }
+    }
+    else {
+      console.error('返回的学生数据格式不正确:', response);
       ElMessage.warning('获取的学生数据格式不正确');
       students.value = [];
       totalStudents.value = 0;

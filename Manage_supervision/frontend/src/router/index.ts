@@ -260,34 +260,86 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresSupervisor: true
         }
+      },
+      {
+        path: 'grading',
+        name: 'GradingManagement',
+        component: () => import('../views/supervisor/GradingManagement.vue'),
+        meta: { 
+          title: '批阅管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'scores',
+        name: 'ScoreManagement',
+        component: () => import('../views/supervisor/ScoreManagement.vue'),
+        meta: { 
+          title: '分数管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'SupervisorNotifications',
+        component: () => import('../views/teacher/NotificationView.vue'),
+        meta: { 
+          title: '通知管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      }
+    ]
+  },
+  {
+    path: '/teacher',
+    component: BaseLayout,
+    redirect: '/teacher/dashboard',
+    meta: { 
+      requiresAuth: true,
+      requiresSupervisor: true
+    },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'TeacherDashboard',
+        component: () => import('../views/teacher/Dashboard.vue'),
+        meta: { 
+          title: '教师仪表盘',
+          requiresAuth: true,
+          requiresSupervisor: true,
+          icon: 'Odometer'
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'TeacherNotifications',
+        component: () => import('../views/teacher/NotificationView.vue'),
+        meta: { 
+          title: '通知管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
       }
     ]
   },
   {
     path: '/student',
     component: BaseLayout,
-    redirect: '/student/tasks',
+    redirect: '/student/dashboard',
     meta: { 
       requiresAuth: true,
       requiresStudent: true
     },
     children: [
       {
-        path: 'tasks',
-        name: 'StudentTaskList',
-        component: () => import('../views/student/TaskList.vue'),
+        path: 'dashboard',
+        name: 'StudentDashboard',
+        component: () => import('../views/student/StudentDashboard.vue'),
         meta: { 
-          title: '任务列表',
-          requiresAuth: true,
-          requiresStudent: true
-        }
-      },
-      {
-        path: 'tasks/:taskId',
-        name: 'StudentTaskView',
-        component: () => import('../views/student/TaskView.vue'),
-        meta: { 
-          title: '任务详情',
+          title: '仪表盘',
           requiresAuth: true,
           requiresStudent: true
         }
@@ -327,10 +379,29 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'exams/:id/result',
         name: 'StudentExamResult',
-        component: () => import('../views/student/ExamDetail.vue'),
-        props: { showResult: true },
+        component: () => import('../views/student/ExamResult.vue'),
         meta: { 
           title: '考试结果',
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'grades',
+        name: 'MyGrades',
+        component: () => import('../views/student/MyGrades.vue'),
+        meta: { 
+          title: '我的成绩', 
+          requiresAuth: true,
+          requiresStudent: true
+        }
+      },
+      {
+        path: 'notifications',
+        name: 'StudentNotifications',
+        component: () => import('../views/student/NotificationView.vue'),
+        meta: { 
+          title: '我的通知',
           requiresAuth: true,
           requiresStudent: true
         }

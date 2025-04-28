@@ -4,10 +4,13 @@ import com.example.auth.annotation.RequireRole;
 import com.example.auth.dto.ExamDTO;
 import com.example.auth.dto.ExamQuestionDTO;
 import com.example.auth.dto.ExamStudentDTO;
+import com.example.auth.dto.ExamPendingGradingDTO;
+import com.example.auth.dto.StudentScoreDTO;
 import com.example.auth.entity.User;
 import com.example.auth.entity.Exam;
 import com.example.auth.entity.ExamStudent;
 import com.example.auth.entity.ExamQuestion;
+import com.example.auth.exception.ResourceNotFoundException;
 import com.example.auth.service.ExamService;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
@@ -22,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +34,7 @@ import java.util.Map;
 import java.time.Instant;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * 考试控制器
@@ -211,6 +216,45 @@ public class ExamController {
         } catch (Exception e) {
             logger.error("获取考试列表失败", e);
             return ResponseEntity.badRequest().body(ResponseUtil.error("获取考试列表失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取教师创建的所有考试简要信息（用于下拉列表）
+     */
+    @GetMapping("/supervisor/exams/options")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getExamOptionsByTeacher(
+            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(ResponseUtil.error("用户不存在"));
+            }
+            
+            logger.info("教师获取考试选项列表, 教师ID: {}", user.getId());
+            
+            // 获取该教师创建的所有考试
+            List<Exam> exams = examRepository.findByCreatorId(user.getId());
+            
+            // 转换为只包含ID和Title的Map列表
+            List<Map<String, Object>> examOptions = exams.stream()
+                .map(exam -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("value", exam.getId());
+                    map.put("label", exam.getTitle());
+                    return map;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ResponseUtil.success(examOptions));
+        } catch (Exception e) {
+            logger.error("获取考试选项列表失败", e);
+            return ResponseEntity.badRequest().body(ResponseUtil.error("获取考试选项列表失败: " + e.getMessage()));
         }
     }
     
@@ -779,6 +823,163 @@ public class ExamController {
         } catch (Exception e) {
             logger.error("批阅学生考试失败", e);
             return ResponseEntity.badRequest().body(ResponseUtil.error("批阅学生考试失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 发布学生成绩
+     */
+    @PostMapping("/supervisor/exams/{examId}/students/publish")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> publishStudentGrades(
+            @PathVariable Long examId,
+            @RequestParam(required = false) Long studentId,
+            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(ResponseUtil.error("用户不存在"));
+            }
+            
+            logger.info("教师发布学生成绩: 考试ID={}, 学生ID={}, 教师ID={}", examId, studentId, user.getId());
+            
+            // 发布学生成绩
+            List<ExamStudentDTO> result = examService.publishStudentGrades(examId, studentId, user.getId());
+            
+            return ResponseEntity.ok(ResponseUtil.success(result));
+        } catch (Exception e) {
+            logger.error("发布学生成绩失败", e);
+            return ResponseEntity.badRequest().body(ResponseUtil.error("发布学生成绩失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取教师名下有待批阅学生的考试列表
+     */
+    @GetMapping("/supervisor/exams/pending-grading")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getPendingGradingExams(
+            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+
+            if (user == null) {
+                return ResponseEntity.badRequest().body(ResponseUtil.error("用户不存在"));
+            }
+
+            logger.info("教师获取待批阅考试列表, 教师ID: {}", user.getId());
+
+            // 获取待批阅考试列表
+            List<ExamPendingGradingDTO> pendingExams = examService.getExamsWithPendingGrading(user.getId());
+
+            return ResponseEntity.ok(ResponseUtil.success(pendingExams));
+        } catch (Exception e) {
+            logger.error("获取待批阅考试列表失败", e);
+            return ResponseEntity.badRequest().body(ResponseUtil.error("获取待批阅考试列表失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取指定考试的学生成绩列表（分页和排序）
+     */
+    @GetMapping("/supervisor/exams/{examId}/scores")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getExamScores(
+            @PathVariable Long examId,
+            @RequestHeader("Authorization") String auth,
+            @PageableDefault(size = 10, sort = "score", direction = Sort.Direction.DESC) Pageable pageable) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            
+            if (user == null) {
+                return ResponseEntity.badRequest().body(ResponseUtil.error("用户不存在"));
+            }
+            
+            logger.info("教师获取考试成绩列表: 考试ID={}, 教师ID={}, 分页: {}", examId, user.getId(), pageable);
+            
+            // 获取成绩列表
+            Page<StudentScoreDTO> scores = examService.getExamScores(examId, user.getId(), pageable);
+            
+            return ResponseEntity.ok(ResponseUtil.success(scores));
+        } catch (Exception e) {
+            logger.error("获取考试成绩列表失败", e);
+            return ResponseEntity.badRequest().body(ResponseUtil.error("获取考试成绩列表失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 学生获取自己的考试结果详情
+     */
+    @GetMapping("/student/exams/{examId}/answers")
+    @RequireRole("USER")
+    public ResponseEntity<?> getStudentExamResultDetails(
+            @PathVariable Long examId,
+            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前学生用户 ID
+            String token = auth.substring(7);
+            Long studentId = jwtUtil.getUserIdFromToken(token); // 从 Token 获取学生 ID
+            // 可以选择性地再查一次 User 确保用户存在
+            User user = userService.findById(studentId);
+            if (user == null) {
+                 return ResponseEntity.status(401).body(ResponseUtil.error("用户认证失败或不存在"));
+            }
+
+            logger.info("学生获取考试结果详情: 考试ID={}, 学生ID={}", examId, studentId);
+
+            // 调用 Service 获取结果
+            Map<String, Object> result = examService.getStudentExamResultDetails(examId, studentId);
+
+            return ResponseEntity.ok(ResponseUtil.success(result));
+        } catch (ResourceNotFoundException e) {
+             logger.warn("获取学生考试结果失败: {}", e.getMessage());
+             return ResponseEntity.status(404).body(ResponseUtil.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+             logger.warn("获取学生考试结果失败: {}", e.getMessage());
+             return ResponseEntity.badRequest().body(ResponseUtil.error(e.getMessage()));
+        } catch (Exception e) {
+            logger.error("获取学生考试结果详情时发生内部错误", e);
+            return ResponseEntity.internalServerError().body(ResponseUtil.error("获取考试结果失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 获取教师的批阅概览考试列表（分页和筛选）
+     */
+    @GetMapping("/supervisor/exams/grading-overview")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getGradingOverviewExams(
+            @RequestParam(required = false) String gradingStatus, // pending, graded
+            @RequestHeader("Authorization") String auth,
+            @PageableDefault(size = 10, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7);
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            if (user == null) {
+                return ResponseEntity.status(401).body(ResponseUtil.error("用户认证失败或不存在"));
+            }
+
+            logger.info("教师获取批阅概览: 教师ID={}, 筛选状态={}, 分页: {}", user.getId(), gradingStatus, pageable);
+
+            // 调用 Service 获取列表
+            Page<ExamDTO> exams = examService.getGradingOverviewExams(user.getId(), gradingStatus, pageable);
+
+            return ResponseEntity.ok(ResponseUtil.success(exams));
+        } catch (Exception e) {
+            logger.error("获取批阅概览列表失败", e);
+            return ResponseEntity.internalServerError().body(ResponseUtil.error("获取列表失败: " + e.getMessage()));
         }
     }
 } 
