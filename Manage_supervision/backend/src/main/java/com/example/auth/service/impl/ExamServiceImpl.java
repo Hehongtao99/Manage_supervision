@@ -904,14 +904,28 @@ public class ExamServiceImpl implements ExamService {
         ExamStudent examStudent = examStudentRepository.findByExamIdAndStudentId(examId, studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("学生未分配此考试"));
         
-        // 检查状态是否为已提交
-        if (!"SUBMITTED".equals(examStudent.getStatus()) && !"GRADED".equals(examStudent.getStatus())) {
-            throw new IllegalStateException("考试尚未提交，无法查看答案");
+        // 检查状态是否为已提交、已评分、待发布或已发布
+        if (!"SUBMITTED".equals(examStudent.getStatus()) &&
+            !"GRADED".equals(examStudent.getStatus()) &&
+            !"PENDING_PUBLISH".equals(examStudent.getStatus()) &&
+            !"PUBLISHED".equals(examStudent.getStatus())) {
+            throw new IllegalStateException("当前状态无法查看答案"); // 调整了错误消息，更通用
         }
         
         // 获取考试题目
         List<ExamQuestion> questions = examQuestionRepository.findByExamIdOrderByDisplayOrderAsc(examId);
         
+        // 批量获取原始 Question 实体以获取正确答案
+        List<Long> originalQuestionIds = questions.stream()
+                                                .map(ExamQuestion::getQuestionId)
+                                                .collect(Collectors.toList());
+        Map<Long, com.example.auth.entity.Question> originalQuestionMap = new HashMap<>();
+        if (!originalQuestionIds.isEmpty()) {
+            List<com.example.auth.entity.Question> originalQuestions = questionRepository.findAllById(originalQuestionIds);
+            originalQuestionMap = originalQuestions.stream()
+                    .collect(Collectors.toMap(com.example.auth.entity.Question::getId, q -> q));
+        }
+
         // 获取学生答案
         List<ExamAnswer> answers = examAnswerRepository.findByExamIdAndStudentId(examId, studentId);
         
@@ -924,7 +938,20 @@ public class ExamServiceImpl implements ExamService {
         
         for (ExamQuestion question : questions) {
             Map<String, Object> qaItem = new HashMap<>();
-            qaItem.put("question", convertToQuestionDTO(question));
+            // 先转换基础 DTO
+            ExamQuestionDTO questionDTO = convertToQuestionDTO(question);
+            
+            // 从 Map 中查找原始 Question 并填充正确答案
+            com.example.auth.entity.Question originalQuestion = originalQuestionMap.get(question.getQuestionId());
+            if (originalQuestion != null) {
+                questionDTO.setAnswer(originalQuestion.getAnswer()); // 设置正确答案
+            } else {
+                 System.err.println("警告: 在 getStudentExamAnswers 中未找到 ID 为 " + question.getQuestionId() + " 的原始题目。");
+                 // 可以选择设置默认值或保持 null
+                 questionDTO.setAnswer(null); 
+            }
+            
+            qaItem.put("question", questionDTO); // 使用填充了答案的 DTO
             
             ExamAnswer answer = answerMap.get(question.getQuestionId());
             if (answer != null) {
@@ -1063,9 +1090,10 @@ public class ExamServiceImpl implements ExamService {
             throw new UnauthorizedException("无权访问此考试的成绩");
         }
 
-        // 2. 查询状态为 'GRADED' 的学生记录（带分页和排序）
+        // 2. 查询所有已评分的学生记录 (包括已评分、待发布和已发布的状态)
         // 注意: Pageable 对象已经包含了排序信息，Spring Data JPA 会自动应用
-        Page<ExamStudent> gradedStudentsPage = examStudentRepository.findByExamIdAndStatus(examId, "GRADED", pageable);
+        List<String> scoreStatuses = Arrays.asList("GRADED", "PENDING_PUBLISH", "PUBLISHED");
+        Page<ExamStudent> gradedStudentsPage = examStudentRepository.findByExamIdAndStatusIn(examId, scoreStatuses, pageable);
 
         // 3. 获取学生 ID 列表
         List<Long> studentIds = gradedStudentsPage.getContent().stream()

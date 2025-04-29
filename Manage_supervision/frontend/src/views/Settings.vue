@@ -7,95 +7,115 @@
         </div>
       </template>
 
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-        class="settings-form"
-      >
-        <el-form-item label="安全等级">
-          <el-rate
-            v-model="securityLevel"
-            :colors="colors"
-            :max="3"
-            disabled
-            show-score
-            text-color="#ff9900"
-            score-template="{value}"
-          ></el-rate>
-          <div class="security-tips">
-            <el-alert
-              :title="securityTips[securityLevel - 1]"
-              :type="securityLevel === 3 ? 'success' : 'warning'"
-              show-icon
-            ></el-alert>
-          </div>
-        </el-form-item>
+      <el-tabs v-model="activeTab" class="settings-tabs">
+        <el-tab-pane label="个人信息" name="profile">
+          <el-form
+            ref="formRef"
+            :model="form"
+            :rules="rules"
+            label-width="120px"
+            class="settings-form"
+          >
+            <el-form-item label="安全等级">
+              <el-rate
+                v-model="securityLevel"
+                :colors="colors"
+                :max="3"
+                disabled
+                show-score
+                text-color="#ff9900"
+                score-template="{value}"
+              ></el-rate>
+              <div class="security-tips">
+                <el-alert
+                  :title="securityTips[securityLevel - 1]"
+                  :type="securityLevel === 3 ? 'success' : 'warning'"
+                  show-icon
+                ></el-alert>
+              </div>
+            </el-form-item>
 
-        <el-form-item label="两步验证" prop="twoFactorAuth">
-          <el-switch
-            v-model="form.twoFactorAuth"
-            active-text="已启用"
-            inactive-text="已禁用"
-            @change="handleTwoFactorChange"
-          ></el-switch>
-        </el-form-item>
+            <el-form-item label="两步验证" prop="twoFactorAuth">
+              <el-switch
+                v-model="form.twoFactorAuth"
+                active-text="已启用"
+                inactive-text="已禁用"
+                @change="handleTwoFactorChange"
+              ></el-switch>
+            </el-form-item>
 
-        <el-form-item label="登录通知" prop="loginNotification">
-          <el-switch
-            v-model="form.loginNotification"
-            active-text="已启用"
-            inactive-text="已禁用"
-          ></el-switch>
-        </el-form-item>
+            <el-form-item label="登录通知" prop="loginNotification">
+              <el-switch
+                v-model="form.loginNotification"
+                active-text="已启用"
+                inactive-text="已禁用"
+              ></el-switch>
+            </el-form-item>
 
-        <el-form-item label="账号绑定">
-          <div class="binding-list">
-            <div class="binding-item">
-              <span class="binding-icon">
-                <el-icon><Message /></el-icon>
-              </span>
-              <span class="binding-info">
-                <strong>邮箱</strong>
-                <span v-if="userStore.user.email">{{ userStore.user.email }}</span>
-                <span v-else class="not-bound">未绑定</span>
-              </span>
-              <el-button
-                :type="userStore.user.email ? 'danger' : 'primary'"
-                link
-                @click="handleEmailBinding"
-              >
-                {{ userStore.user.email ? '解绑' : '绑定' }}
+            <el-form-item label="账号绑定">
+              <div class="binding-list">
+                <div class="binding-item">
+                  <span class="binding-icon">
+                    <el-icon><Message /></el-icon>
+                  </span>
+                  <span class="binding-info">
+                    <strong>邮箱</strong>
+                    <span v-if="userStore.user.email">{{ userStore.user.email }}</span>
+                    <span v-else class="not-bound">未绑定</span>
+                  </span>
+                  <el-button
+                    :type="userStore.user.email ? 'danger' : 'primary'"
+                    link
+                    @click="handleEmailBinding"
+                  >
+                    {{ userStore.user.email ? '解绑' : '绑定' }}
+                  </el-button>
+                </div>
+
+                <div class="binding-item">
+                  <span class="binding-icon">
+                    <el-icon><Iphone /></el-icon>
+                  </span>
+                  <span class="binding-info">
+                    <strong>手机</strong>
+                    <span v-if="userStore.user.phone">{{ userStore.user.phone }}</span>
+                    <span v-else class="not-bound">未绑定</span>
+                  </span>
+                  <el-button
+                    :type="userStore.user.phone ? 'danger' : 'primary'"
+                    link
+                    @click="handlePhoneBinding"
+                  >
+                    {{ userStore.user.phone ? '解绑' : '绑定' }}
+                  </el-button>
+                </div>
+              </div>
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" @click="handleSave" :loading="loading">
+                保存设置
               </el-button>
-            </div>
-
-            <div class="binding-item">
-              <span class="binding-icon">
-                <el-icon><Iphone /></el-icon>
-              </span>
-              <span class="binding-info">
-                <strong>手机</strong>
-                <span v-if="userStore.user.phone">{{ userStore.user.phone }}</span>
-                <span v-else class="not-bound">未绑定</span>
-              </span>
-              <el-button
-                :type="userStore.user.phone ? 'danger' : 'primary'"
-                link
-                @click="handlePhoneBinding"
-              >
-                {{ userStore.user.phone ? '解绑' : '绑定' }}
-              </el-button>
-            </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        
+        <el-tab-pane label="修改密码" name="password">
+          <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px">
+            <!-- ... existing code ... -->
+          </el-form>
+        </el-tab-pane>
+        
+        <el-tab-pane label="人脸设置" name="face">
+          <div class="face-settings">
+            <face-register />
           </div>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" @click="handleSave" :loading="loading">
-            保存设置
-          </el-button>
-        </el-form-item>
-      </el-form>
+        </el-tab-pane>
+        
+        <el-tab-pane label="通知设置" name="notifications">
+          <!-- ... existing code ... -->
+        </el-tab-pane>
+      </el-tabs>
     </el-card>
 
     <!-- 账号注销卡片 -->
@@ -125,6 +145,7 @@ import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Message, Iphone } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
+import FaceRegister from '../components/face/FaceRegister.vue'
 
 const userStore = useUserStore()
 const formRef = ref<FormInstance>()

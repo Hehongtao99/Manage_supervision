@@ -15,9 +15,9 @@
         >
           <el-option
             v-for="exam in examList"
-            :key="exam.id"
-            :label="exam.title"
-            :value="exam.id"
+            :key="exam.value"
+            :label="exam.label"
+            :value="exam.value"
           >
           </el-option>
         </el-select>
@@ -66,11 +66,11 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { ElTable, ElTableColumn, ElSelect, ElOption, ElCard, ElTag, ElEmpty, ElMessage, ElPagination } from 'element-plus';
-import { getExams, getExamScores, getExam } from '@/api/exam';
+import { getExamScores, getExam, getExamOptions } from '@/api/exam';
 
 interface ExamOption {
-  id: number;
-  title: string;
+  value: number;
+  label: string;
 }
 
 interface StudentScore {
@@ -107,16 +107,19 @@ const currentSortString = computed(() => {
 // 获取考试列表 (用于下拉选择)
 const fetchExamList = async () => {
   try {
-    // 获取所有考试，前端不过滤状态，让用户能看到所有自己创建的考试
-    const res = await getExams({ page: 0, size: 1000 }); // 获取足够多的考试
-    if (res.data.code === 200 && res.data.data.content) {
-      examList.value = res.data.data.content.map((exam: any) => ({ id: exam.id, title: exam.title }));
+    // 使用新的 API 获取选项列表
+    const res = await getExamOptions(); 
+    if (res.data.code === 200 && Array.isArray(res.data.data)) {
+      // 直接使用返回的数据，因为格式已经是 {value, label}
+      examList.value = res.data.data;
     } else {
-      ElMessage.error(res.data.message || '获取考试列表失败');
+      examList.value = []; // 清空列表以防万一
+      ElMessage.error(res.data.message || '获取考试选项列表失败');
     }
   } catch (error) {
-    console.error('获取考试列表失败:', error);
-    ElMessage.error('获取考试列表失败');
+    examList.value = []; // 清空列表
+    console.error('获取考试选项列表失败:', error);
+    ElMessage.error('获取考试选项列表失败');
   }
 };
 

@@ -8,56 +8,79 @@
       </div>
       
       <el-card class="login-card">
-        <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
-          <el-alert
-            v-if="errorMessage"
-            :title="errorMessage"
-            type="error"
-            show-icon
-            :closable="true"
-            @close="errorMessage = ''"
-            style="margin-bottom: 15px;"
-          />
+        <el-tabs v-model="loginMode" class="login-tabs">
+          <el-tab-pane label="密码登录" name="password">
+            <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
+              <el-alert
+                v-if="errorMessage"
+                :title="errorMessage"
+                type="error"
+                show-icon
+                :closable="true"
+                @close="errorMessage = ''"
+                style="margin-bottom: 15px;"
+              />
+              
+              <el-form-item>
+                <el-input 
+                  v-model="form.username" 
+                  placeholder="请输入用户名"
+                  prefix-icon="User"
+                  :size="'large'"
+                  class="custom-input"
+                />
+              </el-form-item>
+              
+              <el-form-item>
+                <el-input 
+                  v-model="form.password" 
+                  type="password" 
+                  placeholder="请输入密码"
+                  prefix-icon="Lock"
+                  :size="'large'"
+                  show-password
+                  class="custom-input"
+                />
+              </el-form-item>
+              
+              <div class="form-options">
+                <el-checkbox v-model="rememberMe">记住我</el-checkbox>
+                <el-link type="primary" :underline="false" class="forgot-link">忘记密码?</el-link>
+              </div>
+              
+              <el-form-item>
+                <el-button 
+                  type="primary" 
+                  native-type="submit" 
+                  :loading="loading"
+                  class="submit-btn"
+                  :size="'large'"
+                >
+                  登录
+                </el-button>
+              </el-form-item>
+              
+              <div class="alternative-login">
+                <div class="or-divider">
+                  <span>或者</span>
+                </div>
+                <el-button 
+                  @click="loginMode = 'face'"
+                  type="success" 
+                  class="face-login-btn"
+                  :size="'large'"
+                  :icon="VideoCameraFilled"
+                >
+                  人脸识别登录
+                </el-button>
+              </div>
+            </el-form>
+          </el-tab-pane>
           
-          <el-form-item>
-            <el-input 
-              v-model="form.username" 
-              placeholder="请输入用户名"
-              prefix-icon="User"
-              :size="'large'"
-              class="custom-input"
-            />
-          </el-form-item>
-          
-          <el-form-item>
-            <el-input 
-              v-model="form.password" 
-              type="password" 
-              placeholder="请输入密码"
-              prefix-icon="Lock"
-              :size="'large'"
-              show-password
-              class="custom-input"
-            />
-          </el-form-item>
-          
-          <div class="form-options">
-            <el-checkbox v-model="rememberMe">记住我</el-checkbox>
-            <el-link type="primary" :underline="false" class="forgot-link">忘记密码?</el-link>
-          </div>
-          
-          <el-form-item>
-            <el-button 
-              type="primary" 
-              native-type="submit" 
-              :loading="loading"
-              class="submit-btn"
-              :size="'large'"
-            >
-              登录
-            </el-button>
-          </el-form-item>
-        </el-form>
+          <el-tab-pane label="人脸登录" name="face">
+            <face-login @switch-mode="loginMode = $event" />
+          </el-tab-pane>
+        </el-tabs>
 
         <div class="register-link">
           还没有账号?
@@ -75,7 +98,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
+import { User, Lock, VideoCameraFilled } from '@element-plus/icons-vue'
+import FaceLogin from '../components/face/FaceLogin.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -88,6 +112,7 @@ const form = ref({
 const loading = ref(false)
 const rememberMe = ref(false)
 const errorMessage = ref('')
+const loginMode = ref('password') // 'password' or 'face'
 
 const handleLogin = async () => {
   errorMessage.value = ''
@@ -107,7 +132,6 @@ const handleLogin = async () => {
     const success = await userStore.login(form.value.username.trim(), form.value.password)
     if (success) {
       ElMessage.success('登录成功')
-      router.push('/')
     } else {
       errorMessage.value = userStore.error || '登录失败，请检查用户名和密码'
       console.log('Login failure details:', userStore.error)
@@ -210,6 +234,10 @@ const handleLogin = async () => {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.login-tabs {
+  margin-bottom: 20px;
+}
+
 .login-form {
   margin-top: 0;
 }
@@ -301,6 +329,60 @@ const handleLogin = async () => {
   color: #64748b;
 }
 
+.alternative-login {
+  margin-top: 20px;
+}
+
+.or-divider {
+  text-align: center;
+  position: relative;
+  margin: 15px 0;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 30px);
+  height: 1px;
+  background-color: #e0e0e0;
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
+.or-divider span {
+  display: inline-block;
+  padding: 0 15px;
+  background-color: #fff;
+  position: relative;
+  color: #909399;
+  font-size: 14px;
+}
+
+.face-login-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: linear-gradient(to right, #2ecc71, #16a085);
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.face-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
+}
+
+.face-login-btn:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 768px) {
   .login-card {
     margin: 0 20px;
@@ -321,6 +403,11 @@ const handleLogin = async () => {
 
   :deep(.el-input__wrapper) {
     height: 44px;
+  }
+  
+  .or-divider::before,
+  .or-divider::after {
+    width: calc(50% - 20px);
   }
 }
 </style>

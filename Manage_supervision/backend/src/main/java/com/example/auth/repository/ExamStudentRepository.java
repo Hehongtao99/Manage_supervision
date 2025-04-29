@@ -97,6 +97,11 @@ public interface ExamStudentRepository extends JpaRepository<ExamStudent, Long> 
     List<ExamStudent> findByExamIdAndStatusIn(Long examId, List<String> statuses);
     
     /**
+     * 根据考试ID和状态列表查询学生考试记录（分页）
+     */
+    Page<ExamStudent> findByExamIdAndStatusIn(Long examId, List<String> statuses, Pageable pageable);
+    
+    /**
      * 根据多个考试ID和状态查询学生考试记录
      */
     List<ExamStudent> findByExamIdInAndStatus(List<Long> examIds, String status);

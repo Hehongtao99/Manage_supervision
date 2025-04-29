@@ -73,6 +73,8 @@
         </template>
       </el-menu-item>
 
+      <!-- 删除项目管理菜单 -->
+      <!-- 
       <el-sub-menu index="supervisor-project">
         <template #title>
           <el-icon><Folder /></el-icon>
@@ -87,6 +89,7 @@
           <span>任务列表</span>
         </el-menu-item>
       </el-sub-menu>
+      -->
 
       <el-sub-menu index="supervisor-question">
         <template #title>

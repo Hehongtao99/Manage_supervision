@@ -259,7 +259,14 @@ export default {
           100 // 获取足够多的题库
         );
         
-        questionBanks.value = response.data.content;
+        // 检查返回结果是否成功以及数据是否存在
+        if (response.data && response.data.code === 200 && response.data.data) {
+          questionBanks.value = response.data.data.content; // 从 response.data.data.content 获取
+        } else {
+          console.error('获取题库列表失败:', response.data?.message || '未知错误');
+          ElMessage.error(response.data?.message || '获取题库列表失败');
+          questionBanks.value = []; // 清空列表以防万一
+        }
       } catch (error) {
         console.error('获取题库列表失败', error);
         ElMessage.error('获取题库列表失败');

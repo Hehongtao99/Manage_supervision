@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: BaseLayout,
-    redirect: '/chat',
+    redirect: '/profile',
     children: [
       {
         path: 'profile',

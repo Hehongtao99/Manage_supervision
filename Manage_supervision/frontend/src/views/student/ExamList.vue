@@ -46,8 +46,8 @@
         </el-table-column>
         <el-table-column prop="status" label="考试状态" min-width="100">
           <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status, scope.row.studentStatus)">
-              {{ getStatusText(scope.row.status, scope.row.studentStatus) }}
+            <el-tag :type="getStatusType(scope.row)">
+              {{ getStatusText(scope.row) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -56,6 +56,37 @@
             <span v-if="scope.row.studentStatus === 'PUBLISHED'">{{ scope.row.studentScore }} / {{ scope.row.totalScore }}</span>
             <span v-else-if="scope.row.studentStatus === 'PENDING_PUBLISH'">成绩待发布</span>
             <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="150">
+          <template #default="scope">
+            <!-- 参加考试按钮 -->
+            <el-button 
+              v-if="canTakeExam(scope.row)" 
+              type="primary" 
+              size="small"
+              @click="takeExam(scope.row.id)"
+            >
+              参加考试
+            </el-button>
+            <!-- 继续考试按钮 -->
+            <el-button 
+              v-if="canContinueExam(scope.row)"
+              type="warning"
+              size="small"
+              @click="takeExam(scope.row.id)"
+            >
+              继续考试
+            </el-button>
+            <!-- 查看结果按钮 -->
+            <el-button 
+              v-if="canViewResult(scope.row)"
+              type="success"
+              size="small"
+              @click="viewResult(scope.row.id)"
+            >
+              查看结果
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -106,7 +137,8 @@ const fetchExams = async () => {
     const response = await getStudentExams({
       page: currentPage.value - 1,
       size: pageSize.value,
-      status: statusFilter.value
+      status: statusFilter.value,
+      sort: 'startTime,desc'
     });
     
     console.log('考试列表API响应:', response.data);
@@ -176,65 +208,56 @@ const handleCurrentChange = (page: number) => {
   fetchExams();
 };
 
-// 获取考试状态类型
-const getStatusType = (examStatus: string, studentStatus: string) => {
+// 获取考试状态类型 (Takes exam object)
+const getStatusType = (exam: any) => {
+  const studentStatus = exam.studentStatus;
+  const examStatus = exam.status;
+  const now = new Date().getTime();
+  const startTime = new Date(exam.startTime).getTime();
+  const endTime = new Date(exam.endTime).getTime();
+
   // 优先根据学生状态判断
-  if (studentStatus === 'PUBLISHED') { // 后端已改为 PUBLISHED 表示最终完成状态
-    return 'success';
+  if (studentStatus === 'PUBLISHED') return 'success';
+  if (studentStatus === 'PENDING_PUBLISH') return 'warning'; 
+  if (studentStatus === 'SUBMITTED') return 'info'; 
+  if (studentStatus === 'IN_PROGRESS') return 'warning'; 
+  
+  // 学生未开始，根据考试状态和时间判断
+  if (studentStatus === 'NOT_STARTED') {
+      if (examStatus === 'ONGOING' || examStatus === 'PUBLISHED') {
+          if (now < startTime) return 'info'; // 未开始
+          if (now >= startTime && now <= endTime) return 'primary'; // 待参加
+          if (now > endTime) return 'info'; // 已错过
+      }
+      if (examStatus === 'FINISHED') return 'info'; // 已结束(未参加)
   }
-  if (studentStatus === 'PENDING_PUBLISH') { // 新增处理
-    return 'warning'; // 待发布用 warning 颜色
-  }
-  if (studentStatus === 'SUBMITTED') {
-    return 'info'; // 已提交用 info
-  }
-  if (studentStatus === 'IN_PROGRESS') {
-    return 'warning'; // 进行中用 warning
-  }
-  // 如果学生状态不是以上几种，再根据考试整体状态判断
-  switch (examStatus) {
-    case 'PUBLISHED':
-      return 'primary'; // 考试已发布，但学生未开始
-    case 'ONGOING':
-      return 'warning'; // 考试进行中，但学生未开始
-    case 'FINISHED':
-      return 'info'; // 考试已结束，学生未参加
-    default: // 默认为 DRAFT 或其他未知状态
-      return 'info';
-  }
+
+  // 默认或未知状态
+  return 'info'; 
 };
 
-// 获取状态文本
-const getStatusText = (examStatus: string, studentStatus: string) => {
+// 获取状态文本 (Takes exam object)
+const getStatusText = (exam: any) => {
+  const studentStatus = exam.studentStatus;
+  const examStatus = exam.status;
+  const now = new Date().getTime();
+  const startTime = new Date(exam.startTime).getTime();
+  const endTime = new Date(exam.endTime).getTime();
+
   // 优先根据学生状态判断
-  if (studentStatus === 'PUBLISHED') { // 后端已改为 PUBLISHED 表示最终完成状态
-    return '已完成';
-  }
-  if (studentStatus === 'PENDING_PUBLISH') { // 新增处理
-    return '待发布'; // 教师已批阅，等待发布成绩
-  }
-  if (studentStatus === 'SUBMITTED') {
-    return '已提交'; // 学生已提交，等待教师批阅
-  }
-  if (studentStatus === 'IN_PROGRESS') {
-    return '进行中';
-  }
+  if (studentStatus === 'PUBLISHED') return '已完成';
+  if (studentStatus === 'PENDING_PUBLISH') return '待发布';
+  if (studentStatus === 'SUBMITTED') return '已提交';
+  if (studentStatus === 'IN_PROGRESS') return '进行中';
+  
+  // 学生未开始，根据考试状态和时间判断
   if (studentStatus === 'NOT_STARTED') {
-    // 学生未开始时，根据考试状态和时间判断
-    const now = new Date().getTime();
-    // 需要从表格行数据中获取 exam.startTime
-    // 由于这里无法直接访问 scope.row，此部分逻辑需要调整或在模板中处理
-    // 暂时简化处理，可在模板中或 fetchExams 后处理更精确状态
-    switch (examStatus) {
-      case 'PUBLISHED':
-      case 'ONGOING':
-        // 这里无法准确判断是否已过开始时间，笼统显示为待参加
-        return '待参加';
-      case 'FINISHED':
-        return '已结束 (未参加)'; // 明确是已结束且未参加
-      default: // DRAFT 等
-        return '未开始';
-    }
+      if (examStatus === 'ONGOING' || examStatus === 'PUBLISHED') {
+          if (now < startTime) return '未开始';
+          if (now >= startTime && now <= endTime) return '待参加';
+          if (now > endTime) return '已错过'; // New status text
+      }
+      if (examStatus === 'FINISHED') return '已结束 (未参加)';
   }
 
   // 如果 studentStatus 为空或未知，但考试已结束
@@ -242,23 +265,56 @@ const getStatusText = (examStatus: string, studentStatus: string) => {
       return '已结束 (未参加)';
   }
 
-  return '未知状态'; // 其他所有情况
+  return '未知状态';
 };
 
 // 判断是否可以参加考试
 const canTakeExam = (exam: any) => {
-  // 如果学生状态是已提交, 待发布, 或已发布，则不能再次参加
-  if (['SUBMITTED', 'PENDING_PUBLISH', 'PUBLISHED'].includes(exam.studentStatus)) {
-    return false;
-  }
-
-  // 如果考试状态是进行中或发布，且当前时间在考试时间范围内
   const now = new Date().getTime();
   const startTime = new Date(exam.startTime).getTime();
   const endTime = new Date(exam.endTime).getTime();
-  
-  return (exam.status === 'ONGOING' || exam.status === 'PUBLISHED') && 
-         now >= startTime && now <= endTime;
+
+  const isStatusOk = (exam.status === 'ONGOING' || exam.status === 'PUBLISHED');
+  const isStudentStatusOk = exam.studentStatus === 'NOT_STARTED';
+  const isTimeOk = now >= startTime && now <= endTime;
+
+  // Log the details for debugging
+  if (exam.studentStatus === 'NOT_STARTED') { // Only log for relevant rows
+      console.log(`[Exam ${exam.id}] Checking canTakeExam:`);
+      console.log(`  - Exam Status: ${exam.status} (isOk: ${isStatusOk})`);
+      console.log(`  - Student Status: ${exam.studentStatus} (isOk: ${isStudentStatusOk})`);
+      console.log(`  - Time: now=${new Date(now)}, start=${new Date(startTime)}, end=${new Date(endTime)}`);
+      console.log(`  - Time Condition Result: ${isTimeOk}`);
+      console.log(`  - Final Result: ${isStatusOk && isStudentStatusOk && isTimeOk}`);
+  }
+
+  // Allow taking if exam is PUBLISHED or ONGOING
+  return isStatusOk && isStudentStatusOk && isTimeOk;
+};
+
+// 判断是否可以继续考试
+const canContinueExam = (exam: any) => {
+  const now = new Date().getTime();
+  const endTime = new Date(exam.endTime).getTime();
+
+  return exam.status === 'ONGOING' && 
+         exam.studentStatus === 'IN_PROGRESS' &&
+         now <= endTime;
+};
+
+// 判断是否可以查看结果
+const canViewResult = (exam: any) => {
+  return ['SUBMITTED', 'PENDING_PUBLISH', 'PUBLISHED'].includes(exam.studentStatus);
+};
+
+// 跳转到考试页面
+const takeExam = (examId: number) => {
+  router.push(`/student/exams/${examId}/take`);
+};
+
+// 跳转到结果页面
+const viewResult = (examId: number) => {
+  router.push(`/student/exams/${examId}/result`);
 };
 
 // 获取学生状态文本

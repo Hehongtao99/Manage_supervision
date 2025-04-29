@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import axios from '../utils/axios'
 import router from '../router'
 import type { UpdateProfileRequest, UpdatePasswordRequest } from '../types/user'
+import { loginWithFace, loginWithFaceBase64 } from '../api/face'
 
 export interface UserInfo {
   id: number;
@@ -238,17 +239,184 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    async loginWithFace(faceImage: File) {
+      try {
+        this.error = null
+        console.log('开始人脸登录请求')
+        
+        const response = await loginWithFace(faceImage)
+        
+        console.log('人脸登录响应数据:', JSON.stringify(response))
+        
+        // 添加数据验证
+        if (!response) {
+          throw new Error('服务器返回数据格式错误')
+        }
+        
+        if (!response.token) {
+          throw new Error('服务器返回数据缺少token')
+        }
+        
+        this.token = response.token
+        
+        // 验证用户数据
+        if (!response.user) {
+          throw new Error('服务器返回数据缺少用户信息')
+        }
+        
+        this.user = {
+          id: response.user.id || null,
+          name: response.user.realName || response.user.username || '',
+          username: response.user.username || '',
+          email: response.user.email || '',
+          roles: Array.isArray(response.user.roles) ? response.user.roles : [],
+          realName: response.user.realName,
+          nickname: response.user.nickname,
+          phone: response.user.phone,
+          bio: response.user.bio,
+          avatar: response.user.avatar || '',
+          userNumber: response.user.userNumber || ''
+        }
+        
+        // 同时更新userInfo
+        this.userInfo = {
+          id: response.user.id || 0,
+          username: response.user.username || '',
+          name: response.user.realName || response.user.username || '',
+          role: Array.isArray(response.user.roles) && response.user.roles.length > 0 
+            ? response.user.roles[0] 
+            : 'USER',
+          avatar: response.user.avatar || '',
+          email: response.user.email || ''
+        }
+        
+        localStorage.setItem('token', response.token)
+        // 保存用户角色到localStorage
+        localStorage.setItem('userRoles', JSON.stringify(this.user.roles))
+        this.setAxiosAuthHeader()
+        
+        console.log('人脸登录成功，用户角色:', this.user.roles)
+        
+        this.redirectBasedOnRole()
+
+        return true
+      } catch (error: any) {
+        console.error('人脸登录失败:', error)
+        console.error('Error details:', error.stack)
+        
+        if (error.response) {
+          console.error('Response status:', error.response.status)
+          console.error('Response data:', JSON.stringify(error.response.data))
+        }
+        
+        if (error.response?.data?.message) {
+          this.error = error.response.data.message
+        } else if (error.message) {
+          this.error = `人脸登录失败: ${error.message}`
+        } else {
+          this.error = '人脸登录失败，请稍后重试'
+        }
+        
+        return false
+      }
+    },
+
+    async loginWithFaceBase64(base64Image: string) {
+      try {
+        this.error = null
+        console.log('开始人脸登录请求(Base64)')
+        
+        const response = await loginWithFaceBase64(base64Image)
+        
+        console.log('人脸登录响应数据:', JSON.stringify(response))
+        
+        // 添加数据验证
+        if (!response) {
+          throw new Error('服务器返回数据格式错误')
+        }
+        
+        if (!response.token) {
+          throw new Error('服务器返回数据缺少token')
+        }
+        
+        this.token = response.token
+        
+        // 验证用户数据
+        if (!response.user) {
+          throw new Error('服务器返回数据缺少用户信息')
+        }
+        
+        this.user = {
+          id: response.user.id || null,
+          name: response.user.realName || response.user.username || '',
+          username: response.user.username || '',
+          email: response.user.email || '',
+          roles: Array.isArray(response.user.roles) ? response.user.roles : [],
+          realName: response.user.realName,
+          nickname: response.user.nickname,
+          phone: response.user.phone,
+          bio: response.user.bio,
+          avatar: response.user.avatar || '',
+          userNumber: response.user.userNumber || ''
+        }
+        
+        // 同时更新userInfo
+        this.userInfo = {
+          id: response.user.id || 0,
+          username: response.user.username || '',
+          name: response.user.realName || response.user.username || '',
+          role: Array.isArray(response.user.roles) && response.user.roles.length > 0 
+            ? response.user.roles[0] 
+            : 'USER',
+          avatar: response.user.avatar || '',
+          email: response.user.email || ''
+        }
+        
+        localStorage.setItem('token', response.token)
+        // 保存用户角色到localStorage
+        localStorage.setItem('userRoles', JSON.stringify(this.user.roles))
+        this.setAxiosAuthHeader()
+        
+        console.log('人脸登录成功，用户角色:', this.user.roles)
+        
+        this.redirectBasedOnRole()
+
+        return true
+      } catch (error: any) {
+        console.error('人脸登录失败:', error)
+        console.error('Error details:', error.stack)
+        
+        if (error.response) {
+          console.error('Response status:', error.response.status)
+          console.error('Response data:', JSON.stringify(error.response.data))
+        }
+        
+        if (error.response?.data?.message) {
+          this.error = error.response.data.message
+        } else if (error.message) {
+          this.error = `人脸登录失败: ${error.message}`
+        } else {
+          this.error = '人脸登录失败，请稍后重试'
+        }
+        
+        return false
+      }
+    },
+
     redirectBasedOnRole() {
       console.log('执行角色重定向，用户角色:', this.user.roles)
       if (this.isAdmin) {
         console.log('用户是管理员，重定向到管理员仪表盘')
         router.push('/admin/dashboard')
       } else if (this.isSupervisor) {
-        console.log('用户是教师，重定向到教师控制台')
-        router.push('/supervisor/students')
+        console.log('用户是教师，重定向到教师仪表盘')
+        router.push('/teacher/dashboard')
+      } else if (this.isStudent) {
+        console.log('用户是学生，重定向到学生仪表盘')
+        router.push('/student/dashboard')
       } else {
-        console.log('用户是普通用户，重定向到普通仪表盘')
-        router.push('/dashboard')
+        console.log('用户角色未知或不匹配，重定向到根路径')
+        router.push('/')
       }
     },
 

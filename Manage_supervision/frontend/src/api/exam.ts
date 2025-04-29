@@ -13,6 +13,13 @@ export const getExams = async (params: {
 };
 
 /**
+ * 获取教师创建的所有考试简要信息（用于下拉列表）
+ */
+export const getExamOptions = async () => {
+  return await axios.get('/api/supervisor/exams/options');
+};
+
+/**
  * 创建考试
  */
 export const createExam = async (examData: any) => {

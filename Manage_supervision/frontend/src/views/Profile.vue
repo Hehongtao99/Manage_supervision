@@ -76,6 +76,19 @@
       </div>
     </el-card>
 
+    <!-- 人脸录入卡片 -->
+    <el-card class="profile-card" style="margin-top: 20px">
+      <template #header>
+        <div class="card-header">
+          <h3>人脸录入</h3>
+        </div>
+      </template>
+      
+      <div class="face-register-wrapper">
+        <face-register />
+      </div>
+    </el-card>
+
     <!-- 修改密码卡片 -->
     <el-card class="profile-card" style="margin-top: 20px">
       <template #header>
@@ -158,6 +171,7 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, UploadProps } from 'element-plus'
 import type { UpdateProfileRequest, UpdatePasswordRequest } from '../types/user'
+import FaceRegister from '../components/face/FaceRegister.vue'
 
 const userStore = useUserStore()
 const formRef = ref<FormInstance>()
@@ -391,6 +405,8 @@ const beforeAvatarUpload = (file: File) => {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 
 .profile-card {
@@ -458,5 +474,11 @@ const beforeAvatarUpload = (file: File) => {
 
 :deep(.el-upload:hover) {
   border-color: #409EFF;
+}
+
+.face-register-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 </style> 

@@ -42,10 +42,8 @@
               v-model="selectedBankId" 
               placeholder="选择题库" 
               filterable
-              remote
-              :remote-method="searchQuestionBanks"
-              :loading="loadingBanks"
               clearable
+              @change="handleBankSearch"
             >
               <el-option 
                 v-for="bank in questionBanks" 
@@ -286,7 +284,14 @@ export default {
           100 // 获取足够多的题库
         );
         
-        questionBanks.value = response.data.content;
+        // 检查返回结果是否成功以及数据是否存在
+        if (response.data && response.data.code === 200 && response.data.data) {
+          questionBanks.value = response.data.data.content; // 从 response.data.data.content 获取
+        } else {
+          console.error('获取题库列表失败:', response.data?.message || '未知错误');
+          ElMessage.error(response.data?.message || '获取题库列表失败');
+          questionBanks.value = []; // 清空列表以防万一
+        }
       } catch (error) {
         console.error('获取题库列表失败', error);
         ElMessage.error('获取题库列表失败');
@@ -359,8 +364,21 @@ export default {
           }
         }
         
-        questions.value = response.data.content;
-        totalItems.value = response.data.totalItems;
+        // 统一处理后端返回的数据结构，检查 Result 包装
+        if (response.data && response.data.code === 200 && response.data.data) {
+          questions.value = response.data.data.content;
+          totalItems.value = response.data.data.totalItems;
+        } else if (response.data && response.data.content) { 
+          // 兼容直接返回 Map 的情况 (虽然理想情况是后端统一返回 Result)
+          questions.value = response.data.content;
+          totalItems.value = response.data.totalItems;
+        } else {
+          console.error('获取题目列表数据结构错误或失败:', response.data?.message || '未知错误');
+          ElMessage.error(response.data?.message || '获取题目列表失败');
+          questions.value = [];
+          totalItems.value = 0;
+        }
+
       } catch (error) {
         console.error('获取题目列表失败', error);
         ElMessage.error('获取题目列表失败');

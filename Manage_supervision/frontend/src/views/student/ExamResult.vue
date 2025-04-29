@@ -6,80 +6,88 @@
       </el-link>
     </div>
 
-    <el-card v-loading="loading">
+    <el-card v-loading="loading" class="exam-result-card">
       <template #header>
         <div class="text-xl font-bold">考试结果 - {{ examInfo.title }}</div>
       </template>
 
-      <div v-if="examInfo && studentInfo">
-        <!-- 考试和学生基本信息 -->
-        <el-descriptions :column="2" border class="mb-6">
-          <el-descriptions-item label="考试名称">{{ examInfo.title }}</el-descriptions-item>
-          <el-descriptions-item label="学生姓名">{{ studentInfo.studentName }} ({{ studentInfo.studentUserNumber }})</el-descriptions-item>
-          <el-descriptions-item label="总分/及格分">{{ examInfo.totalScore }} / {{ examInfo.passingScore }}</el-descriptions-item>
-          <el-descriptions-item label="最终得分">
-            <el-tag :type="studentInfo.score >= examInfo.passingScore ? 'success' : 'danger'" size="large">
-              {{ studentInfo.score?.toFixed(1) ?? 'N/A' }}
-            </el-tag>
-          </el-descriptions-item>
-           <el-descriptions-item label="开始时间">{{ formatDateTime(studentInfo.startTime) }}</el-descriptions-item>
-           <el-descriptions-item label="提交时间">{{ formatDateTime(studentInfo.submitTime) }}</el-descriptions-item>
-        </el-descriptions>
+      <!-- 添加一个容器用于滚动 -->
+      <div class="result-scroll-container">
+        <div v-if="examInfo && studentInfo">
+          <!-- 考试和学生基本信息 -->
+          <el-descriptions :column="2" border class="mb-6">
+            <el-descriptions-item label="考试名称">{{ examInfo.title }}</el-descriptions-item>
+            <el-descriptions-item label="学生姓名">{{ studentInfo.studentName }} ({{ studentInfo.studentUserNumber }})</el-descriptions-item>
+            <el-descriptions-item label="总分/及格分">{{ examInfo.totalScore }} / {{ examInfo.passingScore }}</el-descriptions-item>
+            <el-descriptions-item label="最终得分">
+              <el-tag :type="studentInfo.score >= examInfo.passingScore ? 'success' : 'danger'" size="large">
+                {{ studentInfo.score?.toFixed(1) ?? 'N/A' }}
+              </el-tag>
+            </el-descriptions-item>
+             <el-descriptions-item label="开始时间">{{ formatDateTime(studentInfo.startTime) }}</el-descriptions-item>
+             <el-descriptions-item label="提交时间">{{ formatDateTime(studentInfo.submitTime) }}</el-descriptions-item>
+          </el-descriptions>
 
-        <!-- 题目和答案详情 -->
-        <div v-for="(item, index) in questionAnswers" :key="item.question.id" class="mb-6 pb-4 border-b last:border-b-0">
-           <h3 class="text-lg font-semibold mb-2">{{ index + 1 }}. {{ item.question.questionTitle }} ({{ item.question.questionScore }}分)</h3>
-           <p class="text-sm text-gray-500 mb-2">类型: {{ getQuestionTypeText(item.question.questionType) }}</p>
-           
-           <!-- 题目选项 (选择题) -->
-           <div v-if="['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(item.question.questionType) && item.question.content" class="mb-3 options-list">
-             <div v-for="(option, key) in parseOptions(item.question.content)" :key="key" class="option-item">
-                <el-tag size="small" type="info" class="mr-2">{{ key }}</el-tag> {{ option }}
-             </div>
-           </div>
+          <!-- 题目和答案详情 -->
+          <div v-for="(item, index) in questionAnswers" :key="item.question.id" class="mb-6 pb-4 border-b last:border-b-0 question-answer-item">
+             <h3 class="text-lg font-semibold mb-2">{{ index + 1 }}. {{ item.question.questionTitle }} ({{ item.question.questionScore }}分)</h3>
+             <p class="text-sm text-gray-500 mb-2">类型: {{ getQuestionTypeText(item.question.questionType) }}</p>
 
-           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div>
-               <label class="block text-sm font-medium text-gray-700 mb-1">你的答案:</label>
-               <el-input
-                 type="textarea"
-                 :value="item.answer ? item.answer.answer : '未作答'"
-                 :autosize="{ minRows: 2, maxRows: 6 }"
-                 readonly
-                 :class="getAnswerClass(item.answer?.isCorrect)"
-               />
+             <!-- Display content ONLY if it's NOT choice/judgment type AND content exists -->
+             <p v-if="!['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'JUDGMENT'].includes(item.question.questionType) && item.question.content" class="mb-3 question-content-display">
+               {{ item.question.content }}
+             </p>
+
+             <!-- Display options list ONLY for SINGLE/MULTIPLE choice AND if parsedOptions exist -->
+             <div v-if="['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(item.question.questionType) && item.parsedOptions" class="mb-3 options-list">
+               <div v-for="option in item.parsedOptions" :key="option.key" class="option-item">
+                  <el-tag size="small" type="info" class="mr-2 option-key-tag">{{ option.key }}</el-tag> {{ option.value }}
+               </div>
              </div>
-             <div>
-                <!-- 客观题显示正确答案 -->
-                <div v-if="['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'JUDGMENT'].includes(item.question.questionType)">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">正确答案:</label>
-                  <el-input
-                    type="textarea"
-                    :value="item.question.answer || '-'" 
-                    :autosize="{ minRows: 2, maxRows: 6 }"
-                    readonly
-                  />
-                </div>
-                <!-- 主观题显示得分 -->
-                 <div v-else>
-                   <label class="block text-sm font-medium text-gray-700 mb-1">得分:</label>
-                    <p class="text-lg font-semibold">{{ item.answer?.score?.toFixed(1) ?? '-' }} / {{ item.question.questionScore }}</p>
-                 </div>
+
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 answer-section">
+               <div>
+                 <label class="block text-sm font-medium text-gray-700 mb-1">你的答案:</label>
+                 <el-input
+                   type="textarea"
+                   :value="formatStudentAnswer(item.answer?.answer, item.question.questionType)"
+                   :autosize="{ minRows: 2, maxRows: 6 }"
+                   readonly
+                   :class="getAnswerClass(item.answer?.isCorrect)"
+                 />
+               </div>
+               <div>
+                  <!-- 客观题显示正确答案 -->
+                  <div v-if="['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'JUDGMENT'].includes(item.question.questionType)">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">正确答案:</label>
+                    <el-input
+                      type="textarea"
+                      :value="formatCorrectAnswer(item.question.answer, item.question.questionType)"
+                      :autosize="{ minRows: 2, maxRows: 6 }"
+                      readonly
+                    />
+                  </div>
+                  <!-- 主观题显示得分 -->
+                   <div v-else>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">得分:</label>
+                      <p class="text-lg font-semibold">{{ item.answer?.score?.toFixed(1) ?? '-' }} / {{ item.question.questionScore }}</p>
+                   </div>
+               </div>
              </div>
-           </div>
-            <div v-if="item.answer" class="mt-2 flex items-center">
-                 <label class="text-sm font-medium text-gray-700 mr-2">结果:</label>
-                 <el-tag :type="item.answer.isCorrect === true ? 'success' : (item.answer.isCorrect === false ? 'danger' : 'info')" size="small">
-                     {{ item.answer.isCorrect === true ? '正确' : (item.answer.isCorrect === false ? '错误' : '待评分/主观题') }}
-                 </el-tag>
-                 <span v-if="item.answer.isCorrect === true || item.answer.isCorrect === false" class="ml-4 text-sm text-gray-600">
-                    得分: {{ item.answer.score?.toFixed(1) ?? 0 }} / {{ item.question.questionScore }}
-                 </span>
-             </div>
+              <div v-if="item.answer" class="mt-2 flex items-center result-summary">
+                   <label class="text-sm font-medium text-gray-700 mr-2">结果:</label>
+                   <el-tag :type="item.answer.isCorrect === true ? 'success' : (item.answer.isCorrect === false ? 'danger' : 'info')" size="small">
+                       {{ item.answer.isCorrect === true ? '正确' : (item.answer.isCorrect === false ? '错误' : '待评分/主观题') }}
+                   </el-tag>
+                   <span v-if="item.answer.isCorrect === true || item.answer.isCorrect === false" class="ml-4 text-sm text-gray-600">
+                      得分: {{ item.answer.score?.toFixed(1) ?? 0 }} / {{ item.question.questionScore }}
+                   </span>
+               </div>
+          </div>
+
         </div>
-
+        <el-empty v-else description="无法加载考试结果数据"></el-empty>
       </div>
-      <el-empty v-else description="无法加载考试结果数据"></el-empty>
     </el-card>
   </div>
 </template>
@@ -93,13 +101,18 @@ import { getStudentExamResultDetails } from '@/api/exam';
 import { formatDateTime } from '@/utils/dateUtil';
 import { useUserStore } from '@/stores/user';
 
+interface QuestionOption {
+  key: string;
+  value: string;
+}
+
 interface Question {
   id: number;
   questionId: number;
   questionTitle: string;
   questionType: string;
-  content: string | null; // 选择题选项 JSON string
-  answer: string | null;  // 正确答案
+  content: string | null; // May contain text (Essay) or JSON string (Choice/Judgment)
+  answer: string | null;  // Correct answer (Key or text)
   questionScore: number;
 }
 
@@ -113,6 +126,7 @@ interface Answer {
 interface QuestionAnswerItem {
   question: Question;
   answer: Answer | null;
+  parsedOptions: QuestionOption[] | null; // Store parsed options here
 }
 
 interface ExamInfo {
@@ -148,10 +162,8 @@ const studentInfo = ref<Partial<StudentInfo>>({});
 const questionAnswers = ref<QuestionAnswerItem[]>([]);
 
 const fetchExamResult = async () => {
-  // 不再需要 studentId.value 检查，后端会从token获取
   loading.value = true;
   try {
-    // 调用新的 API 函数
     const res = await getStudentExamResultDetails(examId);
     if (res.data.code === 200 && res.data.data) {
       const data = res.data.data;
@@ -169,7 +181,18 @@ const fetchExamResult = async () => {
           startTime: data.examStudent.startTime,
           submitTime: data.examStudent.submitTime
       };
-      questionAnswers.value = data.questionAnswers;
+      questionAnswers.value = data.questionAnswers.map((qa: any) => {
+        let parsedOptions: QuestionOption[] | null = null;
+        // Try parsing options ONLY for choice/judgment types from their content field
+        if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'JUDGMENT'].includes(qa.question.questionType)) {
+            parsedOptions = parseOptionsFromJson(qa.question.content);
+        }
+        return {
+          question: qa.question, // Keep original question object
+          answer: qa.answer,
+          parsedOptions: parsedOptions // Add the parsed options field
+        };
+      });
     } else {
       ElMessage.error(res.data.message || '加载考试结果失败');
     }
@@ -196,15 +219,42 @@ const getQuestionTypeText = (type: string) => {
     return map[type] || type;
 };
 
-// 解析选项字符串为对象
-const parseOptions = (content: string | null): Record<string, string> => {
-  if (!content) return {};
+// Renamed from parseOptions to avoid confusion with a potential 'options' field
+const parseOptionsFromJson = (jsonString: string | null): QuestionOption[] | null => {
+  if (!jsonString) return null;
   try {
-    return JSON.parse(content);
+    const parsed = JSON.parse(jsonString);
+    if (Array.isArray(parsed)) {
+        // Validate structure minimally
+        const filtered = parsed.filter(opt => typeof opt === 'object' && opt !== null && 'key' in opt && 'value' in opt);
+        // Return null if parsing succeeded but structure is wrong (e.g., array of strings)
+        return filtered.length === parsed.length ? filtered : null;
+    }
+    return null; // Parsed but not an array
   } catch (e) {
-    console.error('Failed to parse question options:', content, e);
-    return {};
+    // Parsing failed, likely plain text content. Return null.
+    return null;
   }
+};
+
+// 格式化学生答案显示
+const formatStudentAnswer = (answer: string | null, type: string): string => {
+    if (!answer) return '未作答';
+    // 对判断题做特殊处理，如果答案是A或B，转为True/False或中文
+    if (type === 'JUDGMENT') {
+        return answer === 'A' ? '正确' : (answer === 'B' ? '错误' : answer);
+    }
+    // 其他类型直接显示
+    return answer;
+};
+
+// 格式化正确答案显示
+const formatCorrectAnswer = (answer: string | null, type: string): string => {
+    if (!answer) return '-';
+     if (type === 'JUDGMENT') {
+        return answer === 'A' ? '正确' : (answer === 'B' ? '错误' : answer);
+    }
+    return answer;
 };
 
 // 根据答案正确与否返回样式类
@@ -224,6 +274,29 @@ onMounted(() => {
 .exam-result-container {
   max-width: 900px;
   margin: 0 auto;
+  height: calc(100vh - 100px); /* 减去大致的 header 和 padding 高度 */
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-result-card {
+  flex-grow: 1; /* 让卡片充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 防止内部元素溢出卡片 */
+}
+
+:deep(.el-card__body) {
+  height: 100%; /* 让 card body 也能撑开 */
+  padding: 0; /* 移除默认 padding，由滚动容器处理 */
+  display: flex;
+  flex-direction: column;
+}
+
+.result-scroll-container {
+  flex-grow: 1;
+  overflow-y: auto; /* 添加垂直滚动条 */
+  padding: 20px; /* 把 padding 移到这里 */
 }
 
 .back-link {
@@ -231,31 +304,57 @@ onMounted(() => {
   color: #409eff;
   display: inline-flex;
   align-items: center;
+  margin-bottom: 1rem; /* 保持原来的间距 */
+}
+
+.question-answer-item {
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+.question-answer-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .options-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    background-color: #f9fafb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
 }
 
 .option-item {
     font-size: 0.9rem;
 }
+.option-key-tag {
+    width: 25px;
+    text-align: center;
+}
+
+.answer-section {
+    margin-top: 1rem;
+}
+
+.result-summary {
+    margin-top: 0.5rem;
+}
 
 /* 自定义答案输入框样式 */
 :deep(.el-textarea.is-readonly .el-textarea__inner) {
   cursor: default;
-  background-color: #f5f7fa; /* 默认只读背景色 */
+  color: #303133; /* 让只读文本更清晰 */
 }
 
-:deep(.el-textarea.correct-answer .el-textarea__inner) {
-  background-color: #f0f9eb; /* 绿色背景表示正确 */
-  border-color: #e1f3d8;
+:deep(.correct-answer .el-textarea__inner) {
+   border-color: #67c23a;
+   background-color: #f0f9eb;
 }
-
-:deep(.el-textarea.wrong-answer .el-textarea__inner) {
-  background-color: #fef0f0; /* 红色背景表示错误 */
-  border-color: #fde2e2;
+:deep(.wrong-answer .el-textarea__inner) {
+   border-color: #f56c6c;
+   background-color: #fef0f0;
 }
 </style> 
