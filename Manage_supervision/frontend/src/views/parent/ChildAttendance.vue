@@ -57,16 +57,7 @@
                 </div>
               </el-card>
             </el-col>
-            <el-col :xs="24" :sm="8">
-              <el-card shadow="hover" class="statistic-card">
-                <h4>今日签到状态</h4>
-                <div class="statistic-value">
-                  <el-tag :type="attendedToday ? 'success' : 'danger'" size="large">
-                    {{ attendedToday ? '已签到' : '未签到' }}
-                  </el-tag>
-                </div>
-              </el-card>
-            </el-col>
+
           </el-row>
         </div>
 

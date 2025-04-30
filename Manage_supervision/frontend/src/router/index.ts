@@ -221,6 +221,16 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'operation-logs',
+        name: 'OperationLogs',
+        component: () => import('../views/admin/OperationLogs.vue'),
+        meta: { 
+          title: '操作日志',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
         path: 'notifications',
         name: 'AdminNotificationManagement',
         component: () => import('../views/admin/NotificationManagement.vue'),
@@ -347,7 +357,7 @@ const routes: RouteRecordRaw[] = [
         name: 'SupervisorTimetableDetail',
         component: () => import('../views/supervisor/TimetableDetail.vue'),
         meta: { 
-          title: '课程表详情',
+          title: '课表详情',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -418,6 +428,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/teacher/TeacherClassManagement.vue'),
         meta: { 
           title: '班级管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'timetable/:id',
+        name: 'SupervisorTimetableDetail',
+        component: () => import('../views/supervisor/TimetableDetail.vue'),
+        meta: { 
+          title: '课表详情',
           requiresAuth: true,
           requiresSupervisor: true
         }

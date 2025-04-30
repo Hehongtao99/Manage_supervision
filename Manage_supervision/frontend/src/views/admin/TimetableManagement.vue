@@ -59,6 +59,9 @@
         <el-form-item label="课程表名称" prop="name">
           <el-input v-model="timetableForm.name" />
         </el-form-item>
+        <el-form-item label="周次" prop="weekNumber">
+          <el-input-number v-model="timetableForm.weekNumber" :min="1" :max="30" style="width: 100%;" />
+        </el-form-item>
         <div class="form-tip">注：创建后可在课程表详情页面通过左右滑动查看/创建不同周次的课表</div>
       </el-form>
       <template #footer>
@@ -108,7 +111,8 @@ const timetableForm = reactive<TimetableDTO>({
 // 表单校验规则
 const timetableRules = reactive<FormRules>({
   classId: [{ required: true, message: '请选择班级', trigger: 'change' }],
-  name: [{ required: true, message: '请输入课程表名称', trigger: 'blur' }]
+  name: [{ required: true, message: '请输入课程表名称', trigger: 'blur' }],
+  weekNumber: [{ required: true, message: '请输入周次', trigger: 'change' }]
 });
 
 // 加载所有班级
@@ -180,6 +184,7 @@ const openTimetableDialog = (timetable?: TimetableDTO) => {
   if (timetable) {
     // 编辑模式，填充表单
     Object.assign(timetableForm, timetable);
+    if (!timetableForm.weekNumber) timetableForm.weekNumber = 1;
   } else {
     // 新增模式，初始化表单
     // 确保班级ID是有效的
@@ -190,10 +195,8 @@ const openTimetableDialog = (timetable?: TimetableDTO) => {
     if (classId === 0 || isNaN(classId)) {
       ElMessage.warning('请先选择一个班级');
     }
-    
     timetableForm.classId = classId;
     timetableForm.weekNumber = 1; // 默认第一周
-    
     // 根据班级ID设置课表名称
     const selectedClass = classes.value.find(c => c.id === classId);
     timetableForm.name = selectedClass 

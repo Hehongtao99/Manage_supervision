@@ -130,7 +130,7 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    @RequireRole("USER")
+    @RequireRole("USER,PARENT")
     public ResponseEntity<?> changePassword(
         @RequestHeader("Authorization") String auth,
         @RequestBody ChangePasswordRequest request

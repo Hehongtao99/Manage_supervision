@@ -300,7 +300,7 @@ onMounted(() => {
   border: 1px solid #ebeef5;
   border-radius: 4px;
   overflow: hidden;
-  min-width: 900px;
+  min-width: 1050px;
 }
 
 .header-row, .timetable-row {

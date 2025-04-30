@@ -104,7 +104,7 @@ Page({
       }
       
       // 处理数据，转换为统一格式（只有打卡和未打卡两种状态）
-      const processedList = attendanceData.map(item => {
+      let processedList = attendanceData.map(item => {
         // 统一日期格式
         const date = item.date || 
                      (item.checkInTime ? item.checkInTime.split(' ')[0] : '') || 
@@ -112,10 +112,20 @@ Page({
         
         // 简化状态为打卡和未打卡
         let status = '';
+        
+        // 输出原始状态值用于调试
+        console.log('原始考勤状态:', item.status, '原始记录:', item);
+        
         // 任何有记录的状态都视为已打卡
-        if (item.status === '正常' || item.status === 'present' || item.status === 'normal' || 
-            item.status === '迟到' || item.status === 'late' || 
-            item.status === '早退' || item.status === 'early') {
+        if (item.status === '正常' || 
+            item.status === 'present' || 
+            item.status === 'normal' || 
+            item.status === '迟到' || 
+            item.status === 'late' || 
+            item.status === '早退' || 
+            item.status === 'early' ||
+            item.faceRecognized === true ||
+            (item.recognitionDetails && item.recognitionDetails.includes('正常出勤'))) {
           status = 'present';
         } else {
           status = 'absent'; // 未打卡
@@ -125,28 +135,20 @@ Page({
         const dateObj = new Date(date);
         const weekDay = ['日', '一', '二', '三', '四', '五', '六'][dateObj.getDay()];
         
-        // 确保时间显示到秒
+        // 优化时间显示格式 - 只显示时:分
         let timeStr = '';
         if (item.time) {
-          // 如果已有时间，确保有秒
-          if (item.time.split(':').length === 2) {
-            timeStr = item.time + ':00'; // 添加秒
-          } else {
-            timeStr = item.time;
-          }
+          // 如果已有时间，只保留时:分
+          timeStr = item.time.split(':').slice(0, 2).join(':');
         } else if (item.checkInTime) {
-          // 从checkInTime中提取完整时间（含秒）
+          // 从checkInTime中提取时间
           const timeParts = item.checkInTime.split(' ');
           if (timeParts.length > 1) {
-            timeStr = timeParts[1];
-            // 确保有秒
-            if (timeStr.split(':').length === 2) {
-              timeStr += ':00';
-            }
+            timeStr = timeParts[1].split(':').slice(0, 2).join(':');
           }
         } else {
-          // 默认时间带秒
-          timeStr = '08:00:00';
+          // 默认时间
+          timeStr = '08:00';
         }
         
         return {
@@ -155,9 +157,28 @@ Page({
           weekDay: weekDay,
           status: status,
           time: timeStr,
-          remark: status === 'present' ? '已打卡' : '未打卡'
+          remark: status === 'present' ? '已打卡' : '未打卡',
+          // 添加年月日字段用于筛选
+          year: dateObj.getFullYear(),
+          month: dateObj.getMonth() + 1,
+          day: dateObj.getDate()
         };
       });
+      
+      // 筛选当前选择月份的记录
+      const selectedStartDate = new Date(this.data.dateRange.startDate);
+      const selectedYear = selectedStartDate.getFullYear();
+      const selectedMonth = selectedStartDate.getMonth() + 1;
+      
+      console.log('筛选条件 - 年:', selectedYear, '月:', selectedMonth);
+      
+      // 筛选出当前选定月份的记录
+      processedList = processedList.filter(item => {
+        console.log('记录日期 - 年:', item.year, '月:', item.month);
+        return item.year === selectedYear && item.month === selectedMonth;
+      });
+      
+      console.log('筛选后的记录数量:', processedList.length);
       
       this.setData({
         attendanceList: processedList,
@@ -189,24 +210,30 @@ Page({
     const mockData = [];
     const now = new Date();
     
-    for (let i = 0; i < 10; i++) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
+    // 获取当前选定月份
+    const selectedStartDate = new Date(this.data.dateRange.startDate);
+    const selectedYear = selectedStartDate.getFullYear();
+    const selectedMonth = selectedStartDate.getMonth();
+    
+    // 生成当前选定月份的模拟数据
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    
+    for (let i = 1; i <= Math.min(daysInMonth, 10); i++) {
+      const date = new Date(selectedYear, selectedMonth, i);
       
       const dateStr = date.getFullYear() + '-' + 
-                     formatNumber(date.getMonth() + 1) + '-' + 
-                     formatNumber(date.getDate());
+                    formatNumber(date.getMonth() + 1) + '-' + 
+                    formatNumber(date.getDate());
       
       const weekDay = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
       
       // 随机状态（打卡/未打卡）
       const status = Math.random() > 0.2 ? 'present' : 'absent';
       
-      // 生成随机时间（含秒）
+      // 生成随机时间（只有时:分）
       const hour = formatNumber(Math.floor(Math.random() * 2) + 8); // 8-9点
       const minute = formatNumber(Math.floor(Math.random() * 60));
-      const second = formatNumber(Math.floor(Math.random() * 60));
-      const timeStr = status === 'present' ? `${hour}:${minute}:${second}` : '';
+      const timeStr = status === 'present' ? `${hour}:${minute}` : '';
       
       mockData.push({
         id: i.toString(),
@@ -214,7 +241,10 @@ Page({
         weekDay: weekDay,
         status: status,
         time: timeStr,
-        remark: status === 'present' ? '已打卡' : '未打卡'
+        remark: status === 'present' ? '已打卡' : '未打卡',
+        year: selectedYear,
+        month: selectedMonth + 1,
+        day: i
       });
     }
     
@@ -226,6 +256,12 @@ Page({
     let present = 0;
     let absent = 0;
     
+    // 输出所有记录的状态，用于调试
+    console.log('计算考勤汇总，记录数量:', attendanceList.length);
+    attendanceList.forEach((item, index) => {
+      console.log(`记录${index+1}状态:`, item.status);
+    });
+    
     attendanceList.forEach(item => {
       if (item.status === 'present') {
         present++;
@@ -236,6 +272,8 @@ Page({
     
     const total = present + absent;
     const presentRate = total > 0 ? Math.round(present / total * 100) : 0;
+    
+    console.log('统计结果 - 已打卡:', present, '未打卡:', absent, '出勤率:', presentRate + '%');
     
     this.setData({
       summary: {
@@ -255,6 +293,15 @@ Page({
         startDate: selectedRange[0],
         endDate: selectedRange[1]
       }
+    });
+    
+    // 从选择的日期提取月份信息，更新currentMonth
+    const selectedStartDate = new Date(selectedRange[0]);
+    const selectedYear = selectedStartDate.getFullYear();
+    const selectedMonth = selectedStartDate.getMonth() + 1;
+    
+    this.setData({
+      currentMonth: selectedYear + '年' + formatNumber(selectedMonth) + '月'
     });
     
     // 重新加载数据

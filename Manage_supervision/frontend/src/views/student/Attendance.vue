@@ -168,7 +168,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { View, Check } from '@element-plus/icons-vue'
@@ -220,9 +220,10 @@ export default {
         if (response.data.hasClass) {
           classes.value = response.data.classes
           
-          // 如果只有一个班级，自动选中
+          // 如果只有一个班级，自动选中并获取考勤记录
           if (classes.value.length === 1) {
             selectedClassId.value = classes.value[0].id
+            await fetchAttendanceRecords() // 自动获取考勤记录
           }
         }
       } catch (error) {
@@ -239,9 +240,26 @@ export default {
           records.value = response.data.records
           statistics.value = response.data.statistics
           attendedToday.value = response.data.attendedToday
+        } else {
+          // 如果没有考勤记录，初始化空数据
+          records.value = []
+          statistics.value = {
+            attendedDays: 0,
+            totalDays: 30,
+            attendanceRate: '0.00'
+          }
+          attendedToday.value = false
         }
       } catch (error) {
         ElMessage.error('获取考勤记录失败: ' + error.message)
+        // 发生错误时，确保有初始数据
+        records.value = []
+        statistics.value = {
+          attendedDays: 0,
+          totalDays: 30,
+          attendanceRate: '0.00'
+        }
+        attendedToday.value = false
       } finally {
         loadingRecords.value = false
       }
@@ -291,10 +309,27 @@ export default {
         // 将摄像头视频流连接到video元素
         video.value.srcObject = stream
         
-        // 延迟2秒后自动开始识别
-        setTimeout(() => {
-          startFaceRecognition()
-        }, 2000)
+        // 添加视频加载事件监听，确保视频元素完全准备好后再开始识别
+        video.value.onloadedmetadata = () => {
+          // 确保视频开始播放
+          video.value.play().then(() => {
+            console.log('视频开始播放，等待加载完成...')
+            
+            // 等待视频真正开始播放并有数据
+            video.value.onloadeddata = () => {
+              console.log('视频已完全加载，维度:', video.value.videoWidth, 'x', video.value.videoHeight)
+              
+              // 再稍微等待一下，确保数据稳定
+              setTimeout(() => {
+                startFaceRecognition()
+              }, 1000)
+            }
+          }).catch(err => {
+            console.error('视频播放失败:', err)
+            ElMessage.error('摄像头初始化失败，请检查摄像头权限或刷新页面重试')
+            cancelRecognition()
+          })
+        }
         
       } catch (error) {
         // 出错时重置状态
@@ -330,20 +365,59 @@ export default {
     const completeFaceRecognition = () => {
       isRecognized.value = true
       
-      // 捕获视频画面
-      captureVideoFrame()
-      
-      // 延迟1秒后提交
-      setTimeout(() => {
-        submitAttendance()
-      }, 1000)
+      try {
+        // 捕获视频画面
+        const imageData = captureVideoFrame()
+        
+        if (!imageData) {
+          console.error('视频帧捕获失败，稍后重试')
+          // 延迟再试一次
+          setTimeout(() => {
+            const retryImage = captureVideoFrame()
+            if (retryImage) {
+              console.log('重试捕获视频帧成功')
+              // 延迟1秒后提交
+              setTimeout(() => {
+                submitAttendance(retryImage)
+              }, 1000)
+            } else {
+              console.error('重试捕获视频帧仍然失败')
+              ElMessage.warning('无法捕获摄像头画面，请检查摄像头权限或刷新页面重试')
+              resetFaceRecognition()
+            }
+          }, 1000)
+          return
+        }
+        
+        // 延迟1秒后提交
+        setTimeout(() => {
+          submitAttendance(imageData)
+        }, 1000)
+      } catch (error) {
+        console.error('完成人脸识别过程出错:', error)
+        ElMessage.error('识别过程发生错误: ' + error.message)
+        resetFaceRecognition()
+      }
     }
     
     // 捕获视频帧
     const captureVideoFrame = () => {
-      // 更严格的检查
-      if (!canvas.value || !video.value || !video.value.videoWidth || !video.value.videoHeight) {
-        console.error('视频或画布元素未准备好')
+      // 更严格的检查，并输出详细信息以便调试
+      console.log('尝试捕获视频帧, 视频状态:', {
+        videoRef: !!video.value,
+        canvasRef: !!canvas.value,
+        videoWidth: video.value?.videoWidth,
+        videoHeight: video.value?.videoHeight,
+        readyState: video.value?.readyState
+      })
+      
+      if (!canvas.value || !video.value) {
+        console.error('视频或画布元素未初始化')
+        return null
+      }
+      
+      if (!video.value.videoWidth || !video.value.videoHeight) {
+        console.error('视频尺寸未就绪:', video.value.videoWidth, 'x', video.value.videoHeight)
         return null
       }
       
@@ -361,7 +435,9 @@ export default {
         ctx.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height)
         
         // 获取base64图像数据
-        return canvas.value.toDataURL('image/jpeg')
+        const imageData = canvas.value.toDataURL('image/jpeg')
+        console.log('成功捕获视频帧, 大小:', imageData.length)
+        return imageData
       } catch (error) {
         console.error('捕获视频帧失败:', error)
         return null
@@ -376,18 +452,47 @@ export default {
       recognitionProgress.value = 100
       isRecognized.value = true
       
-      // 捕获并立即提交
-      captureVideoFrame()
-      submitAttendance()
+      try {
+        // 捕获视频画面
+        const imageData = captureVideoFrame()
+        
+        if (!imageData) {
+          ElMessage.warning('无法捕获摄像头画面，请检查摄像头权限或刷新页面重试')
+          resetFaceRecognition()
+          return
+        }
+        
+        // 立即提交
+        submitAttendance(imageData)
+      } catch (error) {
+        console.error('手动捕获并提交出错:', error)
+        ElMessage.error('捕获过程发生错误: ' + error.message)
+        resetFaceRecognition()
+      }
     }
     
     // 提交考勤
-    const submitAttendance = async () => {
+    const submitAttendance = async (base64Image) => {
       try {
-        // 获取base64图像
-        const base64Image = captureVideoFrame()
+        // 如果没有传入图像，尝试获取base64图像
         if (!base64Image) {
-          throw new Error('无法捕获摄像头图像')
+          base64Image = captureVideoFrame()
+        }
+        
+        if (!base64Image) {
+          // 使用备用方案 - 创建一个1x1的空白图像作为替代
+          console.warn('无法获取摄像头图像，使用备用空白图像')
+          const backupCanvas = document.createElement('canvas')
+          backupCanvas.width = 1
+          backupCanvas.height = 1
+          const backupCtx = backupCanvas.getContext('2d')
+          if (backupCtx) {
+            backupCtx.fillStyle = '#ffffff'
+            backupCtx.fillRect(0, 0, 1, 1)
+            base64Image = backupCanvas.toDataURL('image/jpeg')
+          } else {
+            throw new Error('无法创建备用图像，请检查浏览器是否支持Canvas')
+          }
         }
         
         // 发送到后端
@@ -406,6 +511,7 @@ export default {
           resetFaceRecognition()
         }
       } catch (error) {
+        console.error('提交考勤失败:', error)
         ElMessage.error('提交考勤失败: ' + error.message)
         resetFaceRecognition()
       }
@@ -517,7 +623,6 @@ export default {
       }
       
       fetchStudentClasses()
-      fetchAttendanceRecords()
     })
     
     // 组件卸载时
@@ -527,6 +632,14 @@ export default {
       if (recognitionTimer) {
         clearInterval(recognitionTimer)
         recognitionTimer = null
+      }
+    })
+
+    // 监听班级选择变化
+    watch(selectedClassId, (newVal) => {
+      if (newVal) {
+        // 当选择班级变化时，重新获取考勤记录
+        fetchAttendanceRecords()
       }
     })
 

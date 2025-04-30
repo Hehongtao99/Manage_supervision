@@ -74,4 +74,21 @@ public class UserContext {
         User user = getCurrentUser();
         return user != null ? user.getId() : null;
     }
+    
+    /**
+     * 根据用户名获取用户
+     * @param username 用户名
+     * @return 用户对象，如果未找到则返回null
+     */
+    public User getUserByUsername(String username) {
+        try {
+            if (username != null && !username.isEmpty()) {
+                return userService.findByUsername(username);
+            }
+        } catch (Exception e) {
+            System.err.println("根据用户名获取用户失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 } 

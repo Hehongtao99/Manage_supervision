@@ -39,9 +39,10 @@
         <el-table-column prop="grade" label="年级" width="120" />
         <el-table-column prop="studentCount" label="学生人数" width="120" />
         <el-table-column prop="description" label="描述" show-overflow-tooltip />
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="260" fixed="right">
           <template #default="scope">
             <el-button size="small" @click.stop="viewStudents(scope.row)">查看学生</el-button>
+            <el-button size="small" type="primary" @click.stop="viewTimetable(scope.row)">查看课表</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -78,6 +79,56 @@
         <el-table-column prop="phone" label="电话" width="120" />
       </el-table>
     </el-dialog>
+
+    <!-- 班级课表对话框 -->
+    <el-dialog
+      v-model="timetableDialogVisible"
+      :title="selectedClass ? `${selectedClass.className}课表` : '班级课表'"
+      width="80%"
+    >
+      <div v-if="timetableLoading" class="loading-container">
+        <el-skeleton :rows="5" animated />
+      </div>
+      
+      <el-empty v-else-if="timetables.length === 0" description="该班级暂无课表"></el-empty>
+      
+      <div v-else>
+        <div class="filter-container">
+          <el-select v-model="selectedWeekNumber" placeholder="选择周次" clearable style="width: 200px;" @change="filterTimetableByWeek">
+            <el-option 
+              v-for="week in weekOptions" 
+              :key="week.value" 
+              :label="`第${week.value}周`" 
+              :value="week.value" 
+            />
+          </el-select>
+        </div>
+        
+        <el-table
+          :data="filteredTimetables"
+          style="width: 100%"
+          border
+        >
+          <el-table-column prop="className" label="班级" />
+          <el-table-column prop="weekNumber" label="周次">
+            <template #default="scope">
+              第{{ scope.row.weekNumber }}周
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" label="课程表名称" />
+          <el-table-column prop="createTime" label="创建时间">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.createTime) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="scope">
+              <el-button size="small" @click="viewTimetableDetail(scope.row)">详情</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -86,6 +137,10 @@ import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import { getTeacherClasses } from '@/api/class';
+import { getTimetablesByClassId } from '@/api/timetable';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 // 班级数据
 const classes = ref<any[]>([]);
@@ -97,6 +152,17 @@ const students = ref<any[]>([]);
 const studentsLoading = ref(false);
 const studentsDialogVisible = ref(false);
 const selectedClass = ref<any>(null);
+
+// 课表数据
+const timetables = ref<any[]>([]);
+const filteredTimetables = ref<any[]>([]);
+const timetableLoading = ref(false);
+const timetableDialogVisible = ref(false);
+const selectedWeekNumber = ref<number | null>(null);
+const weekOptions = computed(() => {
+  const weeks = new Set(timetables.value.map(t => t.weekNumber));
+  return Array.from(weeks).map(week => ({ value: week }));
+});
 
 // 计算过滤后的班级列表
 const filteredClasses = computed(() => {
@@ -177,6 +243,66 @@ const viewStudents = async (classInfo: any) => {
   }
 };
 
+// 查看班级课表
+const viewTimetable = async (classInfo: any) => {
+  selectedClass.value = classInfo;
+  timetableDialogVisible.value = true;
+  timetableLoading.value = true;
+  selectedWeekNumber.value = null;
+  
+  try {
+    const result = await getTimetablesByClassId(classInfo.id);
+    console.log('获取到课表数据:', result);
+    
+    if (Array.isArray(result)) {
+      timetables.value = result;
+      filteredTimetables.value = result;
+    } else {
+      console.warn('返回的课表数据格式不是数组:', result);
+      timetables.value = [];
+      filteredTimetables.value = [];
+    }
+    
+    if (timetables.value.length === 0) {
+      ElMessage.info('该班级暂无课表');
+    }
+  } catch (error: any) {
+    console.error('获取班级课表失败:', error);
+    timetables.value = [];
+    filteredTimetables.value = [];
+    ElMessage.error('获取课表失败：' + (error.response?.data?.message || error.message || '未知错误'));
+  } finally {
+    timetableLoading.value = false;
+  }
+};
+
+// 按周次筛选课表
+const filterTimetableByWeek = () => {
+  if (selectedWeekNumber.value === null) {
+    filteredTimetables.value = timetables.value;
+    return;
+  }
+  
+  filteredTimetables.value = timetables.value.filter(
+    t => t.weekNumber === selectedWeekNumber.value
+  );
+};
+
+// 查看课表详情
+const viewTimetableDetail = (timetable: any) => {
+  // 跳转到课表详情页面
+  router.push({
+    name: 'SupervisorTimetableDetail',
+    params: { id: timetable.id }
+  });
+};
+
+// 格式化日期时间
+const formatDateTime = (dateTime?: string) => {
+  if (!dateTime) return '';
+  return new Date(dateTime).toLocaleString();
+};
+
 // 页面加载时获取班级数据
 onMounted(() => {
   loadClasses();
@@ -214,6 +340,12 @@ onMounted(() => {
 
 .el-table {
   margin-top: 20px;
+}
+
+.filter-container {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
 }
 
 /* 表格行悬停效果 */

@@ -282,12 +282,34 @@ Page({
                        (item.checkInTime ? item.checkInTime.split(' ')[0] : '') || 
                        (item.createTime ? item.createTime.split(' ')[0] : '');
           
+          // 记录原始数据用于调试
+          console.log('处理考勤记录:', item);
+          
           // 统一各种可能的状态字段
           let status = item.status || '';
-          if (status === 'normal') status = '正常';
+          
+          // 处理后端返回的不同格式
+          if (status === 'normal' || status === 'present') status = '正常';
           else if (status === 'late') status = '迟到';
           else if (status === 'early') status = '早退';
           else if (status === 'absent') status = '缺席';
+          
+          // 特殊处理:如果有faceRecognized标志且为true，设为正常
+          if (item.faceRecognized === true) {
+            status = '正常';
+          }
+          
+          // 从recognitionDetails中判断状态
+          if (item.recognitionDetails && item.recognitionDetails.includes('正常出勤')) {
+            status = '正常';
+          } else if (item.recognitionDetails && item.recognitionDetails.includes('迟到')) {
+            status = '迟到'; 
+          }
+          
+          // 如果所有方法都没判断出状态，但有考勤记录，默认为正常
+          if (!status && (item.checkInTime || item.faceRecognized === true)) {
+            status = '正常';
+          }
           
           // 统一其他字段
           return {

@@ -155,6 +155,9 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   min-height: 400px;
+  height: calc(100vh - 200px); /* 使容器高度固定，留出页面上方的空间 */
+  display: flex;
+  flex-direction: column;
 }
 
 .loading,
@@ -166,6 +169,8 @@ onMounted(() => {
 
 .log-entries {
   padding: 16px;
+  overflow-y: auto; /* 添加垂直滚动条 */
+  flex: 1; /* 填充剩余空间 */
 }
 
 .log-entry {

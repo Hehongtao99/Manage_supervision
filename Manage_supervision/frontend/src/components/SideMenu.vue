@@ -73,6 +73,21 @@
           <span>账单管理</span>
         </el-menu-item>
       </el-sub-menu>
+      
+      <el-sub-menu index="system-manage">
+        <template #title>
+          <el-icon><Setting /></el-icon>
+          <span>系统维护</span>
+        </template>
+        <el-menu-item index="/admin/logs" @click="handleRoute('/admin/logs')">
+          <el-icon><Document /></el-icon>
+          <span>系统日志</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/operation-logs" @click="handleRoute('/admin/operation-logs')">
+          <el-icon><Document /></el-icon>
+          <span>操作日志</span>
+        </el-menu-item>
+      </el-sub-menu>
     </template>
 
     <!-- 教师/班主任菜单 -->
