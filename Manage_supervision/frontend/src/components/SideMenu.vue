@@ -17,42 +17,20 @@
         </template>
       </el-menu-item>
 
-      <el-sub-menu index="admin-management">
-        <template #title>
-          <el-icon><Management /></el-icon>
-          <span>系统管理</span>
-        </template>
-        <el-menu-item index="/admin/users" @click="handleRoute('/admin/users')">
-          <el-icon><Avatar /></el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
-        <el-menu-item index="/admin/roles" @click="handleRoute('/admin/roles')">
-          <el-icon><Lock /></el-icon>
-          <span>角色管理</span>
-        </el-menu-item>
-      </el-sub-menu>
-
-      <el-sub-menu index="teacher-student-management">
+      <el-sub-menu index="user-management">
         <template #title>
           <el-icon><User /></el-icon>
-          <span>教学管理</span>
+          <span>用户管理</span>
         </template>
         <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
           <el-icon><UserFilled /></el-icon>
-          <span>教师管理</span>
+          <span>安全分析师管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
           <el-icon><Avatar /></el-icon>
-          <span>学生管理</span>
+          <span>用户管理</span>
         </el-menu-item>
       </el-sub-menu>
-
-      <el-menu-item index="/api-endpoints" @click="handleRoute('/api-endpoints')">
-        <el-icon><Connection /></el-icon>
-        <template #title>
-          <span>服务接口检测</span>
-        </template>
-      </el-menu-item>
     </template>
 
     <!-- 督导员菜单 -->
@@ -60,34 +38,27 @@
       <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
         <el-icon><User /></el-icon>
         <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>
-          <span>聊天</span>
+          <span>用户管理</span>
         </template>
       </el-menu-item>
 
       <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
-          <span>教师信息</span>
+          <span>安全分析师信息</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/supervisor/feedback" @click="handleRoute('/supervisor/feedback')">
+        <el-icon><Comment /></el-icon>
+        <template #title>
+          <span>问题反馈</span>
         </template>
       </el-menu-item>
     </template>
 
     <!-- 学生菜单 -->
     <template v-else>
-      <el-menu-item index="/chat" @click="handleRoute('/chat')">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>
-          <span>聊天</span>
-        </template>
-      </el-menu-item>
-
       <el-sub-menu index="resource-management">
         <template #title>
           <el-icon><Cpu /></el-icon>
@@ -153,12 +124,12 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound,
   Cpu,
   Warning,
   AlarmClock,
   Connection,
-  DataAnalysis
+  DataAnalysis,
+  Comment
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

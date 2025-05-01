@@ -2,7 +2,7 @@
   <div class="supervisor-profile">
     <el-card class="profile-card">
       <template #header>
-        <span>教师个人信息</span>
+        <span>安全分析师个人信息</span>
       </template>
       <el-row :gutter="24">
         <el-col :span="6">
@@ -27,7 +27,7 @@
             </div>
             <div class="user-info">
               <h3>{{ userStore.user.realName || userStore.user.username }}</h3>
-              <el-tag type="success">教师</el-tag>
+              <el-tag type="success">安全分析师</el-tag>
             </div>
             <el-divider />
           </el-card>
@@ -45,7 +45,7 @@
                 <el-form-item label="用户名" prop="username">
                   <el-input v-model="formModel.username" disabled />
                 </el-form-item>
-                <el-form-item label="教师编号" prop="userNumber">
+                <el-form-item label="分析师编号" prop="userNumber">
                   <el-input v-model="userStore.user.userNumber" disabled />
                 </el-form-item>
                 <el-form-item label="真实姓名" prop="realName">
@@ -123,7 +123,7 @@ import { ElMessage, ElLoading } from 'element-plus';
 import { useUserStore } from '../../stores/user';
 import axios from '../../utils/axios';
 
-// 教师仪表盘数据接口
+// 安全分析师仪表盘数据接口
 interface SupervisorDashboardDTO {
   studentCount: number;
   activeToday: number;
@@ -220,7 +220,7 @@ onMounted(async () => {
     const success = await userStore.fetchUserInfo(true)
     
     if (success) {
-      console.log('用户信息已更新，教师编号:', userStore.user.userNumber)
+      console.log('用户信息已更新，安全分析师编号:', userStore.user.userNumber)
       
       // 更新表单数据
       formModel.value.username = userStore.user.username || ''
@@ -231,7 +231,7 @@ onMounted(async () => {
       formModel.value.phone = userStore.user.phone || ''
       formModel.value.bio = userStore.user.bio || ''
       
-      // 获取教师仪表盘数据，包括真实学生数量
+      // 获取安全分析师仪表盘数据，包括真实用户数量
       await fetchSupervisorStats()
     } else {
       // 不要显示错误消息，避免多次显示
@@ -349,16 +349,16 @@ const handlePasswordChange = () => {
   });
 };
 
-// 获取教师仪表盘数据
+// 获取安全分析师仪表盘数据
 const fetchSupervisorStats = async () => {
   statsLoading.value = true;
   try {
     const response = await axios.get<SupervisorDashboardDTO>('/api/dashboard/supervisor/stats');
-    // 更新学生数量
+    // 更新用户数量
     userStats.studentCount = response.data.studentCount;
-    console.log('获取教师学生数量成功:', response.data.studentCount);
+    console.log('获取安全分析师用户数量成功:', response.data.studentCount);
   } catch (error) {
-    console.error('获取教师数据失败:', error);
+    console.error('获取安全分析师数据失败:', error);
     ElMessage.error('获取统计数据失败，请稍后重试');
   } finally {
     statsLoading.value = false;

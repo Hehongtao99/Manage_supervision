@@ -36,7 +36,7 @@
         </el-card>
       </el-col>
 
-      <!-- 学生信息卡片 - 只对普通学生显示 -->
+      <!-- 学生信息卡片 - 只对普通用户显示 -->
       <el-col :span="24" v-if="userStore.isStudent">
         <el-card class="student-card">
           <template #header>
@@ -94,7 +94,7 @@
                   :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
                   style="margin-right: 5px"
                 >
-                  {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+                  {{ role === 'USER' ? '用户' : role === 'ADMIN' ? '管理员' : '安全分析师' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -217,7 +217,7 @@ const getDashboardTitle = computed(() => {
   } else if (userStore.isSupervisor) {
     return '督导工作台'
   } else {
-    return '学生首页'
+    return '用户首页'
   }
 })
 
@@ -346,16 +346,36 @@ const getChineseStatus = (status: string) => {
   return statusMap[status] || status;
 }
 
-onMounted(() => {
-  fetchDashboardData()
-  fetchMyTasks()
-})
-
+// 退出登录
 const handleLogout = () => {
-  userStore.logout()
-  ElMessage.success('Logged out successfully')
-  router.push('/login')
+  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    userStore.logout()
+    router.push('/login')
+    ElMessage({
+      type: 'success',
+      message: '已成功退出登录'
+    })
+  }).catch(() => {
+    ElMessage({
+      type: 'info',
+      message: '已取消退出'
+    })
+  })
 }
+
+onMounted(() => {
+  // 获取仪表盘数据
+  fetchDashboardData()
+  
+  // 获取用户特定的数据
+  if (userStore.isStudent) {
+    fetchMyTasks()
+  }
+})
 </script>
 
 <style scoped>
@@ -554,5 +574,51 @@ const handleLogout = () => {
 .card-actions {
   display: flex;
   gap: 8px;
+}
+
+.resource-card {
+  margin-top: 20px;
+}
+
+.resource-stats {
+  padding: 10px 0;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f5f7fa;
+  height: 100%;
+}
+
+.resource-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  color: white;
+  font-size: 20px;
+}
+
+.resource-info {
+  flex: 1;
+}
+
+.resource-name {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #606266;
+}
+
+.resource-value {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 5px;
+  color: #303133;
 }
 </style> 

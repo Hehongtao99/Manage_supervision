@@ -44,4 +44,16 @@ export const exportMonitorReport = (params: MonitorDataQuery) => {
  */
 export const markAnomalyAsResolved = (id: number) => {
   return axios.post(`/api/data-monitor/anomaly/${id}/resolve`);
+};
+
+/**
+ * 上报异常数据
+ */
+export const reportAnomalyData = (data: {
+  monitorDataId: number;
+  title: string;
+  description?: string;
+  severity: number;
+}) => {
+  return axios.post('/api/data-report/submit', data);
 }; 

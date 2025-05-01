@@ -603,7 +603,7 @@ import {
   deleteTaskEvaluation,
   type TaskEvaluation
 } from '../../api/task';
-import { getStudents } from '../../api/student';
+import { getStudents } from '../../api/user';
 import type { Student } from '../../api/user';
 
 const userStore = useUserStore();

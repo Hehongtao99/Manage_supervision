@@ -1,7 +1,7 @@
 <template>
   <div class="student-management">
     <div class="page-header">
-      <h2>学生管理</h2>
+      <h2>用户管理</h2>
     </div>
 
     <!-- 搜索栏 -->
@@ -10,7 +10,7 @@
         <el-form-item label="搜索">
           <el-input
             v-model="searchForm.keyword"
-            placeholder="请输入学生姓名/用户名/学号"
+            placeholder="请输入用户姓名/用户名/用户编号"
             clearable
             @keyup.enter="handleSearch"
           />
@@ -26,7 +26,7 @@
       </el-form>
     </el-card>
 
-    <!-- 学生列表 -->
+    <!-- 用户列表 -->
     <el-card class="list-card">
       <el-table
         v-loading="loading"
@@ -36,7 +36,7 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="userNumber" label="学号" width="120" />
+        <el-table-column prop="userNumber" label="用户编号" width="120" />
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="realName" label="姓名" width="120" />
         <el-table-column prop="email" label="邮箱" width="180" />
@@ -68,7 +68,7 @@
               @click="handleShowTeacher(row)"
               v-if="row.assignStatus"
             >
-              查看教师
+              查看安全分析师
             </el-button>
           </template>
         </el-table-column>
@@ -88,20 +88,20 @@
       </div>
     </el-card>
 
-    <!-- 学生教师信息对话框 -->
+    <!-- 用户安全分析师信息对话框 -->
     <el-dialog
-      title="分配教师信息"
+      title="分配安全分析师信息"
       v-model="teacherDialogVisible"
       width="500px"
     >
       <div v-if="selectedStudent && studentTeachers.length > 0" class="teacher-info">
-        <h3>{{ selectedStudent.realName || selectedStudent.username }} 的教师</h3>
+        <h3>{{ selectedStudent.realName || selectedStudent.username }} 的安全分析师</h3>
         
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="教师姓名">
+          <el-descriptions-item label="安全分析师姓名">
             {{ studentTeachers[0].realName || studentTeachers[0].username }}
           </el-descriptions-item>
-          <el-descriptions-item label="教师编号">
+          <el-descriptions-item label="安全分析师编号">
             {{ studentTeachers[0].userNumber }}
           </el-descriptions-item>
           <el-descriptions-item label="联系邮箱">
@@ -124,7 +124,7 @@
       </div>
       
       <div v-else class="empty-data">
-        该学生暂未分配教师
+        该用户暂未分配安全分析师
       </div>
     </el-dialog>
   </div>
@@ -137,8 +137,8 @@ import {
   Refresh
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getStudents } from '../../api/student'
-import { unassignStudent } from '../../api/teacher'
+import { getStudents } from '../../api/user'
+import { unassignStudent } from '../../api/securityAnalyst'
 import type { UserProfile } from '../../types/user'
 import axios from '../../utils/axios'
 
@@ -164,7 +164,7 @@ const fetchStudents = async () => {
     const response = await getStudents(currentPage.value, pageSize.value, searchForm.keyword)
     const students = response.content
     
-    // 获取学生分配状态
+    // 获取用户分配状态
     await Promise.all(students.map(async (student: any) => {
       try {
         const teachersResponse = await axios.get(`/api/admin/teachers/student/${student.id}`)
@@ -177,7 +177,7 @@ const fetchStudents = async () => {
     studentList.value = students
     total.value = response.total
   } catch (error) {
-    ElMessage.error('获取学生列表失败')
+    ElMessage.error('获取用户列表失败')
   } finally {
     loading.value = false
   }
@@ -211,7 +211,7 @@ const handleShowTeacher = async (student: UserProfile) => {
     const response = await axios.get(`/api/admin/teachers/student/${student.id}`)
     studentTeachers.value = response.data
   } catch (error) {
-    ElMessage.error('获取教师信息失败')
+    ElMessage.error('获取安全分析师信息失败')
     studentTeachers.value = []
   }
 }
@@ -221,7 +221,7 @@ const handleUnassignStudent = async () => {
   
   try {
     await ElMessageBox.confirm(
-      `确定要取消 ${selectedStudent.value.realName || selectedStudent.value.username} 与教师的分配关系吗？`,
+      `确定要取消 ${selectedStudent.value.realName || selectedStudent.value.username} 与安全分析师的分配关系吗？`,
       '提示',
       {
         confirmButtonText: '确定',

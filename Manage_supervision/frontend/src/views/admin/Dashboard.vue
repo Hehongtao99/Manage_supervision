@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { User, UserFilled, Avatar } from '@element-plus/icons-vue'
 
 const statistics = ref({
   totalUsers: 0,
   activeUsers: 0,
-  totalRoles: 0,
+  totalAnalysts: 0,
   systemHealth: '正常'
 })
 
@@ -29,8 +30,8 @@ onMounted(async () => {
       </div>
       
       <div class="stat-card">
-        <h3>角色数量</h3>
-        <div class="stat-value">{{ statistics.totalRoles }}</div>
+        <h3>安全分析师数量</h3>
+        <div class="stat-value">{{ statistics.totalAnalysts }}</div>
       </div>
       
       <div class="stat-card">
@@ -40,8 +41,22 @@ onMounted(async () => {
     </div>
 
     <div class="dashboard-section">
-      <h2>最近活动</h2>
-      <p class="placeholder-text">暂无活动记录</p>
+      <h2>用户管理快捷入口</h2>
+      <div class="quick-links">
+        <router-link to="/admin/students" class="quick-link-card">
+          <div class="icon-container">
+            <el-icon><Avatar /></el-icon>
+          </div>
+          <div class="link-text">用户管理</div>
+        </router-link>
+        
+        <router-link to="/admin/teachers" class="quick-link-card">
+          <div class="icon-container">
+            <el-icon><UserFilled /></el-icon>
+          </div>
+          <div class="link-text">安全分析师管理</div>
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -88,6 +103,7 @@ onMounted(async () => {
   padding: 24px;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
 }
 
 .dashboard-section h2 {
@@ -95,9 +111,48 @@ onMounted(async () => {
   font-size: 18px;
 }
 
-.placeholder-text {
-  color: #999;
-  text-align: center;
-  padding: 32px 0;
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.quick-link-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.quick-link-card:hover {
+  background-color: #ecf5ff;
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  background-color: #409EFF;
+  border-radius: 50%;
+  margin-bottom: 12px;
+}
+
+.icon-container .el-icon {
+  font-size: 30px;
+  color: white;
+}
+
+.link-text {
+  font-size: 16px;
+  font-weight: 500;
 }
 </style> 

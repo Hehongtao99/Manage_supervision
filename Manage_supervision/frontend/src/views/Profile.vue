@@ -145,7 +145,7 @@
           :type="role === 'ADMIN' ? 'danger' : 'success'"
           class="role-tag"
         >
-          {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+          {{ role === 'USER' ? '用户' : role === 'ADMIN' ? '管理员' : '安全分析师' }}
         </el-tag>
       </div>
     </el-card>
@@ -182,7 +182,7 @@ onMounted(async () => {
     const success = await userStore.fetchUserInfo(true)
     
     if (success) {
-      console.log('用户信息已更新，学号:', userStore.user.userNumber)
+      console.log('用户信息已更新，用户编号:', userStore.user.userNumber)
       
       // 更新表单数据
       form.realName = userStore.user.realName || ''

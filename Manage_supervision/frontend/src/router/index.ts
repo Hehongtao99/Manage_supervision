@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: BaseLayout,
-    redirect: '/chat',
+    redirect: '/data-monitor',
     children: [
       {
         path: 'profile',
@@ -36,15 +36,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/Settings.vue'),
         meta: {
           title: '账号设置',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'chat',
-        name: 'Chat',
-        component: () => import('../views/chat/ChatPage.vue'),
-        meta: {
-          title: '聊天',
           requiresAuth: true
         }
       },
@@ -115,21 +106,11 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'users',
-        name: 'UserManagement',
-        component: () => import('../views/admin/UserManagement.vue'),
-        meta: { 
-          title: '用户管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
         path: 'teachers',
         name: 'TeacherManagement',
         component: () => import('../views/admin/TeacherManagement.vue'),
         meta: { 
-          title: '教师管理',
+          title: '安全分析师管理',
           requiresAuth: true,
           requiresAdmin: true
         }
@@ -139,27 +120,7 @@ const routes: RouteRecordRaw[] = [
         name: 'AdminStudentManagement',
         component: () => import('../views/admin/StudentManagement.vue'),
         meta: { 
-          title: '学生管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
-        path: 'roles',
-        name: 'RoleManagement',
-        component: () => import('../views/admin/RoleManagement.vue'),
-        meta: { 
-          title: '角色管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
-        path: 'logs',
-        name: 'SystemLogs',
-        component: () => import('../views/admin/SystemLogs.vue'),
-        meta: { 
-          title: '系统日志',
+          title: '用户管理',
           requiresAuth: true,
           requiresAdmin: true
         }
@@ -180,7 +141,7 @@ const routes: RouteRecordRaw[] = [
         name: 'StudentManagement',
         component: () => import('../views/supervisor/StudentManagement.vue'),
         meta: { 
-          title: '学生管理',
+          title: '用户管理',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -190,17 +151,17 @@ const routes: RouteRecordRaw[] = [
         name: 'SupervisorProfile',
         component: () => import('../views/supervisor/Profile.vue'),
         meta: { 
-          title: '教师信息',
+          title: '安全分析师信息',
           requiresAuth: true,
           requiresSupervisor: true
         }
       },
       {
-        path: 'chat',
-        name: 'SupervisorChat',
-        component: () => import('../views/chat/ChatPage.vue'),
+        path: 'feedback',
+        name: 'FeedbackManagement',
+        component: () => import('../views/supervisor/FeedbackManagement.vue'),
         meta: {
-          title: '聊天',
+          title: '问题反馈',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -298,14 +259,14 @@ router.beforeEach(async (to, from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/chat')
+      next('/data-monitor')
       return
     }
     
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
       console.log('需要教师权限，但用户不是教师，重定向到首页')
-      next('/chat')
+      next('/data-monitor')
       return
     }
   }

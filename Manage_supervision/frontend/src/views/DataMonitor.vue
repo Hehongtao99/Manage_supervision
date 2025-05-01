@@ -117,13 +117,13 @@
           <el-table-column prop="source" label="来源" width="120" />
           <el-table-column label="操作">
             <template #default="scope">
-              <el-button 
-                v-if="scope.row.isAnomaly && !scope.row.resolved"
-                type="primary" 
-                size="small" 
-                @click="markAsResolved(scope.row)"
+              <el-button
+                v-if="scope.row.isAnomaly"
+                type="warning"
+                size="small"
+                @click="reportAnomaly(scope.row)"
               >
-                标记已处理
+                上报异常
               </el-button>
               <el-button
                 type="info"
@@ -159,14 +159,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   getUserMonitorData, 
   getMonitorStats, 
-  markAnomalyAsResolved,
-  exportMonitorReport
+  exportMonitorReport,
+  reportAnomalyData
 } from '../api/dataMonitor'
 import { format } from 'date-fns'
 
 // 状态变量
 const loading = ref(false)
-const tableData = ref([])
+const tableData = ref<any[]>([])
 const stats = ref({
   totalRecords: 0,
   anomalyCount: 0,
@@ -261,21 +261,6 @@ const exportData = async () => {
   }
 }
 
-// 标记为已处理
-const markAsResolved = async (row) => {
-  try {
-    await markAnomalyAsResolved(row.id)
-    ElMessage.success('已标记为已处理')
-    
-    // 刷新数据
-    row.resolved = true
-    fetchStats()
-  } catch (error) {
-    console.error('标记失败:', error)
-    ElMessage.error('标记失败')
-  }
-}
-
 // 显示详情
 const showDetails = (row) => {
   ElMessageBox.alert(
@@ -337,11 +322,91 @@ const formatDateForBackend = (date) => {
   if (!date) return null
   return format(date, 'yyyy-MM-dd\'T\'HH:mm:ss')
 }
+
+// 上报异常数据
+const reportAnomaly = (row) => {
+  ElMessageBox.prompt(
+    '请输入上报标题',
+    '上报异常数据',
+    {
+      confirmButtonText: '下一步',
+      cancelButtonText: '取消',
+      inputValidator: (value) => {
+        if (!value) {
+          return '标题不能为空';
+        }
+        return true;
+      },
+    }
+  ).then(({ value: title }) => {
+    ElMessageBox.prompt(
+      '请输入详细描述（可选）',
+      '上报异常数据',
+      {
+        confirmButtonText: '下一步',
+        cancelButtonText: '返回',
+        inputType: 'textarea',
+      }
+    ).then(({ value: description }) => {
+      // 选择严重程度
+      ElMessageBox.prompt(
+        '请选择严重程度',
+        '上报异常数据',
+        {
+          confirmButtonText: '提交',
+          cancelButtonText: '返回',
+          inputType: 'select',
+          inputPlaceholder: '请选择',
+          inputValue: 2,
+          inputPattern: /^[1-3]$/,
+          inputErrorMessage: '请选择有效的严重程度',
+          inputOptions: [
+            {
+              label: '低 - 不影响系统正常运行',
+              value: 1
+            },
+            {
+              label: '中 - 部分功能受影响',
+              value: 2
+            },
+            {
+              label: '高 - 系统稳定性严重受损',
+              value: 3
+            }
+          ]
+        }
+      ).then(({ value: severityStr }) => {
+        const severity = parseInt(severityStr);
+        
+        // 提交上报
+        reportAnomalyData({
+          monitorDataId: row.id,
+          title,
+          description,
+          severity
+        }).then(() => {
+          ElMessage.success('上报成功');
+        }).catch(error => {
+          console.error('上报失败:', error);
+          ElMessage.error('上报失败');
+        });
+      }).catch(() => {
+        // 用户取消
+      });
+    }).catch(() => {
+      // 用户取消
+    });
+  }).catch(() => {
+    // 用户取消
+  });
+};
 </script>
 
 <style scoped>
 .data-monitor-container {
   padding: 20px;
+  height: calc(100vh - 110px); /* Adjust based on your layout's header/navbar height */
+  overflow-y: auto;
 }
 
 .monitor-card {

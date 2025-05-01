@@ -3,11 +3,11 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <span>学生管理</span>
+          <span>用户管理</span>
           <div class="search-container">
             <el-input
               v-model="searchQuery"
-              placeholder="搜索学生..."
+              placeholder="搜索用户..."
               class="search-input"
               clearable
               @input="handleSearch"
@@ -34,7 +34,7 @@
             {{ scope.row.realName || scope.row.name || scope.row.username }}
           </template>
         </el-table-column>
-        <el-table-column prop="userNumber" label="学号" width="140" />
+        <el-table-column prop="userNumber" label="用户编号" width="140" />
         <el-table-column prop="email" label="邮箱" width="200" />
         <el-table-column prop="phone" label="电话" width="130" />
         <el-table-column label="状态" width="100">
@@ -74,10 +74,10 @@
       </div>
     </el-card>
     
-    <!-- 学生详情对话框 -->
+    <!-- 用户详情对话框 -->
     <el-dialog
       v-model="detailsDialogVisible"
-      title="学生详情"
+      title="用户详情"
       width="60%"
       destroy-on-close
       class="student-detail-dialog"
@@ -91,7 +91,7 @@
           </div>
           <div class="student-main-info">
             <h2>{{ currentStudent.realName || currentStudent.name || currentStudent.username }}</h2>
-            <div class="student-id">学号: {{ currentStudent.userNumber }}</div>
+            <div class="student-id">用户编号: {{ currentStudent.userNumber }}</div>
           </div>
         </div>
 
@@ -100,7 +100,7 @@
         <el-descriptions :column="2" border>
           <el-descriptions-item label="用户名">{{ currentStudent.username }}</el-descriptions-item>
           <el-descriptions-item label="真实姓名">{{ currentStudent.realName }}</el-descriptions-item>
-          <el-descriptions-item label="学号">{{ currentStudent.userNumber }}</el-descriptions-item>
+          <el-descriptions-item label="用户编号">{{ currentStudent.userNumber }}</el-descriptions-item>
           <el-descriptions-item label="昵称">{{ currentStudent.nickname || '未设置' }}</el-descriptions-item>
           <el-descriptions-item label="电话">{{ currentStudent.phone || '未设置' }}</el-descriptions-item>
           <el-descriptions-item label="邮箱">{{ currentStudent.email || '未设置' }}</el-descriptions-item>
@@ -145,7 +145,7 @@ import {
   Delete,
   Lock
 } from '@element-plus/icons-vue';
-import { getStudents, getStudentDetail, updateStudentStatus, deleteStudent, getAssignedStudents } from '../../api/student';
+import { getStudents, getStudentDetail, updateStudentStatus, deleteStudent, getAssignedStudents } from '../../api/user';
 import type { Student } from '../../api/user';
 import { useRouter } from 'vue-router';
 
@@ -166,41 +166,41 @@ onMounted(() => {
   fetchStudents();
 });
 
-// 获取学生数据
+// 获取用户数据
 const fetchStudents = async () => {
   loading.value = true;
   try {
     const data = await getAssignedStudents();
-    console.log('获取的学生数据:', JSON.stringify(data));
+    console.log('获取的用户数据:', JSON.stringify(data));
     
     if (Array.isArray(data)) {
-      console.log('第一条学生数据:', data.length > 0 ? JSON.stringify(data[0]) : '无数据');
+      console.log('第一条用户数据:', data.length > 0 ? JSON.stringify(data[0]) : '无数据');
       students.value = data;
       totalStudents.value = data.length;
       if (data.length > 0) {
-        ElMessage.success('成功获取学生数据');
+        ElMessage.success('成功获取用户数据');
       } else {
-        ElMessage.info('暂无分配的学生');
+        ElMessage.info('暂无分配的用户');
       }
     } else if (data && typeof data === 'object' && Array.isArray(data.content)) {
-      console.log('分页学生数据第一条:', data.content.length > 0 ? JSON.stringify(data.content[0]) : '无数据');
+      console.log('分页用户数据第一条:', data.content.length > 0 ? JSON.stringify(data.content[0]) : '无数据');
       // 处理分页响应格式
       students.value = data.content;
       totalStudents.value = data.totalElements || data.content.length;
       if (data.content.length > 0) {
-        ElMessage.success('成功获取学生数据');
+        ElMessage.success('成功获取用户数据');
       } else {
-        ElMessage.info('暂无分配的学生');
+        ElMessage.info('暂无分配的用户');
       }
     } else {
-      console.error('返回的学生数据格式不正确:', data);
-      ElMessage.warning('获取的学生数据格式不正确');
+      console.error('返回的用户数据格式不正确:', data);
+      ElMessage.warning('获取的用户数据格式不正确');
       students.value = [];
       totalStudents.value = 0;
     }
   } catch (error) {
-    console.error('获取学生数据失败:', error);
-    ElMessage.error('获取学生数据失败，请稍后重试');
+    console.error('获取用户数据失败:', error);
+    ElMessage.error('获取用户数据失败，请稍后重试');
     students.value = [];
     totalStudents.value = 0;
   } finally {
@@ -208,10 +208,10 @@ const fetchStudents = async () => {
   }
 };
 
-// 根据搜索过滤学生
+// 根据搜索过滤用户
 const filteredStudents = computed(() => {
   if (!Array.isArray(students.value)) {
-    console.warn('学生数据不是数组:', students.value);
+    console.warn('用户数据不是数组:', students.value);
     return [];
   }
   
@@ -250,12 +250,12 @@ const handleCurrentChange = (newPage: number) => {
 const viewStudentDetails = async (student: Student) => {
   try {
     loading.value = true;
-    console.log('查看学生详情, ID:', student.id);
+    console.log('查看用户详情, ID:', student.id);
     
     try {
-      // 获取学生详细信息
+      // 获取用户详细信息
       const detailedStudent = await getStudentDetail(student.id);
-      console.log('获取到的详细学生信息:', detailedStudent);
+      console.log('获取到的详细用户信息:', detailedStudent);
       
       // 确保所有必要的字段都存在
       const processedStudent = {
@@ -276,8 +276,8 @@ const viewStudentDetails = async (student: Student) => {
       currentStudent.value = processedStudent;
       detailsDialogVisible.value = true;
     } catch (error) {
-      // 如果getStudentDetail失败，直接使用表格中的学生数据显示详情
-      console.log('使用当前学生数据作为详情:', student);
+      // 如果getStudentDetail失败，直接使用表格中的用户数据显示详情
+      console.log('使用当前用户数据作为详情:', student);
       currentStudent.value = {
         ...student,
         realName: student.realName || student.name || '',
@@ -287,8 +287,8 @@ const viewStudentDetails = async (student: Student) => {
       detailsDialogVisible.value = true;
     }
   } catch (error) {
-    console.error('获取学生详情失败:', error);
-    ElMessage.error('获取学生详情失败');
+    console.error('获取用户详情失败:', error);
+    ElMessage.error('获取用户详情失败');
   } finally {
     loading.value = false;
   }
@@ -300,18 +300,18 @@ const toggleStudentStatus = async (student: Student) => {
     const success = await updateStudentStatus(student.id, newStatus);
     
     if (success) {
-      ElMessage.success(`学生${student.name}状态已${newStatus === 'active' ? '启用' : '禁用'}`);
+      ElMessage.success(`用户${student.name}状态已${newStatus === 'active' ? '启用' : '禁用'}`);
       // 更新本地数据
       const index = students.value.findIndex(s => s.id === student.id);
       if (index !== -1) {
         students.value[index].status = newStatus;
       }
     } else {
-      ElMessage.error('更新学生状态失败');
+      ElMessage.error('更新用户状态失败');
     }
   } catch (error) {
-    console.error('更新学生状态失败:', error);
-    ElMessage.error('更新学生状态失败');
+    console.error('更新用户状态失败:', error);
+    ElMessage.error('更新用户状态失败');
   }
 };
 
@@ -320,16 +320,16 @@ const deleteStudentUser = async (student: Student) => {
     const success = await deleteStudent(student.id);
     
     if (success) {
-      ElMessage.success(`学生${student.name}已删除`);
+      ElMessage.success(`用户${student.name}已删除`);
       // 从本地数据中移除
       students.value = students.value.filter(s => s.id !== student.id);
       totalStudents.value = students.value.length;
     } else {
-      ElMessage.error('删除学生失败');
+      ElMessage.error('删除用户失败');
     }
   } catch (error) {
-    console.error('删除学生失败:', error);
-    ElMessage.error('删除学生失败');
+    console.error('删除用户失败:', error);
+    ElMessage.error('删除用户失败');
   }
 };
 

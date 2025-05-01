@@ -773,9 +773,9 @@ import {
   getTaskSubmissions,
   type TaskSubmission
 } from '../../api/task';
-import { getStudents } from '../../api/student';
+import { getStudents } from '../../api/user';
 import type { FormInstance, FormRules } from 'element-plus';
-import type { StudentDTO } from '../../api/student';
+import type { Student } from '../../api/user';
 
 const userStore = useUserStore();
 
@@ -796,7 +796,7 @@ const startTime = ref<string | null>(null);
 const endTime = ref<string | null>(null);
 const assignDialogVisible = ref<boolean>(false);
 const selectedStudentId = ref<number | null>(null);
-const students = ref<StudentDTO[]>([]);
+const students = ref<Student[]>([]);
 const projectToAssign = ref<Project | null>(null);
 const projectFormRef = ref<FormInstance>();
 const studentsLoading = ref(false);
