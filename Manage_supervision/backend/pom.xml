@@ -75,6 +75,25 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        
+        <!-- Apache POI - Excel 处理 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        
+        <!-- OSHI - 系统硬件信息 -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>6.4.0</version>
+        </dependency>
     </dependencies>
 
     <build>

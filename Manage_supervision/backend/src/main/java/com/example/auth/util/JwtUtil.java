@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtUtil {
@@ -107,5 +108,18 @@ public class JwtUtil {
             System.err.println("解析Token中的userId时发生错误: " + e.getMessage());
             return null;
         }
+    }
+    
+    /**
+     * 从HTTP请求中提取JWT令牌
+     * @param request HTTP请求
+     * @return 提取的令牌，如果没有找到则返回null
+     */
+    public String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 } 

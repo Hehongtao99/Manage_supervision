@@ -47,6 +47,51 @@ const routes: RouteRecordRaw[] = [
           title: '聊天',
           requiresAuth: true
         }
+      },
+      {
+        path: 'resource/overview',
+        name: 'ResourceOverview',
+        component: () => import('../views/resource/Overview.vue'),
+        meta: {
+          title: '资源总览',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'resource/hosts',
+        name: 'ResourceHosts',
+        component: () => import('../views/resource/Hosts.vue'),
+        meta: {
+          title: '主机管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'resource/processes',
+        name: 'ResourceProcesses',
+        component: () => import('../views/resource/Processes.vue'),
+        meta: {
+          title: '进程管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'data-monitor',
+        name: 'DataMonitor',
+        component: () => import('../views/student/DataMonitor.vue'),
+        meta: {
+          title: '数据监控分析',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'api-endpoints',
+        name: 'ApiEndpoints',
+        component: () => import('../views/ApiEndpointView.vue'),
+        meta: {
+          title: '服务接口检测',
+          requiresAuth: true
+        }
       }
     ]
   },
@@ -158,6 +203,42 @@ const routes: RouteRecordRaw[] = [
           title: '聊天',
           requiresAuth: true,
           requiresSupervisor: true
+        }
+      }
+    ]
+  },
+  {
+    path: '/intrusion-detection',
+    component: BaseLayout,
+    meta: { 
+      requiresAuth: true 
+    },
+    children: [
+      {
+        path: '',
+        name: 'IntrusionDetection',
+        component: () => import('../views/IntrusionDetection.vue'),
+        meta: { 
+          title: '入侵检测',
+          requiresAuth: true 
+        }
+      }
+    ]
+  },
+  {
+    path: '/data-monitor',
+    component: BaseLayout,
+    meta: { 
+      requiresAuth: true 
+    },
+    children: [
+      {
+        path: '',
+        name: 'DataMonitor',
+        component: () => import('../views/DataMonitor.vue'),
+        meta: { 
+          title: '数据监控分析',
+          requiresAuth: true 
         }
       }
     ]

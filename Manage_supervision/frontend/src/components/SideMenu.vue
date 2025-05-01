@@ -46,6 +46,13 @@
           <span>学生管理</span>
         </el-menu-item>
       </el-sub-menu>
+
+      <el-menu-item index="/api-endpoints" @click="handleRoute('/api-endpoints')">
+        <el-icon><Connection /></el-icon>
+        <template #title>
+          <span>服务接口检测</span>
+        </template>
+      </el-menu-item>
     </template>
 
     <!-- 督导员菜单 -->
@@ -81,6 +88,46 @@
         </template>
       </el-menu-item>
 
+      <el-sub-menu index="resource-management">
+        <template #title>
+          <el-icon><Cpu /></el-icon>
+          <span>资源管理</span>
+        </template>
+        <el-menu-item index="/resource/overview" @click="handleRoute('/resource/overview')">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>资源总览</span>
+        </el-menu-item>
+        <el-menu-item index="/resource/hosts" @click="handleRoute('/resource/hosts')">
+          <el-icon><Monitor /></el-icon>
+          <span>主机管理</span>
+        </el-menu-item>
+        <el-menu-item index="/resource/processes" @click="handleRoute('/resource/processes')">
+          <el-icon><List /></el-icon>
+          <span>进程管理</span>
+        </el-menu-item>
+      </el-sub-menu>
+
+      <el-menu-item index="/intrusion-detection" @click="handleRoute('/intrusion-detection')">
+        <el-icon><AlarmClock /></el-icon>
+        <template #title>
+          <span>入侵检测</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/data-monitor" @click="handleRoute('/data-monitor')">
+        <el-icon><Warning /></el-icon>
+        <template #title>
+          <span>数据监控分析</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/api-endpoints" @click="handleRoute('/api-endpoints')">
+        <el-icon><Connection /></el-icon>
+        <template #title>
+          <span>服务接口检测</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
@@ -106,7 +153,12 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Cpu,
+  Warning,
+  AlarmClock,
+  Connection,
+  DataAnalysis
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
