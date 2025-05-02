@@ -1,5 +1,8 @@
 package com.example.auth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.dto.PageResponse;
 import com.example.auth.dto.TeacherStudentDTO;
 import com.example.auth.dto.TeacherWithStudentsDTO;
@@ -7,14 +10,11 @@ import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.TeacherStudentRelation;
 import com.example.auth.entity.User;
-import com.example.auth.repository.RoleRepository;
-import com.example.auth.repository.TeacherStudentRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.mapper.RoleMapper;
+import com.example.auth.mapper.TeacherStudentMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.service.TeacherStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,83 +22,101 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleMapper roleMapper;
 
     @Autowired
-    private TeacherStudentRepository teacherStudentRepository;
+    private TeacherStudentMapper teacherStudentMapper;
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public PageResponse<UserDTO> getAllTeachers(int page, int size, String keyword) {
         // 获取教师角色
-        Role teacherRole = roleRepository.findByName("SUPERVISOR");
+        Role teacherRole = roleMapper.findByName("SUPERVISOR");
         if (teacherRole == null) {
             throw new RuntimeException("教师角色不存在");
         }
         
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<User> teachers;
+        // 创建MyBatis-Plus分页对象，注意MyBatis-Plus是从0开始
+        Page<User> pageParam = new Page<>(page - 1, size);
         
+        // 使用UserMapper中的方法进行分页查询
+        IPage<User> resultPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            teachers = userRepository.findByRolesContainingAndUsernameContainingOrRealNameContaining(
-                    teacherRole, keyword, keyword, pageable);
+            resultPage = userMapper.findByConditions(
+                    pageParam, 
+                    keyword, 
+                    "SUPERVISOR", 
+                    null);
         } else {
-            teachers = userRepository.findByRolesContaining(teacherRole, pageable);
+            resultPage = userMapper.findByRoleIdPage(pageParam, teacherRole.getId());
         }
         
-        List<UserDTO> teacherDTOs = teachers.getContent().stream()
+        List<UserDTO> teacherDTOs = resultPage.getRecords().stream()
                 .map(this::convertToUserDTO)
                 .collect(Collectors.toList());
         
-        return new PageResponse<>(teacherDTOs, teachers.getTotalElements(), page, size);
+        return new PageResponse<>(teacherDTOs, resultPage.getTotal(), page, size);
     }
 
     @Override
     public PageResponse<UserDTO> getAllStudents(int page, int size, String keyword) {
         // 获取学生角色
-        Role studentRole = roleRepository.findByName("USER");
+        Role studentRole = roleMapper.findByName("USER");
         if (studentRole == null) {
             throw new RuntimeException("学生角色不存在");
         }
         
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<User> students;
+        // 创建MyBatis-Plus分页对象
+        Page<User> pageParam = new Page<>(page - 1, size);
         
+        // 使用UserMapper中的方法进行分页查询
+        IPage<User> resultPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            students = userRepository.findByRolesContainingAndUsernameContainingOrRealNameContaining(
-                    studentRole, keyword, keyword, pageable);
+            resultPage = userMapper.findByConditions(
+                    pageParam, 
+                    keyword, 
+                    "USER", 
+                    null);
         } else {
-            students = userRepository.findByRolesContaining(studentRole, pageable);
+            resultPage = userMapper.findByRoleIdPage(pageParam, studentRole.getId());
         }
         
-        List<UserDTO> studentDTOs = students.getContent().stream()
+        List<UserDTO> studentDTOs = resultPage.getRecords().stream()
                 .map(this::convertToUserDTO)
                 .collect(Collectors.toList());
         
-        return new PageResponse<>(studentDTOs, students.getTotalElements(), page, size);
+        return new PageResponse<>(studentDTOs, resultPage.getTotal(), page, size);
     }
 
     @Override
     public List<UserDTO> getUnassignedStudents() {
         // 获取学生角色ID
-        Role studentRole = roleRepository.findByName("USER");
+        Role studentRole = roleMapper.findByName("USER");
         if (studentRole == null) {
             throw new RuntimeException("学生角色不存在");
         }
         
-        // 查询未分配给任何教师的学生
-        List<User> unassignedStudents = teacherStudentRepository.findUnassignedStudentsByRoleId(studentRole.getId());
+        // 查询未分配给任何教师的学生ID
+        List<Long> unassignedStudentIds = teacherStudentMapper.findUnassignedStudentIdsByRoleId(studentRole.getId());
+        
+        if (unassignedStudentIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 根据ID查询学生详细信息
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(User::getId, unassignedStudentIds);
+        List<User> unassignedStudents = userMapper.selectList(queryWrapper);
         
         return unassignedStudents.stream()
                 .map(this::convertToUserDTO)
@@ -107,42 +125,55 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Override
     public List<UserDTO> getStudentsByTeacher(Long teacherId) {
-        Optional<User> optionalTeacher = userRepository.findById(teacherId);
-        if (optionalTeacher.isPresent()) {
-            User teacher = optionalTeacher.get();
-            List<User> students = teacherStudentRepository.findActiveStudentsByTeacher(teacher);
-            
-            return students.stream()
-                    .map(this::convertToUserDTO)
-                    .collect(Collectors.toList());
+        User teacher = userMapper.selectById(teacherId);
+        if (teacher == null) {
+            return new ArrayList<>();
         }
-        return new ArrayList<>();
+        
+        // 获取该教师的所有活跃学生ID
+        List<Long> studentIds = teacherStudentMapper.findActiveStudentIdsByTeacherId(teacherId);
+        
+        if (studentIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 查询学生详细信息
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(User::getId, studentIds);
+        List<User> students = userMapper.selectList(queryWrapper);
+        
+        return students.stream()
+                .map(this::convertToUserDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public boolean assignStudentsToTeacher(Long teacherId, List<Long> studentIds) {
-        Optional<User> optionalTeacher = userRepository.findById(teacherId);
-        if (!optionalTeacher.isPresent()) {
+        User teacher = userMapper.selectById(teacherId);
+        if (teacher == null) {
             return false;
         }
         
-        User teacher = optionalTeacher.get();
-        List<User> students = userRepository.findAllById(studentIds);
+        // 验证所有学生ID是否有效
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(User::getId, studentIds);
+        long count = userMapper.selectCount(queryWrapper);
         
-        if (students.isEmpty() || students.size() != studentIds.size()) {
+        if (count != studentIds.size()) {
             return false;
         }
         
-        for (User student : students) {
+        for (Long studentId : studentIds) {
             // 检查该学生是否已分配给教师
-            if (!teacherStudentRepository.existsByTeacherAndStudent(teacher, student)) {
+            boolean exists = teacherStudentMapper.existsByTeacherIdAndStudentId(teacherId, studentId);
+            if (!exists) {
                 TeacherStudentRelation relation = new TeacherStudentRelation();
-                relation.setTeacher(teacher);
-                relation.setStudent(student);
+                relation.setTeacherId(teacherId);
+                relation.setStudentId(studentId);
                 relation.setStatus("active");
                 relation.setAssignTime(LocalDateTime.now());
-                teacherStudentRepository.save(relation);
+                teacherStudentMapper.insert(relation);
             }
         }
         
@@ -152,23 +183,20 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
     @Override
     @Transactional
     public boolean unassignStudent(Long teacherId, Long studentId) {
-        Optional<User> optionalTeacher = userRepository.findById(teacherId);
-        Optional<User> optionalStudent = userRepository.findById(studentId);
+        // 检查教师和学生是否存在
+        User teacher = userMapper.selectById(teacherId);
+        User student = userMapper.selectById(studentId);
         
-        if (!optionalTeacher.isPresent() || !optionalStudent.isPresent()) {
+        if (teacher == null || student == null) {
             return false;
         }
         
-        User teacher = optionalTeacher.get();
-        User student = optionalStudent.get();
+        // 查询关系记录
+        TeacherStudentRelation relation = teacherStudentMapper.findByTeacherIdAndStudentId(teacherId, studentId);
         
-        Optional<TeacherStudentRelation> optionalRelation = 
-                teacherStudentRepository.findByTeacherAndStudent(teacher, student);
-        
-        if (optionalRelation.isPresent()) {
-            TeacherStudentRelation relation = optionalRelation.get();
+        if (relation != null) {
             relation.setStatus("inactive");
-            teacherStudentRepository.save(relation);
+            teacherStudentMapper.updateById(relation);
             return true;
         }
         
@@ -177,13 +205,21 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Override
     public TeacherWithStudentsDTO getTeacherWithStudents(Long teacherId) {
-        Optional<User> optionalTeacher = userRepository.findById(teacherId);
-        if (!optionalTeacher.isPresent()) {
+        User teacher = userMapper.selectById(teacherId);
+        if (teacher == null) {
             return null;
         }
         
-        User teacher = optionalTeacher.get();
-        List<User> students = teacherStudentRepository.findActiveStudentsByTeacher(teacher);
+        // 获取该教师的所有活跃学生ID
+        List<Long> studentIds = teacherStudentMapper.findActiveStudentIdsByTeacherId(teacherId);
+        
+        // 查询学生详细信息
+        List<User> students = new ArrayList<>();
+        if (!studentIds.isEmpty()) {
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.in(User::getId, studentIds);
+            students = userMapper.selectList(queryWrapper);
+        }
         
         TeacherWithStudentsDTO dto = new TeacherWithStudentsDTO();
         dto.setId(teacher.getId());
@@ -201,31 +237,33 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Override
     public TeacherStudentDTO getRelationDetail(Long relationId) {
-        Optional<TeacherStudentRelation> optionalRelation = teacherStudentRepository.findById(relationId);
-        if (!optionalRelation.isPresent()) {
+        TeacherStudentRelation relation = teacherStudentMapper.selectById(relationId);
+        if (relation == null) {
             return null;
         }
         
-        TeacherStudentRelation relation = optionalRelation.get();
+        // 补充教师和学生信息
+        User teacher = userMapper.selectById(relation.getTeacherId());
+        User student = userMapper.selectById(relation.getStudentId());
+        
+        relation.setTeacher(teacher);
+        relation.setStudent(student);
+        
         return convertToTeacherStudentDTO(relation);
     }
 
     @Override
     public boolean isTeacherAssignedToStudent(Long teacherId, Long studentId) {
-        Optional<User> optionalTeacher = userRepository.findById(teacherId);
-        Optional<User> optionalStudent = userRepository.findById(studentId);
+        // 检查教师和学生是否存在
+        User teacher = userMapper.selectById(teacherId);
+        User student = userMapper.selectById(studentId);
         
-        if (!optionalTeacher.isPresent() || !optionalStudent.isPresent()) {
+        if (teacher == null || student == null) {
             return false;
         }
         
-        User teacher = optionalTeacher.get();
-        User student = optionalStudent.get();
-        
-        Optional<TeacherStudentRelation> optionalRelation = 
-                teacherStudentRepository.findByTeacherAndStudent(teacher, student);
-        
-        return optionalRelation.isPresent() && "active".equals(optionalRelation.get().getStatus());
+        // 查询是否存在活跃的师生关系
+        return teacherStudentMapper.existsByTeacherIdAndStudentId(teacherId, studentId);
     }
 
     private UserDTO convertToUserDTO(User user) {
@@ -238,29 +276,36 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         dto.setPhone(user.getPhone());
         dto.setStatus(user.getStatus());
         dto.setUserNumber(user.getUserNumber());
-        dto.setCreateTime(user.getCreateTime() != null ? 
-                user.getCreateTime().format(formatter) : null);
-        
-        List<String> roleNames = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toList());
-        dto.setRoles(roleNames);
-        
+        dto.setAvatar(user.getAvatar());
         return dto;
     }
 
     private TeacherStudentDTO convertToTeacherStudentDTO(TeacherStudentRelation relation) {
         TeacherStudentDTO dto = new TeacherStudentDTO();
         dto.setId(relation.getId());
-        dto.setTeacherId(relation.getTeacher().getId());
-        dto.setTeacherName(relation.getTeacher().getRealName());
-        dto.setTeacherUserNumber(relation.getTeacher().getUserNumber());
-        dto.setStudentId(relation.getStudent().getId());
-        dto.setStudentName(relation.getStudent().getRealName());
-        dto.setStudentUserNumber(relation.getStudent().getUserNumber());
+        
+        if (relation.getTeacher() != null) {
+            dto.setTeacherId(relation.getTeacher().getId());
+            dto.setTeacherName(relation.getTeacher().getRealName() != null 
+                    ? relation.getTeacher().getRealName() 
+                    : relation.getTeacher().getUsername());
+        } else {
+            dto.setTeacherId(relation.getTeacherId());
+        }
+        
+        if (relation.getStudent() != null) {
+            dto.setStudentId(relation.getStudent().getId());
+            dto.setStudentName(relation.getStudent().getRealName() != null 
+                    ? relation.getStudent().getRealName() 
+                    : relation.getStudent().getUsername());
+        } else {
+            dto.setStudentId(relation.getStudentId());
+        }
+        
         dto.setStatus(relation.getStatus());
-        dto.setAssignTime(relation.getAssignTime() != null ? 
-                relation.getAssignTime().format(formatter) : null);
+        dto.setAssignTime(relation.getAssignTime() != null 
+                ? relation.getAssignTime().format(formatter) 
+                : null);
         
         return dto;
     }

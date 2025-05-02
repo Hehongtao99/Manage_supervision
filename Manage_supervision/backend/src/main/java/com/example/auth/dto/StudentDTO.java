@@ -15,6 +15,15 @@ public class StudentDTO implements Serializable {
     private String status; // 状态(active/inactive)
     private String lastLogin; // 最近登录时间
     private int progress; // 总体学习进度(0-100)
+    
+    // 添加在UserServiceImpl中使用的字段
+    private String username;
+    private String realName;
+    private String userNumber;
+    private String createTime;
+    private int attendanceRate;
+    private int homeworkCompleteRate;
+    private int averageScore;
 
     public StudentDTO() {
     }
@@ -104,5 +113,62 @@ public class StudentDTO implements Serializable {
 
     public void setProgress(int progress) {
         this.progress = progress;
+    }
+    
+    // 添加在UserServiceImpl中使用的getter和setter方法
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public String getUserNumber() {
+        return userNumber;
+    }
+
+    public void setUserNumber(String userNumber) {
+        this.userNumber = userNumber;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public int getAttendanceRate() {
+        return attendanceRate;
+    }
+
+    public void setAttendanceRate(int attendanceRate) {
+        this.attendanceRate = attendanceRate;
+    }
+
+    public int getHomeworkCompleteRate() {
+        return homeworkCompleteRate;
+    }
+
+    public void setHomeworkCompleteRate(int homeworkCompleteRate) {
+        this.homeworkCompleteRate = homeworkCompleteRate;
+    }
+
+    public int getAverageScore() {
+        return averageScore;
+    }
+
+    public void setAverageScore(int averageScore) {
+        this.averageScore = averageScore;
     }
 } 

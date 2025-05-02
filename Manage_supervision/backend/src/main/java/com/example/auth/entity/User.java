@@ -1,60 +1,43 @@
 package com.example.auth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Entity
-@Table(name = "users")
+@TableName("users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
     private String password;
 
-    @Column(name = "create_time")
+    @TableField("create_time")
     private LocalDateTime createTime;
 
-    @Column(name = "avatar")
     private String avatar;
     
-    @Column(name = "real_name")
+    @TableField("real_name")
     private String realName;
     
-    @Column(name = "nickname")
     private String nickname;
     
-    @Column(name = "email")
     private String email;
     
-    @Column(name = "phone")
     private String phone;
     
-    @Column(name = "bio", length = 500)
     private String bio;
     
-    @Column(name = "status")
     private String status;
     
-    @Column(name = "user_number", unique = true)
+    @TableField("user_number")
     private String userNumber;
 
-    @PrePersist
-    protected void onCreate() {
-        createTime = LocalDateTime.now();
-    }
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @TableField(exist = false)
     private Set<Role> roles;
 
     // Getters

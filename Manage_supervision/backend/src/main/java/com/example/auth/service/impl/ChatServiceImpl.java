@@ -1,52 +1,61 @@
 package com.example.auth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.dto.ChatMessageDTO;
 import com.example.auth.dto.ConversationDTO;
 import com.example.auth.entity.ChatMessage;
 import com.example.auth.entity.Conversation;
 import com.example.auth.entity.User;
-import com.example.auth.repository.ChatMessageRepository;
-import com.example.auth.repository.ConversationRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.mapper.ChatMessageMapper;
+import com.example.auth.mapper.ConversationMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.service.ChatService;
-import jakarta.transaction.Transactional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
 
-    private final ChatMessageRepository chatMessageRepository;
-    private final ConversationRepository conversationRepository;
-    private final UserRepository userRepository;
+    private final ChatMessageMapper chatMessageMapper;
+    private final ConversationMapper conversationMapper;
+    private final UserMapper userMapper;
     private final SimpMessagingTemplate messagingTemplate;
 
     public ChatServiceImpl(
-            ChatMessageRepository chatMessageRepository,
-            ConversationRepository conversationRepository,
-            UserRepository userRepository,
+            ChatMessageMapper chatMessageMapper,
+            ConversationMapper conversationMapper,
+            UserMapper userMapper,
             SimpMessagingTemplate messagingTemplate
     ) {
-        this.chatMessageRepository = chatMessageRepository;
-        this.conversationRepository = conversationRepository;
-        this.userRepository = userRepository;
+        this.chatMessageMapper = chatMessageMapper;
+        this.conversationMapper = conversationMapper;
+        this.userMapper = userMapper;
         this.messagingTemplate = messagingTemplate;
     }
 
     // 获取用户的所有会话
     @Override
     public List<ConversationDTO> getConversationsForUser(User currentUser) {
-        List<Conversation> conversations = conversationRepository.findByUserOrderByLastMessageTimeDesc(currentUser);
+        List<Conversation> conversations = conversationMapper.findByUserIdOrderByLastMessageTimeDesc(currentUser.getId());
+        
+        // 补充会话的用户信息
+        for (Conversation conversation : conversations) {
+            if (conversation.getUser1Id() != null) {
+                conversation.setUser1(userMapper.selectById(conversation.getUser1Id()));
+            }
+            if (conversation.getUser2Id() != null) {
+                conversation.setUser2(userMapper.selectById(conversation.getUser2Id()));
+            }
+        }
         
         return conversations.stream()
                 .map(conversation -> new ConversationDTO(conversation, currentUser))
@@ -57,24 +66,42 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public ConversationDTO getOrCreateConversation(User user1, User user2) {
-        Optional<Conversation> existingConversation = conversationRepository.findByUsers(user1, user2);
+        Conversation conversation = conversationMapper.findByUserIds(user1.getId(), user2.getId());
         
-        Conversation conversation;
-        if (existingConversation.isPresent()) {
-            conversation = existingConversation.get();
-        } else {
+        if (conversation == null) {
             conversation = new Conversation();
             conversation.setUser1(user1);
             conversation.setUser2(user2);
-            conversation = conversationRepository.save(conversation);
+            conversation.setCreatedTime(LocalDateTime.now());
+            conversation.setLastMessageTime(LocalDateTime.now());
+            conversationMapper.insert(conversation);
+        } else {
+            // 补充用户信息
+            conversation.setUser1(user1);
+            conversation.setUser2(user2);
         }
         
         // 获取最近的消息
-        Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "sentTime"));
-        Page<ChatMessage> messages = chatMessageRepository.findByConversationOrderBySentTimeDesc(conversation, pageable);
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<ChatMessage> page = 
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(1, 20);
         
-        List<ChatMessageDTO> messageDTOs = messages.getContent().stream()
-                .sorted((m1, m2) -> m1.getSentTime().compareTo(m2.getSentTime()))
+        LambdaQueryWrapper<ChatMessage> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatMessage::getConversationId, conversation.getId())
+                    .orderByDesc(ChatMessage::getSentTime)
+                    .last("LIMIT 20");
+        
+        List<ChatMessage> messages = chatMessageMapper.selectList(queryWrapper);
+        
+        // 补充发送者和接收者信息
+        for (ChatMessage message : messages) {
+            message.setSender(userMapper.selectById(message.getSenderId()));
+            message.setRecipient(userMapper.selectById(message.getRecipientId()));
+        }
+        
+        // 按发送时间排序
+        messages.sort(Comparator.comparing(ChatMessage::getSentTime));
+        
+        List<ChatMessageDTO> messageDTOs = messages.stream()
                 .map(ChatMessageDTO::new)
                 .collect(Collectors.toList());
         
@@ -113,14 +140,13 @@ public class ChatServiceImpl implements ChatService {
                 }
             }
             
-            // 查找发送者 - 增强错误处理和日志
-            Optional<User> senderOpt = userRepository.findById(senderId);
-            if (!senderOpt.isPresent()) {
+            // 查找发送者
+            User sender = userMapper.selectById(senderId);
+            if (sender == null) {
                 String errorMsg = "发送者不存在 (ID: " + senderId + ")";
                 System.err.println("发送消息失败: 找不到ID为 " + senderId + " 的发送者");
                 throw new RuntimeException(errorMsg);
             }
-            User sender = senderOpt.get();
             
             // 检查发送者状态
             if (!"active".equals(sender.getStatus())) {
@@ -132,13 +158,12 @@ public class ChatServiceImpl implements ChatService {
             System.out.println("已找到发送者: " + sender.getUsername() + " (ID: " + sender.getId() + ")");
             
             // 查找接收者
-            Optional<User> recipientOpt = userRepository.findById(recipientId);
-            if (!recipientOpt.isPresent()) {
+            User recipient = userMapper.selectById(recipientId);
+            if (recipient == null) {
                 String errorMsg = "接收者不存在 (ID: " + recipientId + ")";
                 System.err.println("发送消息失败: 找不到ID为 " + recipientId + " 的接收者");
                 throw new RuntimeException(errorMsg);
             }
-            User recipient = recipientOpt.get();
             
             // 检查接收者状态
             if (!"active".equals(recipient.getStatus())) {
@@ -151,27 +176,28 @@ public class ChatServiceImpl implements ChatService {
             
             // 获取或创建会话
             System.out.println("查找或创建会话");
-            Optional<Conversation> optionalConversation = conversationRepository.findByUsers(sender, recipient);
-            Conversation conversation;
+            Conversation conversation = conversationMapper.findByUserIds(senderId, recipientId);
             
-            if (optionalConversation.isPresent()) {
-                conversation = optionalConversation.get();
-                System.out.println("使用现有会话, ID: " + conversation.getId());
-            } else {
+            if (conversation == null) {
                 conversation = new Conversation();
-                conversation.setUser1(sender);
-                conversation.setUser2(recipient);
-                conversation = conversationRepository.save(conversation);
+                conversation.setUser1Id(senderId);
+                conversation.setUser2Id(recipientId);
+                conversation.setCreatedTime(LocalDateTime.now());
+                conversation.setLastMessageTime(LocalDateTime.now());
+                conversationMapper.insert(conversation);
                 System.out.println("已创建新会话, ID: " + conversation.getId());
+            } else {
+                System.out.println("使用现有会话, ID: " + conversation.getId());
             }
             
             // 创建消息
             ChatMessage message = new ChatMessage();
-            message.setSender(sender);
-            message.setRecipient(recipient);
+            message.setSenderId(senderId);
+            message.setRecipientId(recipientId);
+            message.setConversationId(conversation.getId());
             message.setContent(content);
             message.setRead(false);
-            message.setConversation(conversation);
+            message.setSentTime(LocalDateTime.now());
             
             // 设置文件相关信息（如果有）
             if (fileUrl != null) {
@@ -183,146 +209,187 @@ public class ChatServiceImpl implements ChatService {
             }
             
             // 保存消息
-            message = chatMessageRepository.save(message);
+            chatMessageMapper.insert(message);
             System.out.println("已保存消息, ID: " + message.getId());
             
             // 更新会话的未读消息数和最后消息时间
-            if (conversation.getUser1().equals(recipient)) {
+            if (conversation.getUser1Id().equals(recipientId)) {
                 conversation.setUnreadCountUser1(conversation.getUnreadCountUser1() + 1);
             } else {
                 conversation.setUnreadCountUser2(conversation.getUnreadCountUser2() + 1);
             }
             conversation.setLastMessageTime(message.getSentTime());
-            conversationRepository.save(conversation);
+            conversationMapper.updateById(conversation);
             System.out.println("已更新会话的未读消息数和最后消息时间");
+            
+            // 设置发送者和接收者引用，以便DTO可以访问用户信息
+            message.setSender(sender);
+            message.setRecipient(recipient);
             
             // 创建DTO
             ChatMessageDTO messageDTO = new ChatMessageDTO(message);
             
-            // 通过WebSocket向接收者和发送者发送消息
-            // 向接收者发送
-            messagingTemplate.convertAndSendToUser(
-                    recipient.getId().toString(),
-                    "/queue/messages",
-                    messageDTO
-            );
-            
-            // 向发送者也发送一份
-            messagingTemplate.convertAndSendToUser(
-                    sender.getId().toString(),
-                    "/queue/messages",
-                    messageDTO
-            );
-            
-            System.out.println("消息已通过WebSocket推送给发送者和接收者");
+            // 通过WebSocket发送消息到前端
+            sendMessageNotification(recipientId, messageDTO);
             
             return messageDTO;
-            
         } catch (Exception e) {
-            System.err.println("发送消息时发生异常: " + e.getMessage());
+            System.err.println("发送消息时发生错误: " + e.getMessage());
             e.printStackTrace();
-            throw e;
+            throw new RuntimeException("发送消息失败: " + e.getMessage(), e);
         }
     }
 
-    // 获取会话的消息
     @Override
     public List<ChatMessageDTO> getMessagesForConversation(Long conversationId, int page, int size) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new RuntimeException("会话不存在"));
+        // 使用MyBatis-Plus分页
+        Page<ChatMessage> pageParam = new Page<>(page, size);
         
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentTime"));
-        Page<ChatMessage> messages = chatMessageRepository.findByConversationOrderBySentTimeDesc(conversation, pageable);
+        // 获取会话消息（按时间降序）
+        pageParam = (Page<ChatMessage>) chatMessageMapper.findByConversationIdOrderBySentTimeDesc(pageParam, conversationId);
         
-        return messages.getContent().stream()
-                .sorted((m1, m2) -> m1.getSentTime().compareTo(m2.getSentTime()))
+        List<ChatMessage> messages = pageParam.getRecords();
+        
+        // 补充发送者和接收者信息
+        for (ChatMessage message : messages) {
+            message.setSender(userMapper.selectById(message.getSenderId()));
+            message.setRecipient(userMapper.selectById(message.getRecipientId()));
+        }
+        
+        // 按发送时间排序（升序）
+        messages.sort(Comparator.comparing(ChatMessage::getSentTime));
+        
+        return messages.stream()
                 .map(ChatMessageDTO::new)
                 .collect(Collectors.toList());
     }
 
-    // 将会话中的消息标记为已读
     @Override
     @Transactional
     public int markConversationAsRead(Long conversationId, Long userId) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new RuntimeException("会话不存在"));
-        
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
-        
-        int updatedCount = chatMessageRepository.markAllAsRead(conversation, user);
-        
-        // 重置会话的未读计数
-        if (conversation.getUser1().getId().equals(userId)) {
-            conversation.setUnreadCountUser1(0);
-        } else if (conversation.getUser2().getId().equals(userId)) {
-            conversation.setUnreadCountUser2(0);
+        // 获取会话
+        Conversation conversation = conversationMapper.selectById(conversationId);
+        if (conversation == null) {
+            return 0;
         }
         
-        conversationRepository.save(conversation);
+        // 更新会话的未读消息计数
+        if (conversation.getUser1Id().equals(userId)) {
+            conversation.setUnreadCountUser1(0);
+        } else if (conversation.getUser2Id().equals(userId)) {
+            conversation.setUnreadCountUser2(0);
+        } else {
+            return 0; // 用户不属于该会话
+        }
+        
+        conversationMapper.updateById(conversation);
+        
+        // 将消息标记为已读
+        int updatedCount = chatMessageMapper.markAllAsRead(conversationId, userId);
+        
+        // 通知发送者，接收者已阅读消息
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            Long otherUserId = conversation.getUser1Id().equals(userId) ? 
+                    conversation.getUser2Id() : conversation.getUser1Id();
+            
+            Map<String, Object> readNotification = new HashMap<>();
+            readNotification.put("type", "READ_NOTIFICATION");
+            readNotification.put("conversationId", conversationId);
+            readNotification.put("readByUser", new UserDTO(user));
+            
+            messagingTemplate.convertAndSendToUser(
+                    otherUserId.toString(), 
+                    "/queue/notifications",
+                    readNotification
+            );
+        }
         
         return updatedCount;
     }
 
-    // 获取指定消息之前的消息
     @Override
     public List<ChatMessageDTO> getMessagesBeforeId(Long conversationId, Long messageId, int size) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new RuntimeException("会话不存在"));
+        // 使用MyBatis-Plus分页
+        Page<ChatMessage> pageParam = new Page<>(1, size);
         
-        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "sentTime"));
-        Page<ChatMessage> messages = chatMessageRepository.findOlderMessages(conversation, messageId, pageable);
+        // 获取指定ID之前的消息
+        pageParam = (Page<ChatMessage>) chatMessageMapper.findOlderMessages(pageParam, conversationId, messageId);
         
-        return messages.getContent().stream()
-                .sorted((m1, m2) -> m1.getSentTime().compareTo(m2.getSentTime()))
+        List<ChatMessage> messages = pageParam.getRecords();
+        
+        // 补充发送者和接收者信息
+        for (ChatMessage message : messages) {
+            message.setSender(userMapper.selectById(message.getSenderId()));
+            message.setRecipient(userMapper.selectById(message.getRecipientId()));
+        }
+        
+        // 按发送时间排序（升序）
+        messages.sort(Comparator.comparing(ChatMessage::getSentTime));
+        
+        return messages.stream()
                 .map(ChatMessageDTO::new)
                 .collect(Collectors.toList());
     }
 
-    // 获取用户的未读消息数量
     @Override
     public int getUnreadMessageCount(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
-        
-        return chatMessageRepository.countUnreadMessagesByUser(user);
+        return chatMessageMapper.countTotalUnreadMessagesByUser(userId);
     }
 
-    // 获取用户有未读消息的会话数
     @Override
     public int getUnreadConversationCount(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
-        
-        return conversationRepository.countConversationsWithUnreadMessages(user);
+        return conversationMapper.countConversationsWithUnreadMessages(userId);
     }
-    
-    /**
-     * 向用户发送错误通知
-     * @param userId 接收通知的用户ID
-     * @param errorMessage 错误消息
-     */
+
+    private void sendMessageNotification(Long userId, ChatMessageDTO message) {
+        try {
+            messagingTemplate.convertAndSendToUser(
+                    userId.toString(),
+                    "/queue/messages",
+                    message
+            );
+        } catch (Exception e) {
+            System.err.println("发送WebSocket通知时发生错误: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void sendErrorNotification(Long userId, String errorMessage) {
-        if (userId == null) {
-            System.err.println("无法发送错误通知: 用户ID为空");
-            return;
-        }
-        
         try {
             Map<String, Object> errorNotification = new HashMap<>();
-            errorNotification.put("error", true);
+            errorNotification.put("type", "ERROR");
             errorNotification.put("message", errorMessage);
             
             messagingTemplate.convertAndSendToUser(
                     userId.toString(),
-                    "/queue/errors",
+                    "/queue/notifications",
                     errorNotification
             );
-            
-            System.out.println("已向用户 " + userId + " 发送错误通知: " + errorMessage);
         } catch (Exception e) {
-            System.err.println("发送错误通知失败: " + e.getMessage());
+            System.err.println("发送错误通知时发生异常: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+    
+    static class UserDTO {
+        private Long id;
+        private String username;
+        private String realName;
+        private String avatar;
+        
+        public UserDTO(User user) {
+            this.id = user.getId();
+            this.username = user.getUsername();
+            this.realName = user.getRealName();
+            this.avatar = user.getAvatar();
+        }
+        
+        // Getters
+        public Long getId() { return id; }
+        public String getUsername() { return username; }
+        public String getRealName() { return realName; }
+        public String getAvatar() { return avatar; }
     }
 } 

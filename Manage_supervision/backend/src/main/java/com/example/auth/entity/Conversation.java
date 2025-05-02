@@ -1,49 +1,56 @@
 package com.example.auth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "conversations")
+@TableName("conversations")
 public class Conversation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user1_id", nullable = false)
-    private User user1;
+    @TableField("user1_id")
+    private Long user1Id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user2_id", nullable = false)
-    private User user2;
+    @TableField("user2_id")
+    private Long user2Id;
 
-    @Column(name = "created_time", nullable = false)
+    @TableField("created_time")
     private LocalDateTime createdTime;
 
-    @Column(name = "last_message_time")
+    @TableField("last_message_time")
     private LocalDateTime lastMessageTime;
 
-    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatMessage> messages = new ArrayList<>();
-
-    @Column(name = "unread_count_user1", nullable = false)
+    @TableField("unread_count_user1")
     private int unreadCountUser1 = 0;
 
-    @Column(name = "unread_count_user2", nullable = false)
+    @TableField("unread_count_user2")
     private int unreadCountUser2 = 0;
 
-    @PrePersist
-    protected void onCreate() {
-        createdTime = LocalDateTime.now();
-        lastMessageTime = createdTime;
-    }
+    @TableField(exist = false)
+    private User user1;
+
+    @TableField(exist = false)
+    private User user2;
+
+    @TableField(exist = false)
+    private List<ChatMessage> messages = new ArrayList<>();
 
     // Getters
     public Long getId() {
         return id;
+    }
+
+    public Long getUser1Id() {
+        return user1Id;
+    }
+
+    public Long getUser2Id() {
+        return user2Id;
     }
 
     public User getUser1() {
@@ -79,12 +86,26 @@ public class Conversation {
         this.id = id;
     }
 
+    public void setUser1Id(Long user1Id) {
+        this.user1Id = user1Id;
+    }
+
+    public void setUser2Id(Long user2Id) {
+        this.user2Id = user2Id;
+    }
+
     public void setUser1(User user1) {
         this.user1 = user1;
+        if (user1 != null) {
+            this.user1Id = user1.getId();
+        }
     }
 
     public void setUser2(User user2) {
         this.user2 = user2;
+        if (user2 != null) {
+            this.user2Id = user2.getId();
+        }
     }
 
     public void setCreatedTime(LocalDateTime createdTime) {
@@ -114,9 +135,9 @@ public class Conversation {
         this.lastMessageTime = message.getSentTime();
         
         // Update unread counts
-        if (message.getRecipient().equals(user1)) {
+        if (message.getRecipient() != null && message.getRecipient().getId().equals(getUser1Id())) {
             unreadCountUser1++;
-        } else if (message.getRecipient().equals(user2)) {
+        } else if (message.getRecipient() != null && message.getRecipient().getId().equals(getUser2Id())) {
             unreadCountUser2++;
         }
     }
@@ -127,19 +148,23 @@ public class Conversation {
     }
 
     public int getUnreadCountForUser(User user) {
-        if (user.equals(user1)) {
-            return unreadCountUser1;
-        } else if (user.equals(user2)) {
-            return unreadCountUser2;
+        if (user != null) {
+            if (user.getId().equals(getUser1Id())) {
+                return unreadCountUser1;
+            } else if (user.getId().equals(getUser2Id())) {
+                return unreadCountUser2;
+            }
         }
         return 0;
     }
 
     public void resetUnreadCountForUser(User user) {
-        if (user.equals(user1)) {
-            unreadCountUser1 = 0;
-        } else if (user.equals(user2)) {
-            unreadCountUser2 = 0;
+        if (user != null) {
+            if (user.getId().equals(getUser1Id())) {
+                unreadCountUser1 = 0;
+            } else if (user.getId().equals(getUser2Id())) {
+                unreadCountUser2 = 0;
+            }
         }
     }
 } 

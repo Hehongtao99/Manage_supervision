@@ -1,5 +1,6 @@
 package com.example.auth.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.dto.PageResponse;
 import com.example.auth.dto.StudentAssignmentDTO;
@@ -7,8 +8,8 @@ import com.example.auth.dto.TeacherWithStudentsDTO;
 import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.User;
-import com.example.auth.repository.RoleRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.mapper.RoleMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.service.TeacherStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -28,10 +28,10 @@ public class AdminTeacherStudentController {
     private TeacherStudentService teacherStudentService;
     
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
     
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleMapper roleMapper;
 
     // 获取所有教师列表（带分页）
     @GetMapping("/teachers")
@@ -77,37 +77,35 @@ public class AdminTeacherStudentController {
     @GetMapping("/teachers/student/{studentId}")
     @RequireRole("ADMIN")
     public ResponseEntity<List<UserDTO>> getTeachersByStudent(@PathVariable Long studentId) {
-        Optional<User> optionalStudent = userRepository.findById(studentId);
-        if (optionalStudent.isPresent()) {
-            User student = optionalStudent.get();
-            
-            Role teacherRole = roleRepository.findByName("SUPERVISOR");
-            if (teacherRole == null) {
-                return ResponseEntity.ok(new ArrayList<>());
-            }
-            
-            // 获取与该学生相关的教师
-            List<User> teachers = userRepository.findByRolesContaining(teacherRole);
-            
-            // 转换为DTO并过滤出已经分配给该学生的教师
-            List<UserDTO> teacherDTOs = new ArrayList<>();
-            for (User teacher : teachers) {
-                if (teacherStudentService.isTeacherAssignedToStudent(teacher.getId(), studentId)) {
-                    UserDTO teacherDTO = new UserDTO();
-                    teacherDTO.setId(teacher.getId());
-                    teacherDTO.setUsername(teacher.getUsername());
-                    teacherDTO.setRealName(teacher.getRealName());
-                    teacherDTO.setUserNumber(teacher.getUserNumber());
-                    teacherDTO.setEmail(teacher.getEmail());
-                    teacherDTO.setPhone(teacher.getPhone());
-                    teacherDTOs.add(teacherDTO);
-                }
-            }
-            
-            return ResponseEntity.ok(teacherDTOs);
+        User student = userMapper.selectById(studentId);
+        if (student == null) {
+            return ResponseEntity.ok(new ArrayList<>());
         }
         
-        return ResponseEntity.ok(new ArrayList<>());
+        Role teacherRole = roleMapper.findByName("SUPERVISOR");
+        if (teacherRole == null) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+        
+        // 获取与该学生相关的教师
+        List<User> teachers = userMapper.findByRoleId(teacherRole.getId());
+        
+        // 转换为DTO并过滤出已经分配给该学生的教师
+        List<UserDTO> teacherDTOs = new ArrayList<>();
+        for (User teacher : teachers) {
+            if (teacherStudentService.isTeacherAssignedToStudent(teacher.getId(), studentId)) {
+                UserDTO teacherDTO = new UserDTO();
+                teacherDTO.setId(teacher.getId());
+                teacherDTO.setUsername(teacher.getUsername());
+                teacherDTO.setRealName(teacher.getRealName());
+                teacherDTO.setUserNumber(teacher.getUserNumber());
+                teacherDTO.setEmail(teacher.getEmail());
+                teacherDTO.setPhone(teacher.getPhone());
+                teacherDTOs.add(teacherDTO);
+            }
+        }
+        
+        return ResponseEntity.ok(teacherDTOs);
     }
 
     // 分配学生给教师

@@ -1,11 +1,12 @@
 package com.example.auth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.auth.dto.DashboardStats;
 import com.example.auth.dto.SupervisorDashboardDTO;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.User;
-import com.example.auth.repository.RoleRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.mapper.RoleMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,10 @@ import java.util.stream.Collectors;
 public class DashboardServiceImpl implements DashboardService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleMapper roleMapper;
 
     private DashboardStats.SystemInfo getSystemInfo() {
         DashboardStats.SystemInfo systemInfo = new DashboardStats.SystemInfo();
@@ -42,13 +43,20 @@ public class DashboardServiceImpl implements DashboardService {
 
     private List<DashboardStats.UserInfo> getUserList() {
         List<DashboardStats.UserInfo> userList = new ArrayList<>();
-        for (User user : userRepository.findAll()) {
+        List<User> users = userMapper.selectList(new LambdaQueryWrapper<>());
+        
+        for (User user : users) {
             DashboardStats.UserInfo userInfo = new DashboardStats.UserInfo();
             userInfo.setId(user.getId());
             userInfo.setUsername(user.getUsername());
-            userInfo.setRoles(user.getRoles().stream()
-                    .map(Role::getName)
-                    .collect(Collectors.toList()));
+            
+            // 查询用户角色
+            List<Role> roles = roleMapper.findRolesByUserId(user.getId());
+            List<String> roleNames = roles.stream()
+                .map(Role::getName)
+                .collect(Collectors.toList());
+            
+            userInfo.setRoles(roleNames);
             userInfo.setCreateTime(user.getCreateTime() != null ? 
                     user.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : 
                     "未知");
@@ -62,12 +70,16 @@ public class DashboardServiceImpl implements DashboardService {
         DashboardStats stats = new DashboardStats();
         
         // 获取用户总数
-        stats.setTotalUsers(userRepository.count());
+        Long totalUsers = userMapper.selectCount(new LambdaQueryWrapper<>());
+        stats.setTotalUsers(totalUsers);
         
         // 获取角色分布
         Map<String, Long> roleDistribution = new HashMap<>();
-        for (Role role : roleRepository.findAll()) {
-            Long count = userRepository.countByRolesContaining(role);
+        List<Role> roles = roleMapper.selectList(new LambdaQueryWrapper<>());
+        
+        for (Role role : roles) {
+            // 查询具有该角色的用户数量
+            Long count = (long) userMapper.findByRoleId(role.getId()).size();
             roleDistribution.put(role.getName(), count);
         }
         stats.setRoleDistribution(roleDistribution);
@@ -104,26 +116,32 @@ public class DashboardServiceImpl implements DashboardService {
     public SupervisorDashboardDTO getSupervisorDashboardStats(Long supervisorId) {
         SupervisorDashboardDTO stats = new SupervisorDashboardDTO();
         
-        // 查找督导员所负责的所有学生 (此处假设督导员负责所有学生，可能需要调整逻辑)
-        List<User> students = userRepository.findAll().stream()
-            .filter(user -> user.getRoles().stream().anyMatch(role -> "USER".equals(role.getName()))) // 假设学生角色为 'USER'
-            .collect(Collectors.toList());
-            
-        // 设置学生总数
-        stats.setStudentCount(students.size());
+        // 获取USER角色
+        Role userRole = roleMapper.findByName("USER");
         
-        // 计算今日活跃学生数（使用状态字段代替登录时间）
-        int activeTodayCount = (int) students.stream()
-            .filter(student -> "active".equals(student.getStatus()))
-            .count();
-        stats.setActiveToday(activeTodayCount);
+        if (userRole != null) {
+            // 查找所有拥有USER角色的用户
+            List<User> students = userMapper.findByRoleId(userRole.getId());
+            
+            // 设置学生总数
+            stats.setStudentCount(students.size());
+            
+            // 计算今日活跃学生数（使用状态字段代替登录时间）
+            int activeTodayCount = (int) students.stream()
+                .filter(student -> "active".equals(student.getStatus()))
+                .count();
+            stats.setActiveToday(activeTodayCount);
+        } else {
+            // 如果没有找到USER角色，设置为0
+            stats.setStudentCount(0);
+            stats.setActiveToday(0);
+        }
         
         // 移除待处理任务的计算
         stats.setPendingTasks(0); // 设置为0或者移除该字段
         
         // 移除每周事件的计算（如果它基于任务）
         stats.setWeeklyEvents(0); // 设置为0或者移除该字段
-
         
         return stats;
     }

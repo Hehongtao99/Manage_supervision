@@ -1,19 +1,19 @@
 package com.example.auth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.dto.PageResponse;
 import com.example.auth.dto.RoleDTO;
 import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.User;
-import com.example.auth.repository.RoleRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.mapper.RoleMapper;
+import com.example.auth.mapper.UserMapper;
+import com.example.auth.mapper.UserRoleMapper;
 import com.example.auth.service.AdminService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.annotation.PostConstruct;
@@ -24,17 +24,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class AdminServiceImpl implements AdminService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
     
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleMapper roleMapper;
+    
+    @Autowired
+    private UserRoleMapper userRoleMapper;
     
     @Autowired
     private UserNumberGenerator userNumberGenerator;
@@ -43,16 +46,62 @@ public class AdminServiceImpl implements AdminService {
     
     @Override
     public PageResponse<UserDTO> getUserList(int page, int size, String username, String role, String status) {
-        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<User> pageParam = new Page<>(page, size);
         
-        // 这里应该根据条件进行查询，为简化示例，先返回所有用户
-        Page<User> users = userRepository.findAll(pageable);
+        // 使用LambdaQueryWrapper进行条件查询
+        if (role != null && !role.isEmpty()) {
+            // 如果指定了角色，需要联表查询
+            Role roleEntity = roleMapper.findByName(role);
+            if (roleEntity != null) {
+                // 获取该角色下的用户
+                Page<User> userPage;
+                if (username != null && !username.isEmpty() || status != null && !status.isEmpty()) {
+                    // 使用复杂查询
+                    userPage = (Page<User>) userMapper.findByConditions(pageParam, username, role, status);
+                } else {
+                    // 只按角色查询
+                    userPage = (Page<User>) userMapper.findByRoleIdPage(pageParam, roleEntity.getId());
+                }
+                
+                // 为每个用户设置角色
+                List<UserDTO> userDTOs = new ArrayList<>();
+                for (User user : userPage.getRecords()) {
+                    List<Role> userRoles = roleMapper.findRolesByUserId(user.getId());
+                    user.setRoles(new HashSet<>(userRoles));
+                    userDTOs.add(convertToUserDTO(user));
+                }
+                
+                return new PageResponse<>(userDTOs, userPage.getTotal(), (int)pageParam.getCurrent(), (int)pageParam.getSize());
+            }
+        } else {
+            // 不指定角色，直接查询用户表
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            
+            if (username != null && !username.isEmpty()) {
+                queryWrapper.like(User::getUsername, username)
+                           .or()
+                           .like(User::getRealName, username);
+            }
+            
+            if (status != null && !status.isEmpty()) {
+                queryWrapper.eq(User::getStatus, status);
+            }
+            
+            Page<User> userPage = userMapper.selectPage(pageParam, queryWrapper);
+            
+            // 为每个用户设置角色
+            List<UserDTO> userDTOs = new ArrayList<>();
+            for (User user : userPage.getRecords()) {
+                List<Role> userRoles = roleMapper.findRolesByUserId(user.getId());
+                user.setRoles(new HashSet<>(userRoles));
+                userDTOs.add(convertToUserDTO(user));
+            }
+            
+            return new PageResponse<>(userDTOs, userPage.getTotal(), (int)pageParam.getCurrent(), (int)pageParam.getSize());
+        }
         
-        List<UserDTO> userDTOs = users.getContent().stream()
-                .map(this::convertToUserDTO)
-                .collect(Collectors.toList());
-        
-        return new PageResponse<>(userDTOs, users.getTotalElements(), page, size);
+        // 如果没有找到符合条件的数据，返回空结果
+        return new PageResponse<>(new ArrayList<>(), 0L, page, size);
     }
     
     @Override
@@ -71,39 +120,49 @@ public class AdminServiceImpl implements AdminService {
         
         // 设置角色
         if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
-            List<Role> roles = roleRepository.findByNameIn(userDTO.getRoles());
-            user.setRoles(new HashSet<>(roles));
-            
+            String roleName = userDTO.getRoles().get(0);
             // 根据角色生成用户编号
-            String role = userDTO.getRoles().get(0);
-            String userNumber = userNumberGenerator.generateUserNumberByRole(role);
+            String userNumber = userNumberGenerator.generateUserNumberByRole(roleName);
             user.setUserNumber(userNumber);
+            
+            // 保存用户
+            userMapper.insert(user);
+            
+            // 获取角色并建立关联
+            List<Role> roles = roleMapper.findByNameIn(userDTO.getRoles());
+            for (Role role : roles) {
+                userRoleMapper.insertUserRole(user.getId(), role.getId());
+            }
+            user.setRoles(new HashSet<>(roles));
         } else {
             // 默认为USER角色
-            Role userRole = roleRepository.findByName("USER");
+            Role userRole = roleMapper.findByName("USER");
             if (userRole == null) {
                 userRole = new Role();
                 userRole.setName("USER");
-                roleRepository.save(userRole);
+                roleMapper.insert(userRole);
             }
-            user.setRoles(new HashSet<>(Collections.singletonList(userRole)));
             
             // 生成学生编号
             String userNumber = userNumberGenerator.generateStudentNumber();
             user.setUserNumber(userNumber);
+            
+            // 保存用户
+            userMapper.insert(user);
+            
+            // 建立用户-角色关联
+            userRoleMapper.insertUserRole(user.getId(), userRole.getId());
+            user.setRoles(new HashSet<>(Collections.singletonList(userRole)));
         }
         
-        User savedUser = userRepository.save(user);
-        return convertToUserDTO(savedUser);
+        return convertToUserDTO(user);
     }
     
     @Override
     @Transactional
     public UserDTO updateUser(Long id, UserDTO userDTO) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            
+        User user = userMapper.selectById(id);
+        if (user != null) {
             // 只更新非空字段
             if (userDTO.getRealName() != null) {
                 user.setRealName(userDTO.getRealName());
@@ -124,19 +183,37 @@ public class AdminServiceImpl implements AdminService {
             // 更新角色
             if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
                 String newRoleName = userDTO.getRoles().get(0);
-                List<Role> roles = roleRepository.findByNameIn(Collections.singletonList(newRoleName));
-                user.setRoles(new HashSet<>(roles));
+                List<Role> roles = roleMapper.findByNameIn(Collections.singletonList(newRoleName));
                 
-                // 检查是否需要更新用户编号
-                if (userNumberGenerator.needsNumberUpdate(user.getUserNumber(), newRoleName)) {
-                    // 生成新的用户编号
-                    String newUserNumber = userNumberGenerator.generateUserNumberByRole(newRoleName);
-                    user.setUserNumber(newUserNumber);
+                if (!roles.isEmpty()) {
+                    Role newRole = roles.get(0);
+                    
+                    // 获取当前用户的角色
+                    List<Role> currentRoles = roleMapper.findRolesByUserId(user.getId());
+                    Set<String> currentRoleNames = currentRoles.stream()
+                            .map(Role::getName)
+                            .collect(Collectors.toSet());
+                    
+                    // 检查是否需要更新用户编号
+                    if (!currentRoleNames.contains(newRoleName) && 
+                        userNumberGenerator.needsNumberUpdate(user.getUserNumber(), newRoleName)) {
+                        // 生成新的用户编号
+                        String newUserNumber = userNumberGenerator.generateUserNumberByRole(newRoleName);
+                        user.setUserNumber(newUserNumber);
+                    }
+                    
+                    // 更新用户-角色关联
+                    userRoleMapper.deleteUserRoles(user.getId());
+                    userRoleMapper.insertUserRole(user.getId(), newRole.getId());
+                    
+                    user.setRoles(new HashSet<>(Collections.singletonList(newRole)));
                 }
             }
             
-            User updatedUser = userRepository.save(user);
-            return convertToUserDTO(updatedUser);
+            // 更新用户信息
+            userMapper.updateById(user);
+            
+            return convertToUserDTO(user);
         }
         return null;
     }
@@ -144,30 +221,29 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void toggleUserStatus(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
+        User user = userMapper.selectById(id);
+        if (user != null) {
             // 切换状态
             user.setStatus("active".equals(user.getStatus()) ? "inactive" : "active");
-            userRepository.save(user);
+            userMapper.updateById(user);
         }
     }
     
     @Override
     @Transactional
     public void resetPassword(Long id, String newPassword) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
+        User user = userMapper.selectById(id);
+        if (user != null) {
             // 使用PasswordUtils加密密码
             user.setPassword(PasswordUtils.encryptPassword(newPassword));
-            userRepository.save(user);
+            userMapper.updateById(user);
         }
     }
     
     @Override
     public List<RoleDTO> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
+        LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
+        List<Role> roles = roleMapper.selectList(queryWrapper);
         return roles.stream()
                 .map(this::convertToRoleDTO)
                 .collect(Collectors.toList());
@@ -188,16 +264,15 @@ public class AdminServiceImpl implements AdminService {
         
         role.setCreateTime(LocalDateTime.now());
         
-        Role savedRole = roleRepository.save(role);
-        return convertToRoleDTO(savedRole);
+        roleMapper.insert(role);
+        return convertToRoleDTO(role);
     }
     
     @Override
     @Transactional
     public RoleDTO updateRole(Long id, RoleDTO roleDTO) {
-        Optional<Role> optionalRole = roleRepository.findById(id);
-        if (optionalRole.isPresent()) {
-            Role role = optionalRole.get();
+        Role role = roleMapper.selectById(id);
+        if (role != null) {
             role.setDescription(roleDTO.getDescription());
             
             if (roleDTO.getPermissions() != null) {
@@ -206,8 +281,8 @@ public class AdminServiceImpl implements AdminService {
                 role.setPermissions("");
             }
             
-            Role updatedRole = roleRepository.save(role);
-            return convertToRoleDTO(updatedRole);
+            roleMapper.updateById(role);
+            return convertToRoleDTO(role);
         }
         return null;
     }
@@ -215,14 +290,15 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void deleteRole(Long id) {
-        roleRepository.deleteById(id);
+        roleMapper.deleteById(id);
     }
     
     // 添加初始化方法，在服务启动时修复数据
     @PostConstruct
     @Transactional
     public void initializeRoles() {
-        List<Role> roles = roleRepository.findAll();
+        LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
+        List<Role> roles = roleMapper.selectList(queryWrapper);
         boolean hasChanges = false;
         
         for (Role role : roles) {
@@ -235,11 +311,10 @@ public class AdminServiceImpl implements AdminService {
                 role.setCreateTime(LocalDateTime.now()); // 为空的createTime设置当前时间
                 hasChanges = true;
             }
-        }
-        
-        // 只有在有修改时才保存
-        if (hasChanges) {
-            roleRepository.saveAll(roles);
+            
+            if (hasChanges) {
+                roleMapper.updateById(role);
+            }
         }
         
         // 为没有用户编号的用户生成对应的编号
@@ -250,26 +325,22 @@ public class AdminServiceImpl implements AdminService {
      * 为没有用户编号的用户生成编号
      */
     private void generateMissingUserNumbers() {
-        List<User> users = userRepository.findAll();
-        boolean hasChanges = false;
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.isNull(User::getUserNumber).or().eq(User::getUserNumber, "");
+        List<User> users = userMapper.selectList(queryWrapper);
         
         for (User user : users) {
-            if (user.getUserNumber() == null || user.getUserNumber().isEmpty()) {
-                // 获取用户的主要角色
-                String roleName = user.getRoles().stream()
-                        .findFirst()
-                        .map(Role::getName)
-                        .orElse("USER");
-                
-                // 生成对应的用户编号
-                String userNumber = userNumberGenerator.generateUserNumberByRole(roleName);
-                user.setUserNumber(userNumber);
-                hasChanges = true;
-            }
-        }
-        
-        if (hasChanges) {
-            userRepository.saveAll(users);
+            // 获取用户的主要角色
+            List<Role> roles = roleMapper.findRolesByUserId(user.getId());
+            String roleName = roles.stream()
+                    .findFirst()
+                    .map(Role::getName)
+                    .orElse("USER");
+            
+            // 生成对应的用户编号
+            String userNumber = userNumberGenerator.generateUserNumberByRole(roleName);
+            user.setUserNumber(userNumber);
+            userMapper.updateById(user);
         }
     }
     

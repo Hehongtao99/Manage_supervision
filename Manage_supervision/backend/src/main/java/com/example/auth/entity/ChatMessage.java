@@ -1,57 +1,70 @@
 package com.example.auth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "chat_messages")
+@TableName("chat_messages")
 public class ChatMessage {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conversation_id")
-    private Conversation conversation;
+    @TableField("conversation_id")
+    private Long conversationId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "sender_id", nullable = false)
-    private User sender;
+    @TableField("sender_id")
+    private Long senderId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "recipient_id", nullable = false)
-    private User recipient;
+    @TableField("recipient_id")
+    private Long recipientId;
 
-    @Column(nullable = false, length = 2000)
+    @TableField("content")
     private String content;
 
-    @Column(name = "sent_time", nullable = false)
+    @TableField("sent_time")
     private LocalDateTime sentTime;
 
-    @Column(name = "is_read", nullable = false)
+    @TableField("is_read")
     private boolean read;
     
-    // 文件相关字段
-    @Column(name = "file_url")
+    @TableField("file_url")
     private String fileUrl;
     
-    @Column(name = "file_name")
+    @TableField("file_name")
     private String fileName;
     
-    @Column(name = "file_type")
+    @TableField("file_type")
     private String fileType;
     
-    @Column(name = "file_size")
+    @TableField("file_size")
     private Long fileSize;
 
-    @PrePersist
-    protected void onCreate() {
-        sentTime = LocalDateTime.now();
-    }
+    @TableField(exist = false)
+    private Conversation conversation;
+
+    @TableField(exist = false)
+    private User sender;
+
+    @TableField(exist = false)
+    private User recipient;
 
     // Getters
     public Long getId() {
         return id;
+    }
+
+    public Long getConversationId() {
+        return conversationId;
+    }
+
+    public Long getSenderId() {
+        return senderId;
+    }
+
+    public Long getRecipientId() {
+        return recipientId;
     }
 
     public Conversation getConversation() {
@@ -99,16 +112,37 @@ public class ChatMessage {
         this.id = id;
     }
 
+    public void setConversationId(Long conversationId) {
+        this.conversationId = conversationId;
+    }
+
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
+    }
+
+    public void setRecipientId(Long recipientId) {
+        this.recipientId = recipientId;
+    }
+
     public void setConversation(Conversation conversation) {
         this.conversation = conversation;
+        if (conversation != null) {
+            this.conversationId = conversation.getId();
+        }
     }
 
     public void setSender(User sender) {
         this.sender = sender;
+        if (sender != null) {
+            this.senderId = sender.getId();
+        }
     }
 
     public void setRecipient(User recipient) {
         this.recipient = recipient;
+        if (recipient != null) {
+            this.recipientId = recipient.getId();
+        }
     }
 
     public void setContent(String content) {

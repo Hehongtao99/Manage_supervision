@@ -15,4 +15,5 @@ public class UserDTO {
     private String status;
     private String createTime;
     private String userNumber;
+    private String avatar;
 }

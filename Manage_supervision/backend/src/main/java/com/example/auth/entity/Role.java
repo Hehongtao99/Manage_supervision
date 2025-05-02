@@ -1,25 +1,23 @@
 package com.example.auth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "roles")
+@TableName("roles")
 public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Column(unique = true, nullable = false)
     private String name;
     
-    @Column
     private String description;
     
-    @Column
     private String permissions;
     
-    @Column(name = "create_time")
+    @TableField("create_time")
     private LocalDateTime createTime;
 
     // Getters

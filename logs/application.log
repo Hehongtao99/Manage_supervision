@@ -76,3 +76,43 @@
 2025-05-02 11:31:54.653 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
 2025-05-02 11:31:54.657 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 8.648 seconds (process running for 9.203)
 2025-05-02 11:32:54.647 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]
+2025-05-02 11:44:31.680 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-05-02 11:44:31.681 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@288c6f9]]
+2025-05-02 11:44:31.681 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-05-02 11:44:31.743 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-02 11:44:31.761 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-02 12:15:47.316 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 83736 (C:\Users\37602\Desktop\template\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\template)
+2025-05-02 12:15:47.320 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-05-02 12:15:48.126 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8081 (http)
+2025-05-02 12:15:48.132 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-05-02 12:15:48.133 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-02 12:15:48.133 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.5]
+2025-05-02 12:15:48.197 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-02 12:15:48.197 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 851 ms
+2025-05-02 12:15:48.763 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-02 12:15:49.560 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@ceb7701
+2025-05-02 12:15:49.565 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-02 12:15:49.718 [main] WARN  c.b.m.c.t.support.ReflectLambdaMeta - Unable to make field private final java.lang.Class java.lang.invoke.SerializedLambda.capturingClass accessible: module java.base does not "opens java.lang.invoke" to unnamed module @3270d194
+2025-05-02 12:15:49.902 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-05-02 12:15:49.903 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-05-02 12:15:49.910 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-05-02 12:15:49.910 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-05-02 12:15:49.934 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-05-02 12:15:50.080 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-05-02 12:15:50.082 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-05-02 12:15:50.083 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-05-02 12:15:50.118 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\template\uploads/
+2025-05-02 12:15:50.198 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-05-02 12:15:50.214 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8081 (http) with context path ''
+2025-05-02 12:15:50.216 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-05-02 12:15:50.216 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@5f3f3d00]]
+2025-05-02 12:15:50.216 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-05-02 12:15:50.221 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 3.247 seconds (process running for 3.626)
+2025-05-02 12:16:11.286 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-02 12:16:11.288 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-05-02 12:16:11.291 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
+2025-05-02 12:16:21.082 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-02 12:16:21.082 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-02 12:16:21.085 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 1
+2025-05-02 12:16:21.088 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 1
+2025-05-02 12:16:49.986 [MessageBroker-7] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 1 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(1)-CONNECTED(1)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 12, active threads = 0, queued tasks = 0, completed tasks = 12], outboundChannel[pool size = 1, active threads = 0, queued tasks = 0, completed tasks = 1], sockJsScheduler[pool size = 11, active threads = 1, queued tasks = 2, completed tasks = 7]

@@ -1,40 +1,45 @@
 package com.example.auth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "teacher_student_relations")
+@TableName("teacher_student_relations")
 public class TeacherStudentRelation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "teacher_id", nullable = false)
-    private User teacher;
+    @TableField("teacher_id")
+    private Long teacherId;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    @TableField("student_id")
+    private Long studentId;
 
-    @Column(name = "assign_time")
+    @TableField("assign_time")
     private LocalDateTime assignTime;
 
-    @Column(name = "status")
+    @TableField("status")
     private String status;
 
-    @PrePersist
-    protected void onCreate() {
-        assignTime = LocalDateTime.now();
-        if (status == null) {
-            status = "active";
-        }
-    }
+    @TableField(exist = false)
+    private User teacher;
+
+    @TableField(exist = false)
+    private User student;
 
     // Getters
     public Long getId() {
         return id;
+    }
+
+    public Long getTeacherId() {
+        return teacherId;
+    }
+
+    public Long getStudentId() {
+        return studentId;
     }
 
     public User getTeacher() {
@@ -58,12 +63,26 @@ public class TeacherStudentRelation {
         this.id = id;
     }
 
+    public void setTeacherId(Long teacherId) {
+        this.teacherId = teacherId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
+
     public void setTeacher(User teacher) {
         this.teacher = teacher;
+        if (teacher != null) {
+            this.teacherId = teacher.getId();
+        }
     }
 
     public void setStudent(User student) {
         this.student = student;
+        if (student != null) {
+            this.studentId = student.getId();
+        }
     }
 
     public void setAssignTime(LocalDateTime assignTime) {

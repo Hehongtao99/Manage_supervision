@@ -1,5 +1,6 @@
 package com.example.auth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.auth.dto.ActivityDTO;
 import com.example.auth.dto.CourseDTO;
 import com.example.auth.dto.StudentDTO;
@@ -7,14 +8,16 @@ import com.example.auth.dto.StudentDetailDTO;
 import com.example.auth.dto.UserDTO;
 import com.example.auth.entity.Role;
 import com.example.auth.entity.User;
-import com.example.auth.repository.RoleRepository;
-import com.example.auth.repository.UserRepository;
+import com.example.auth.mapper.RoleMapper;
+import com.example.auth.mapper.UserMapper;
+import com.example.auth.mapper.UserRoleMapper;
 import com.example.auth.service.UserService;
 import com.example.auth.service.TeacherStudentService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +25,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,10 +38,13 @@ public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleMapper roleMapper;
+    
+    @Autowired
+    private UserRoleMapper userRoleMapper;
     
     @Autowired
     private UserNumberGenerator userNumberGenerator;
@@ -46,11 +53,13 @@ public class UserServiceImpl implements UserService {
     private TeacherStudentService teacherStudentService;
 
     @Override
+    @Transactional
     public User register(String username, String password) {
         logger.info("尝试注册用户: {}", username);
         
         // 只检查用户名是否已存在
-        if (userRepository.findByUsername(username) != null) {
+        User existUser = userMapper.findByUsername(username);
+        if (existUser != null) {
             logger.warn("注册失败: 用户名 {} 已存在", username);
             throw new RuntimeException("用户名已存在");
         }
@@ -64,24 +73,30 @@ public class UserServiceImpl implements UserService {
             
             // 设置默认状态为激活
             user.setStatus("active");
-
-            // 设置默认角色
-            Role userRole = roleRepository.findByName("USER");
-            if (userRole == null) {
-                logger.warn("未找到USER角色，将创建新角色");
-                userRole = new Role();
-                userRole.setName("USER");
-                roleRepository.save(userRole);
-            }
-            user.setRoles(Collections.singleton(userRole));
+            user.setCreateTime(LocalDateTime.now());
             
             // 生成学生编号(默认注册用户为学生)
             String userNumber = userNumberGenerator.generateStudentNumber();
             user.setUserNumber(userNumber);
-
-            User savedUser = userRepository.save(user);
+            
+            // 保存用户基本信息
+            userMapper.insert(user);
+            
+            // 设置默认角色
+            Role userRole = roleMapper.findByName("USER");
+            if (userRole == null) {
+                logger.warn("未找到USER角色，将创建新角色");
+                userRole = new Role();
+                userRole.setName("USER");
+                userRole.setCreateTime(LocalDateTime.now());
+                roleMapper.insert(userRole);
+            }
+            
+            // 添加用户-角色关联
+            userRoleMapper.insertUserRole(user.getId(), userRole.getId());
+            
             logger.info("用户 {} 注册成功，学号: {}", username, userNumber);
-            return savedUser;
+            return user;
         } catch (Exception e) {
             logger.error("用户注册过程中发生异常", e);
             throw new RuntimeException("注册失败: " + e.getMessage());
@@ -90,12 +105,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        User user = userMapper.findByUsername(username);
+        if (user != null) {
+            // 查询用户的角色
+            List<Role> roles = roleMapper.findRolesByUserId(user.getId());
+            user.setRoles(new HashSet<>(roles));
+        }
+        return user;
     }
 
     @Override
     public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        User user = userMapper.selectById(id);
+        if (user != null) {
+            // 查询用户的角色
+            List<Role> roles = roleMapper.findRolesByUserId(user.getId());
+            user.setRoles(new HashSet<>(roles));
+        }
+        return user;
     }
 
     @Override
@@ -115,7 +142,7 @@ public class UserServiceImpl implements UserService {
                 try {
                     // 使用BCrypt重新加密并保存
                     user.setPassword(PasswordUtils.encryptPassword(password));
-                    userRepository.save(user);
+                    userMapper.updateById(user);
                     logger.info("用户 {} 的密码已升级到新格式", user.getUsername());
                 } catch (Exception e) {
                     // 升级失败仅记录日志，不影响登录结果
@@ -130,6 +157,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void changePassword(User user, String currentPassword, String newPassword) {
         // 验证当前密码
         if (!validatePassword(user, currentPassword)) {
@@ -151,7 +179,7 @@ public class UserServiceImpl implements UserService {
         try {
             // 使用自定义工具类加密新密码
             user.setPassword(PasswordUtils.encryptPassword(newPassword));
-            userRepository.save(user);
+            userMapper.updateById(user);
             logger.info("用户 {} 密码更改成功", user.getUsername());
         } catch (Exception e) {
             logger.error("密码更改过程中发生异常", e);
@@ -168,7 +196,7 @@ public class UserServiceImpl implements UserService {
         
         try {
             user.setAvatar(avatarUrl);
-            userRepository.save(user);
+            userMapper.updateById(user);
             logger.info("用户 {} 头像更新成功", user.getUsername());
         } catch (Exception e) {
             logger.error("头像更新过程中发生异常", e);
@@ -177,6 +205,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional
     public User updateProfile(User user, Map<String, String> profileData) {
         if (user == null) {
             logger.warn("个人信息更新失败: 用户为空");
@@ -233,9 +262,9 @@ public class UserServiceImpl implements UserService {
             }
             
             // 保存更新
-            User updatedUser = userRepository.save(user);
+            userMapper.updateById(user);
             logger.info("用户 {} 个人信息更新成功", user.getUsername());
-            return updatedUser;
+            return user;
         } catch (Exception e) {
             logger.error("个人信息更新过程中发生异常", e);
             throw new RuntimeException("个人信息更新失败: " + e.getMessage());
@@ -249,20 +278,38 @@ public class UserServiceImpl implements UserService {
         logger.info("获取所有学生列表");
         try {
             // 获取USER角色
-            Role userRole = roleRepository.findByName("USER");
+            Role userRole = roleMapper.findByName("USER");
             if (userRole == null) {
                 logger.warn("未找到USER角色");
                 return new ArrayList<>();
             }
             
-            // 获取所有具有USER角色的用户，并确保角色信息完整
-            List<User> users = userRepository.findAll();
+            // 获取所有具有USER角色的用户
+            List<User> users = userMapper.findByRoleId(userRole.getId());
+            
+            // 排除同时有ADMIN或SUPERVISOR角色的用户
+            Role adminRole = roleMapper.findByName("ADMIN");
+            Role supervisorRole = roleMapper.findByName("SUPERVISOR");
+            
+            final List<Long> adminUserIds = new ArrayList<>();
+            final List<Long> supervisorUserIds = new ArrayList<>();
+            
+            if (adminRole != null) {
+                adminUserIds.addAll(userMapper.findByRoleId(adminRole.getId())
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()));
+            }
+            
+            if (supervisorRole != null) {
+                supervisorUserIds.addAll(userMapper.findByRoleId(supervisorRole.getId())
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()));
+            }
+            
             return users.stream()
-                // 确保用户有角色信息且包含USER角色
-                .filter(user -> user != null && user.getRoles() != null && !user.getRoles().isEmpty())
-                .filter(user -> user.getRoles().contains(userRole) &&
-                        !user.getRoles().stream()
-                            .anyMatch(role -> "ADMIN".equals(role.getName()) || "SUPERVISOR".equals(role.getName())))
+                .filter(user -> !adminUserIds.contains(user.getId()) && !supervisorUserIds.contains(user.getId()))
                 .map(this::convertToStudentDTO)
                 .collect(Collectors.toList());
         } catch (Exception e) {
@@ -275,17 +322,20 @@ public class UserServiceImpl implements UserService {
     public StudentDetailDTO getStudentDetails(Long id) {
         logger.info("获取学生详情, ID: {}", id);
         try {
-            Optional<User> userOpt = userRepository.findById(id);
-            if (!userOpt.isPresent()) {
+            User user = userMapper.selectById(id);
+            if (user == null) {
                 logger.warn("未找到ID为{}的学生", id);
                 throw new RuntimeException("学生不存在");
             }
             
-            User user = userOpt.get();
-            
             // 检查该用户是否为学生(具有USER角色)
-            Role userRole = roleRepository.findByName("USER");
-            if (!user.getRoles().contains(userRole)) {
+            Role userRole = roleMapper.findByName("USER");
+            List<Role> userRoles = roleMapper.findRolesByUserId(id);
+            
+            boolean isStudent = userRoles.stream()
+                    .anyMatch(role -> role.getId().equals(userRole.getId()));
+            
+            if (!isStudent) {
                 logger.warn("ID为{}的用户不是学生", id);
                 throw new RuntimeException("指定ID的用户不是学生");
             }
@@ -306,20 +356,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean updateStudentStatus(Long id, String status) {
         logger.info("更新学生状态, ID: {}, 新状态: {}", id, status);
         try {
-            Optional<User> userOpt = userRepository.findById(id);
-            if (!userOpt.isPresent()) {
+            User user = userMapper.selectById(id);
+            if (user == null) {
                 logger.warn("未找到ID为{}的学生", id);
                 return false;
             }
             
-            User user = userOpt.get();
-            
             // 检查该用户是否为学生(具有USER角色)
-            Role userRole = roleRepository.findByName("USER");
-            if (!user.getRoles().contains(userRole)) {
+            Role userRole = roleMapper.findByName("USER");
+            List<Role> userRoles = roleMapper.findRolesByUserId(id);
+            
+            boolean isStudent = userRoles.stream()
+                    .anyMatch(role -> role.getId().equals(userRole.getId()));
+            
+            if (!isStudent) {
                 logger.warn("ID为{}的用户不是学生", id);
                 return false;
             }
@@ -332,7 +386,7 @@ public class UserServiceImpl implements UserService {
             
             // 更新状态
             user.setStatus(status);
-            userRepository.save(user);
+            userMapper.updateById(user);
             logger.info("学生 {} 状态更新为 {}", user.getUsername(), status);
             return true;
         } catch (Exception e) {
@@ -342,26 +396,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean deleteStudent(Long id) {
         logger.info("删除学生, ID: {}", id);
         try {
-            Optional<User> userOpt = userRepository.findById(id);
-            if (!userOpt.isPresent()) {
+            User user = userMapper.selectById(id);
+            if (user == null) {
                 logger.warn("未找到ID为{}的学生", id);
                 return false;
             }
             
-            User user = userOpt.get();
-            
             // 检查该用户是否为学生(具有USER角色)
-            Role userRole = roleRepository.findByName("USER");
-            if (!user.getRoles().contains(userRole)) {
+            Role userRole = roleMapper.findByName("USER");
+            List<Role> userRoles = roleMapper.findRolesByUserId(id);
+            
+            boolean isStudent = userRoles.stream()
+                    .anyMatch(role -> role.getId().equals(userRole.getId()));
+            
+            if (!isStudent) {
                 logger.warn("ID为{}的用户不是学生", id);
                 return false;
             }
             
+            // 删除用户角色关联
+            userRoleMapper.deleteUserRoles(id);
+            
             // 删除用户
-            userRepository.delete(user);
+            userMapper.deleteById(id);
             logger.info("学生 {} 已删除", user.getUsername());
             return true;
         } catch (Exception e) {
@@ -372,13 +433,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllSupervisors() {
-        Role supervisorRole = roleRepository.findByName("SUPERVISOR");
+        Role supervisorRole = roleMapper.findByName("SUPERVISOR");
         if (supervisorRole == null) {
             logger.warn("未找到SUPERVISOR角色");
             return new ArrayList<>();
         }
         
-        return userRepository.findByRolesContaining(supervisorRole);
+        return userMapper.findByRoleId(supervisorRole.getId());
     }
 
     @Override
@@ -398,150 +459,112 @@ public class UserServiceImpl implements UserService {
      * 将User实体转换为StudentDTO
      */
     private StudentDTO convertToStudentDTO(User user) {
-        String displayName = user.getRealName() != null ? user.getRealName() : user.getUsername();
-        String lastLoginStr = formatTime(user.getCreateTime());
+        StudentDTO dto = new StudentDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setRealName(user.getRealName() != null ? user.getRealName() : "");
+        dto.setUserNumber(user.getUserNumber() != null ? user.getUserNumber() : "");
+        dto.setEmail(user.getEmail() != null ? user.getEmail() : "");
+        dto.setPhone(user.getPhone() != null ? user.getPhone() : "");
+        dto.setStatus(user.getStatus() != null ? user.getStatus() : "");
+        dto.setCreateTime(formatTime(user.getCreateTime()));
         
-        // 使用学号生成随机进度(0-100)
-        Random random = new Random(user.getId());
-        int progress = random.nextInt(101);
+        // 随机生成一些统计数据
+        Random random = new Random(user.getId() != null ? user.getId() : System.currentTimeMillis());
+        dto.setAttendanceRate(85 + random.nextInt(16));  // 85% - 100%
+        dto.setHomeworkCompleteRate(80 + random.nextInt(21));  // 80% - 100%
+        dto.setAverageScore(70 + random.nextInt(31));  // 70-100
         
-        return new StudentDTO(
-            user.getId(),
-            displayName,
-            user.getUsername(), // 暂时使用用户名作为学号
-            "计算机" + ((user.getId().intValue() % 3) + 1) + "班", // 模拟班级
-            user.getEmail(),
-            user.getPhone(),
-            user.getStatus(),
-            lastLoginStr,
-            progress
-        );
+        return dto;
     }
-    
+
     /**
-     * 格式化时间为相对时间描述
+     * 格式化时间为字符串
      */
     private String formatTime(LocalDateTime time) {
         if (time == null) {
-            return "从未登录";
+            return "";
         }
-        
-        LocalDateTime now = LocalDateTime.now();
-        long daysDiff = java.time.Duration.between(time, now).toDays();
-        
-        if (daysDiff == 0) {
-            return "今天 " + time.format(DateTimeFormatter.ofPattern("HH:mm"));
-        } else if (daysDiff == 1) {
-            return "昨天 " + time.format(DateTimeFormatter.ofPattern("HH:mm"));
-        } else if (daysDiff < 7) {
-            return daysDiff + "天前";
-        } else {
-            return time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return time.format(formatter);
     }
-    
+
     /**
-     * 为学生生成课程数据
+     * 为学生生成模拟课程数据
      */
     private List<CourseDTO> generateCoursesForStudent(User user) {
         List<CourseDTO> courses = new ArrayList<>();
         
-        // 使用用户ID作为随机种子,确保同一用户总是获得相同的课程数据
-        Random random = new Random(user.getId());
+        // 使用用户ID作为随机数种子，使得同一用户每次生成相同课程
+        Random random = new Random(user.getId() != null ? user.getId() : 0);
         
-        // 添加高等数学课程
-        int mathCompletion = 10 + random.nextInt(91); // 10-100
-        courses.add(new CourseDTO(
-            "高等数学",
-            mathCompletion == 100 ? "已完成" : "进行中",
-            "已完成第" + (mathCompletion / 20 + 1) + "章",
-            mathCompletion
-        ));
+        // 课程名称列表
+        String[] courseNames = {
+            "高等数学", "线性代数", "概率论与数理统计", "大学英语", 
+            "计算机基础", "数据结构", "操作系统", "数据库原理",
+            "计算机网络", "软件工程", "人工智能导论", "机器学习"
+        };
         
-        // 添加数据结构课程
-        int dataStructureCompletion = random.nextInt(91); // 0-90
-        courses.add(new CourseDTO(
-            "数据结构",
-            "进行中",
-            "已完成第" + (dataStructureCompletion / 20 + 1) + "章",
-            dataStructureCompletion
-        ));
+        // 教师名称列表
+        String[] teacherNames = {"李教授", "王教授", "张教授", "刘教授", "陈教授"};
         
-        // 添加大学英语课程
-        int englishCompletion = 20 + random.nextInt(81); // 20-100
-        courses.add(new CourseDTO(
-            "大学英语",
-            englishCompletion == 100 ? "已完成" : "进行中",
-            englishCompletion == 100 ? "全部完成" : "已完成第" + (englishCompletion / 20 + 1) + "章",
-            englishCompletion
-        ));
+        // 随机生成3-6门课程
+        int courseCount = 3 + random.nextInt(4);
+        for (int i = 0; i < courseCount; i++) {
+            CourseDTO course = new CourseDTO();
+            course.setId((long) (i + 1));
+            course.setName(courseNames[random.nextInt(courseNames.length)]);
+            course.setTeacherName(teacherNames[random.nextInt(teacherNames.length)]);
+            course.setCredits(random.nextInt(3) + 2);  // 2-4学分
+            course.setScore(70 + random.nextInt(31));  // 70-100分
+            
+            courses.add(course);
+        }
         
         return courses;
     }
-    
+
     /**
-     * 为学生生成活动数据
+     * 为学生生成模拟活动数据
      */
     private List<ActivityDTO> generateActivitiesForStudent(User user) {
         List<ActivityDTO> activities = new ArrayList<>();
         
-        // 使用用户ID作为随机种子,确保同一用户总是获得相同的活动数据
-        Random random = new Random(user.getId());
+        // 使用用户ID作为随机数种子
+        Random random = new Random(user.getId() != null ? user.getId() : 0);
+        
+        // 活动名称列表
+        String[] activityNames = {
+            "参加数学竞赛", "参与志愿服务", "参加编程比赛", "体育比赛", 
+            "校园文化节表演", "学术讲座", "科技创新大赛", "社团活动"
+        };
+        
+        // 生成当前时间前60天内的随机活动
         LocalDateTime now = LocalDateTime.now();
         
-        // 判断学生最近是否活跃
-        if ("active".equals(user.getStatus())) {
-            // 添加登录系统的活动
-            activities.add(new ActivityDTO(
-                "info",
-                "登录系统",
-                "通过" + (random.nextBoolean() ? "移动端" : "电脑端") + "登录",
-                formatTime(now.minusHours(random.nextInt(24)))
-            ));
+        // 随机生成3-8个活动
+        int activityCount = 3 + random.nextInt(6);
+        for (int i = 0; i < activityCount; i++) {
+            ActivityDTO activity = new ActivityDTO();
+            activity.setId((long) (i + 1));
+            activity.setName(activityNames[random.nextInt(activityNames.length)]);
             
-            // 添加提交作业或参加考试的活动
-            if (random.nextBoolean()) {
-                activities.add(new ActivityDTO(
-                    "success",
-                    "提交作业",
-                    "提交了《" + (random.nextBoolean() ? "高等数学" : "数据结构") + "》第" + (random.nextInt(5) + 1) + "章作业",
-                    formatTime(now.minusHours(random.nextInt(48)))
-                ));
-            } else {
-                activities.add(new ActivityDTO(
-                    "success",
-                    "参加考试",
-                    "完成了《" + (random.nextBoolean() ? "高等数学" : "数据结构") + "》期中考试",
-                    formatTime(now.minusDays(random.nextInt(3)))
-                ));
-            }
-        } else {
-            // 非活跃用户，添加缺勤通知
-            activities.add(new ActivityDTO(
-                "warning",
-                "缺勤通知",
-                "连续" + (random.nextInt(5) + 3) + "天未登录系统",
-                formatTime(now)
-            ));
+            // 随机日期：过去60天内
+            int daysAgo = random.nextInt(60);
+            LocalDateTime activityTime = now.minusDays(daysAgo);
+            activity.setTime(formatTime(activityTime));
             
-            // 添加最后一次登录记录
-            activities.add(new ActivityDTO(
-                "info",
-                "登录系统",
-                "通过" + (random.nextBoolean() ? "移动端" : "电脑端") + "登录",
-                formatTime(now.minusDays(random.nextInt(7) + 3))
-            ));
+            // 随机时长：1-5小时
+            activity.setDuration(1 + random.nextInt(5));
+            
+            // 随机积分：1-10分
+            activity.setPoints(1 + random.nextInt(10));
+            
+            activities.add(activity);
         }
         
-        // 可能添加一个作业逾期通知
-        if (random.nextInt(3) == 0) { // 1/3的概率
-            activities.add(new ActivityDTO(
-                "warning",
-                "作业逾期",
-                "《" + (random.nextBoolean() ? "高等数学" : "数据结构") + "》第" + (random.nextInt(5) + 1) + "章作业逾期未交",
-                formatTime(now.minusDays(random.nextInt(3) + 1))
-            ));
-        }
+        // 按时间排序，最近的活动排在前面
+        activities.sort((a1, a2) -> a2.getTime().compareTo(a1.getTime()));
         
         return activities;
     }

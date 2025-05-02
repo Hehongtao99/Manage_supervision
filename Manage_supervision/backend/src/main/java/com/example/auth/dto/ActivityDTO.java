@@ -10,6 +10,12 @@ public class ActivityDTO implements Serializable {
     private String title; // 活动标题
     private String content; // 活动内容
     private String time; // 活动时间
+    
+    // 添加在UserServiceImpl中使用的字段
+    private Long id;
+    private String name;
+    private int duration;
+    private int points;
 
     public ActivityDTO() {
     }
@@ -52,5 +58,38 @@ public class ActivityDTO implements Serializable {
 
     public void setTime(String time) {
         this.time = time;
+    }
+    
+    // 添加在UserServiceImpl中使用的getter和setter方法
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
     }
 } 
