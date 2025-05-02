@@ -30,25 +30,45 @@ html, body {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* 防止整个页面滚动 */
-  position: fixed; /* 确保页面不会滚动 */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-y: auto; /* 允许垂直滚动 */
 }
 
 #app {
   height: 100%;
   width: 100%;
-  overflow: hidden;
-  position: absolute;
   top: 0;
   left: 0;
+  overflow-y: auto; /* 允许垂直滚动 */
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a8a8a8;
 }
 
 /* 全局样式 */
 .page-container {
   padding: 20px;
+  overflow-y: auto; /* 允许页面容器滚动 */
+  height: 100%;
 }
 
 .page-title {

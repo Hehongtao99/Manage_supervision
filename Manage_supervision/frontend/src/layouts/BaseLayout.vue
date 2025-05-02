@@ -328,8 +328,9 @@ watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
 }
 
 .app-main {
-  padding: 16px;
-  min-height: calc(100vh - 60px);
+  padding: 20px;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
 }
 
 /* 路由过渡动画 */

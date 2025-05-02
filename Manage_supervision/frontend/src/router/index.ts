@@ -56,7 +56,61 @@ const routes: RouteRecordRaw[] = [
           title: '聊天',
           requiresAuth: true
         }
-      }
+      },
+      {
+        path: 'running-record',
+        name: 'RunningRecord',
+        component: () => import('../views/running/RunningRecordForm.vue'),
+        meta: {
+          title: '跑步记录',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'running-dashboard',
+        name: 'RunningDashboard',
+        component: () => import('../views/running/RunningDashboard.vue'),
+        meta: {
+          title: '跑步数据看板',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'social',
+        name: 'Social',
+        component: () => import('../views/social/SocialTimeline.vue'),
+        meta: {
+          title: '朋友圈',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'social/my-posts',
+        name: 'MyPosts',
+        component: () => import('../views/social/MyPosts.vue'),
+        meta: {
+          title: '我的发布',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'social/post/:id',
+        name: 'PostDetail',
+        component: () => import('../views/social/PostDetail.vue'),
+        meta: {
+          title: '帖子详情',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'social/create-post',
+        name: 'CreatePost',
+        component: () => import('../views/social/CreatePost.vue'),
+        meta: {
+          title: '发布动态',
+          requiresAuth: true
+        }
+      },
     ]
   },
   {

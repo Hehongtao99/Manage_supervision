@@ -45,6 +45,8 @@ const handleLogout = async () => {
 <style scoped>
 .layout-container {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -54,6 +56,10 @@ const handleLogout = async () => {
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 0 20px;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .logo {
@@ -86,5 +92,8 @@ const handleLogout = async () => {
 .main-content {
   padding: 20px;
   background-color: #f5f7fa;
+  flex: 1;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
 }
 </style> 

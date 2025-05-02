@@ -70,6 +70,26 @@
           <span>教师信息</span>
         </template>
       </el-menu-item>
+      
+      <!-- 社交系统菜单 - 教师 -->
+      <el-sub-menu index="social-management">
+        <template #title>
+          <el-icon><Connection /></el-icon>
+          <span>社交系统</span>
+        </template>
+        <el-menu-item index="/social" @click="handleRoute('/social')">
+          <el-icon><ChatLineRound /></el-icon>
+          <span>朋友圈</span>
+        </el-menu-item>
+        <el-menu-item index="/social/my-posts" @click="handleRoute('/social/my-posts')">
+          <el-icon><Collection /></el-icon>
+          <span>我的发布</span>
+        </el-menu-item>
+        <el-menu-item index="/social/create-post" @click="handleRoute('/social/create-post')">
+          <el-icon><Edit /></el-icon>
+          <span>发布动态</span>
+        </el-menu-item>
+      </el-sub-menu>
     </template>
 
     <!-- 学生菜单 -->
@@ -87,6 +107,41 @@
           <span>个人信息</span>
         </template>
       </el-menu-item>
+      
+      <el-sub-menu index="running-management">
+        <template #title>
+          <el-icon><Timer /></el-icon>
+          <span>跑步管理</span>
+        </template>
+        <el-menu-item index="/running-record" @click="handleRoute('/running-record')">
+          <el-icon><EditPen /></el-icon>
+          <span>跑步记录</span>
+        </el-menu-item>
+        <el-menu-item index="/running-dashboard" @click="handleRoute('/running-dashboard')">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>跑步看板</span>
+        </el-menu-item>
+      </el-sub-menu>
+      
+      <!-- 社交系统菜单 - 学生 -->
+      <el-sub-menu index="social-management">
+        <template #title>
+          <el-icon><Connection /></el-icon>
+          <span>社交系统</span>
+        </template>
+        <el-menu-item index="/social" @click="handleRoute('/social')">
+          <el-icon><ChatLineRound /></el-icon>
+          <span>朋友圈</span>
+        </el-menu-item>
+        <el-menu-item index="/social/my-posts" @click="handleRoute('/social/my-posts')">
+          <el-icon><Collection /></el-icon>
+          <span>我的发布</span>
+        </el-menu-item>
+        <el-menu-item index="/social/create-post" @click="handleRoute('/social/create-post')">
+          <el-icon><Edit /></el-icon>
+          <span>发布动态</span>
+        </el-menu-item>
+      </el-sub-menu>
     </template>
   </el-menu>
 </template>
@@ -106,7 +161,14 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Timer,
+  EditPen,
+  DataAnalysis,
+  Connection,
+  ChatLineRound,
+  Collection,
+  Edit
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

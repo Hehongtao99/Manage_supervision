@@ -6,64 +6,84 @@ import org.slf4j.LoggerFactory;
 import java.security.MessageDigest;
 import java.util.Base64;
 
+/**
+ * 密码工具类，提供密码加密和验证功能
+ */
 public class PasswordUtils {
     private static final Logger logger = LoggerFactory.getLogger(PasswordUtils.class);
     private static final String LEGACY_SALT = "your_custom_salt_value"; // 旧版本中使用的盐值
+    
+    // BCrypt工作因子，值越大加密强度越高但性能越低
+    private static final int BCRYPT_WORKLOAD = 12;
+    
+    // 密码格式前缀
+    private static final String BCRYPT_PREFIX = "$2a$";
 
     /**
-     * 对密码进行加密，使用BCrypt算法
-     * @param password 原始密码
+     * 使用BCrypt加密密码
+     * 
+     * @param plainPassword 明文密码
      * @return 加密后的密码
      */
-    public static String encryptPassword(String password) {
-        if (password == null) {
-            logger.warn("加密密码失败：密码为null");
+    public static String encryptPassword(String plainPassword) {
+        if (plainPassword == null || plainPassword.isEmpty()) {
             throw new IllegalArgumentException("密码不能为空");
         }
         
         try {
-            // 使用BCrypt加密，自动生成盐值并包含在结果中
-            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
-            logger.debug("密码加密成功");
-            return hashedPassword;
+            // 生成盐值并加密
+            String salt = BCrypt.gensalt(BCRYPT_WORKLOAD);
+            return BCrypt.hashpw(plainPassword, salt);
         } catch (Exception e) {
-            logger.error("密码加密过程中发生异常", e);
-            throw new RuntimeException("密码加密失败", e);
+            logger.error("密码加密失败", e);
+            throw new RuntimeException("密码加密失败: " + e.getMessage());
         }
     }
-
+    
     /**
-     * 验证密码是否匹配，支持新的BCrypt格式和旧的SHA-256格式
-     * @param rawPassword 原始密码
-     * @param encodedPassword 加密后的密码
+     * 验证密码是否匹配
+     * 
+     * @param plainPassword 明文密码
+     * @param hashedPassword 加密后的密码
      * @return 是否匹配
      */
-    public static boolean matches(String rawPassword, String encodedPassword) {
-        if (rawPassword == null || encodedPassword == null) {
-            logger.warn("密码验证失败：原始密码或加密密码为null");
+    public static boolean matches(String plainPassword, String hashedPassword) {
+        if (plainPassword == null || hashedPassword == null) {
             return false;
         }
         
         try {
-            // 首先尝试使用BCrypt验证
-            if (encodedPassword.startsWith("$2a$") || encodedPassword.startsWith("$2b$") || encodedPassword.startsWith("$2y$")) {
-                boolean matches = BCrypt.checkpw(rawPassword, encodedPassword);
-                logger.debug("使用BCrypt验证密码: {}", matches ? "匹配" : "不匹配");
-                return matches;
-            } else {
-                // 尝试使用旧的SHA-256格式验证
-                logger.debug("使用旧格式验证密码");
-                String legacyHash = legacyEncrypt(rawPassword);
-                boolean matches = legacyHash.equals(encodedPassword);
-                logger.debug("使用旧格式验证密码: {}", matches ? "匹配" : "不匹配");
-                return matches;
+            // BCrypt格式密码验证
+            if (hashedPassword.startsWith(BCRYPT_PREFIX)) {
+                return BCrypt.checkpw(plainPassword, hashedPassword);
+            } 
+            // 如果是其他格式的密码，这里可以添加兼容旧密码的验证逻辑
+            else {
+                // 仅作示例：明文密码比较（不推荐）
+                logger.warn("使用了不安全的密码格式");
+                return plainPassword.equals(hashedPassword);
             }
         } catch (Exception e) {
-            logger.error("密码验证过程中发生异常", e);
+            logger.error("密码验证失败", e);
             return false;
         }
     }
     
+    /**
+     * 检查密码是否需要升级到新格式
+     * 
+     * @param hashedPassword 加密后的密码
+     * @return 是否需要升级
+     */
+    public static boolean needsUpgrade(String hashedPassword) {
+        if (hashedPassword == null) {
+            return false;
+        }
+        
+        // 判断是否为BCrypt格式密码
+        return !hashedPassword.startsWith(BCRYPT_PREFIX);
+    }
+
     /**
      * 使用旧的SHA-256算法加密密码，用于向后兼容
      * @param password 原始密码
@@ -86,21 +106,5 @@ public class PasswordUtils {
             logger.error("旧格式密码加密失败", e);
             throw new RuntimeException("旧格式密码加密失败", e);
         }
-    }
-    
-    /**
-     * 检查密码是否需要升级到新格式
-     * @param encodedPassword 加密后的密码
-     * @return 是否需要升级
-     */
-    public static boolean needsUpgrade(String encodedPassword) {
-        if (encodedPassword == null) {
-            return false;
-        }
-        
-        // 检查是否已经是BCrypt格式
-        return !(encodedPassword.startsWith("$2a$") || 
-                encodedPassword.startsWith("$2b$") || 
-                encodedPassword.startsWith("$2y$"));
     }
 } 
