@@ -12,12 +12,7 @@ import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -203,13 +198,15 @@ public class SystemProcessServiceImpl implements SystemProcessService {
     }
     
     /**
-     * 获取所有进程的内存使用情况
+     * 获取所有进程的内存使用情况和名称
      * 使用操作系统命令获取
      * @return 进程ID到内存使用量(KB)的映射
      */
     private Map<Long, Long> getProcessesMemoryUsage() {
         logger.info("Getting processes memory usage...");
         Map<Long, Long> result = new HashMap<>();
+        // 添加进程名称映射
+        Map<Long, String> processNames = new HashMap<>();
         String osName = System.getProperty("os.name").toLowerCase();
         String command;
         boolean isWindows = osName.contains("win");
@@ -220,14 +217,14 @@ public class SystemProcessServiceImpl implements SystemProcessService {
             logger.debug("Executing command on Windows: {}", command);
         } else {
             // Linux/Unix系统用ps命令
-            command = "ps -eo pid,rss";
+            command = "ps -eo pid,rss,comm";
             logger.debug("Executing command on Linux/Unix: {}", command);
         }
 
         try {
             Process process = Runtime.getRuntime().exec(command);
             
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "GBK"))) {
                 String line;
                 int lineCount = 0;
                 
@@ -246,26 +243,50 @@ public class SystemProcessServiceImpl implements SystemProcessService {
                             String[] parts = line.split("\",\"");
                             if (parts.length >= 5) {
                                 String pidStr = parts[1];
-                                // 移除可能的引号、空格和 " K" 后缀
-                                String memStr = parts[4].replaceAll("[\" K]", "").trim(); 
+                                // 移除可能的引号、空格、逗号和 " K" 后缀
+                                String memStr = parts[4].replaceAll("[\", K]", "").trim(); 
                                 
                                 long pid = Long.parseLong(pidStr);
-                                long memory = Long.parseLong(memStr);
+                                long memory; // Declare memory variable
+
+                                if ("暂缺".equals(memStr)) {
+                                    memory = 0L; // Assign 0 if memory is "暂缺"
+                                    logger.trace("Memory usage for PID {} reported as '暂缺', using 0 KB.", pid);
+                                } else {
+                                    memory = Long.parseLong(memStr); // Parse normally if it's a number
+                                }
                                 
                                 result.put(pid, memory);
+                                // 从tasklist中提取进程名称 - 格式：\"进程名称\",\"PID\",...
+                                if (parts.length > 0) {
+                                    // 修正CSV格式处理，第一个元素可能包含开始的引号但没有结束引号
+                                    String procName = parts[0];
+                                    if (procName.startsWith("\"")) {
+                                        procName = procName.substring(1);
+                                    }
+                                    procName = procName.replaceAll("\"", "").trim();
+                                    
+                                    // 确保进程名有效
+                                    if (!procName.isEmpty()) {
+                                        processNames.put(pid, procName);
+                                        logger.debug("Saved process name for PID {}: {}", pid, procName);
+                                    }
+                                }
                                 logger.trace("Parsed Windows process: PID={}, Memory={} KB", pid, memory);
                             } else {
                                 logger.warn("Skipping invalid Windows tasklist line ({} parts): {}", parts.length, line);
                             }
                         } else {
-                            // Linux/Unix格式解析: PID RSS
+                            // Linux/Unix格式解析: PID RSS COMMAND
                             String[] parts = line.trim().split("\\s+");
-                            if (parts.length >= 2) {
+                            if (parts.length >= 3) {
                                 long pid = Long.parseLong(parts[0]);
                                 long memory = Long.parseLong(parts[1]); // rss is already in KB
                                 
                                 result.put(pid, memory);
-                                logger.trace("Parsed Linux/Unix process: PID={}, Memory={} KB", pid, memory);
+                                // 保存进程名称
+                                processNames.put(pid, parts[2]);
+                                logger.trace("Parsed Linux/Unix process: PID={}, Memory={} KB, Name={}", pid, memory, parts[2]);
                             } else {
                                 logger.warn("Skipping invalid Linux/Unix ps line ({} parts): {}", parts.length, line);
                             }
@@ -300,7 +321,41 @@ public class SystemProcessServiceImpl implements SystemProcessService {
         }
         
         logger.info("Finished getting processes memory usage. Found memory info for {} processes.", result.size());
+        // 保存进程名称映射到ThreadLocal中
+        PROCESS_NAMES.set(processNames);
         return result;
+    }
+    
+    // 使用ThreadLocal存储进程名称映射
+    private static final ThreadLocal<Map<Long, String>> PROCESS_NAMES = new ThreadLocal<>();
+    
+    /**
+     * 尝试通过wmic获取Windows进程名称
+     * @param pid 进程ID
+     * @return 进程名称，如果获取失败则返回null
+     */
+    private String getWindowsProcessNameByWmic(long pid) {
+        try {
+            Process process = Runtime.getRuntime().exec("wmic process where ProcessId=" + pid + " get Name /value");
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("Name=")) {
+                        String name = line.substring("Name=".length()).trim();
+                        if (!name.isEmpty()) {
+                            return name;
+                        }
+                    }
+                }
+            }
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                logger.warn("wmic command exited with non-zero code: {}", exitCode);
+            }
+        } catch (Exception e) {
+            logger.warn("获取Windows进程名称失败: {}", e.getMessage());
+        }
+        return null;
     }
     
     /**
@@ -313,10 +368,48 @@ public class SystemProcessServiceImpl implements SystemProcessService {
         ProcessHandle.Info info = processHandle.info();
         
         // 获取进程名称
-        String name = info.command().orElse("unknown");
-        if (name.contains("/") || name.contains("\\")) {
-            String[] parts = name.split("[/\\\\]");
-            name = parts[parts.length - 1];
+        String name = "unknown";
+        Map<Long, String> processNames = PROCESS_NAMES.get();
+        
+        // 优先使用从系统命令中获取的进程名称
+        if (processNames != null && processNames.containsKey(processHandle.pid())) {
+            name = processNames.get(processHandle.pid());
+            logger.debug("Using system command process name for PID {}: {}", processHandle.pid(), name);
+        } else {
+            // 回退到Java API获取进程名称
+            name = info.command().orElse("unknown");
+            if (name.contains("/") || name.contains("\\")) {
+                String[] parts = name.split("[/\\\\]");
+                name = parts[parts.length - 1];
+            }
+            logger.debug("Using Java API process name for PID {}: {}", processHandle.pid(), name);
+            
+            // 如果还是unknown，尝试从命令行中提取
+            if ("unknown".equals(name)) {
+                String cmd = info.commandLine().orElse("");
+                if (!cmd.isEmpty()) {
+                    // 从命令行中提取可能的进程名
+                    if (cmd.contains("/") || cmd.contains("\\")) {
+                        String[] parts = cmd.split("[/\\\\]");
+                        String lastPart = parts[parts.length - 1];
+                        // 如果最后一部分包含空格，取第一个部分
+                        if (lastPart.contains(" ")) {
+                            lastPart = lastPart.split("\\s+")[0];
+                        }
+                        name = lastPart;
+                        logger.debug("Extracted process name from command line for PID {}: {}", processHandle.pid(), name);
+                    }
+                }
+            }
+            
+            // 如果仍然是unknown并且是Windows系统，尝试使用wmic获取
+            if ("unknown".equals(name) && System.getProperty("os.name").toLowerCase().contains("win")) {
+                String wmicName = getWindowsProcessNameByWmic(processHandle.pid());
+                if (wmicName != null) {
+                    name = wmicName;
+                    logger.debug("Got process name from wmic for PID {}: {}", processHandle.pid(), name);
+                }
+            }
         }
         
         // 获取进程启动时间
@@ -326,9 +419,6 @@ public class SystemProcessServiceImpl implements SystemProcessService {
         
         // 获取命令行
         String command = info.commandLine().orElse(info.command().orElse("unknown"));
-        
-        // 获取用户名
-        String user = info.user().orElse("unknown");
         
         // 计算CPU使用率 (这里是简化的计算，实际的CPU使用率计算更复杂)
         double cpuUsage = 0.0;
@@ -395,16 +485,11 @@ public class SystemProcessServiceImpl implements SystemProcessService {
             logger.warn("计算进程CPU使用率时出错，使用模拟数据: {}", e.getMessage());
         }
         
-        // 获取进程状态
-        String status = processHandle.isAlive() ? "running" : "terminated";
-        
         return new SystemProcess(
                 processHandle.pid(),
                 name,
-                user,
                 cpuUsage,
                 memoryUsage,
-                status,
                 startTime,
                 command
         );

@@ -74,16 +74,11 @@
             </el-tab-pane>
             <el-tab-pane label="图表分析" name="chart">
               <div class="chart-container">
-                <div id="typeChart" class="chart"></div>
-                <div id="severityChart" class="chart"></div>
+                <div id="typeChart" class="chart" style="position: relative; visibility: visible;"></div>
+                <div id="severityChart" class="chart" style="position: relative; visibility: visible;"></div>
               </div>
             </el-tab-pane>
           </el-tabs>
-          
-          <div class="action-buttons" v-if="detectionResults.length > 0">
-            <el-button type="success" @click="addToMonitor">添加到数据监控</el-button>
-            <el-button type="info" @click="exportResults">导出结果</el-button>
-          </div>
         </div>
       </div>
     </el-card>
@@ -91,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, nextTick } from 'vue'
+import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { detectIntrusion, addDetectionToMonitor, getRecentDetections } from '../api/intrusionDetection'
 import { useRouter } from 'vue-router'
@@ -192,84 +187,95 @@ const renderCharts = () => {
     }
   })
   
-  // 初始化类型图表
-  if (!typeChart) {
+  // 确保DOM已渲染并且有正确的尺寸
+  nextTick(() => {
+    // 销毁旧的图表实例（如果存在）
+    if (typeChart) {
+      typeChart.dispose()
+    }
+    if (severityChart) {
+      severityChart.dispose()
+    }
+    
+    // 重新初始化图表
     typeChart = echarts.init(document.getElementById('typeChart'))
-  }
-  
-  typeChart.setOption({
-    title: {
-      text: '异常类型分布',
-      left: 'center'
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
-    },
-    legend: {
-      orient: 'vertical',
-      left: 'left',
-      data: Object.keys(typeGroups)
-    },
-    series: [
-      {
-        name: '异常类型',
-        type: 'pie',
-        radius: '55%',
-        center: ['50%', '60%'],
-        data: Object.keys(typeGroups).map(key => ({
-          name: key,
-          value: typeGroups[key]
-        })),
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }
-    ]
-  })
-  
-  // 初始化严重程度图表
-  if (!severityChart) {
     severityChart = echarts.init(document.getElementById('severityChart'))
-  }
-  
-  severityChart.setOption({
-    title: {
-      text: '异常严重程度分布',
-      left: 'center'
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
-    },
-    legend: {
-      orient: 'vertical',
-      left: 'left',
-      data: Object.keys(severityGroups)
-    },
-    series: [
-      {
-        name: '严重程度',
-        type: 'pie',
-        radius: '55%',
-        center: ['50%', '60%'],
-        data: Object.keys(severityGroups).map(key => ({
-          name: key,
-          value: severityGroups[key]
-        })),
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
+    
+    // 设置类型图表配置
+    typeChart.setOption({
+      title: {
+        text: '异常类型分布',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: '{a} <br/>{b}: {c} ({d}%)'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        data: Object.keys(typeGroups)
+      },
+      series: [
+        {
+          name: '异常类型',
+          type: 'pie',
+          radius: '55%',
+          center: ['50%', '60%'],
+          data: Object.keys(typeGroups).map(key => ({
+            name: key,
+            value: typeGroups[key]
+          })),
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
           }
         }
-      }
-    ]
+      ]
+    })
+    
+    // 设置严重程度图表配置
+    severityChart.setOption({
+      title: {
+        text: '异常严重程度分布',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: '{a} <br/>{b}: {c} ({d}%)'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        data: Object.keys(severityGroups)
+      },
+      series: [
+        {
+          name: '严重程度',
+          type: 'pie',
+          radius: '55%',
+          center: ['50%', '60%'],
+          data: Object.keys(severityGroups).map(key => ({
+            name: key,
+            value: severityGroups[key]
+          })),
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    })
+    
+    // 强制重新计算尺寸
+    typeChart.resize()
+    severityChart.resize()
   })
 }
 
@@ -371,20 +377,36 @@ const markAsResolved = async (id) => {
 // 监听标签页切换
 watch(activeTab, (newVal) => {
   if (newVal === 'chart' && detectionResults.value.length > 0) {
-    nextTick(() => {
+    // 添加一个小延迟以确保DOM已完全渲染
+    setTimeout(() => {
       renderCharts()
-    })
+    }, 50)
   }
 })
 
 // 处理窗口大小变化
 onMounted(() => {
-  window.addEventListener('resize', () => {
+  // 窗口大小变化时重新计算图表尺寸
+  const resizeHandler = () => {
     if (typeChart) {
       typeChart.resize()
     }
     if (severityChart) {
       severityChart.resize()
+    }
+  }
+  
+  window.addEventListener('resize', resizeHandler)
+  
+  // 组件卸载时移除事件监听
+  onUnmounted(() => {
+    window.removeEventListener('resize', resizeHandler)
+    // 销毁图表实例
+    if (typeChart) {
+      typeChart.dispose()
+    }
+    if (severityChart) {
+      severityChart.dispose()
     }
   })
 
@@ -405,10 +427,13 @@ onMounted(() => {
           description: `检测到${detectionResults.value.length}个异常项，请查看详情并处理`
         }
         
-        // 等待DOM更新后绘制图表
-        nextTick(() => {
+        // 主动切换到图表标签页以触发图表渲染
+        activeTab.value = 'chart';
+        
+        // 等待DOM更新完成后渲染图表
+        setTimeout(() => {
           renderCharts();
-        });
+        }, 100);
       }
     }
   }).catch(error => {
@@ -456,12 +481,15 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 20px;
   margin-top: 20px;
+  min-height: 400px;
+  width: 100%;
 }
 
 .chart {
   width: 45%;
   height: 400px;
   margin: 20px 0;
+  min-width: 300px;
 }
 
 @media (max-width: 768px) {

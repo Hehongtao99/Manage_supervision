@@ -50,11 +50,9 @@
           stripe
           style="width: 100%"
           max-height="600"
-          @row-click="handleRowClick"
         >
           <el-table-column prop="pid" label="PID" width="80" sortable />
           <el-table-column prop="name" label="进程名称" min-width="150" />
-          <el-table-column prop="user" label="用户" width="100" />
           <el-table-column label="CPU占用" width="100" sortable>
             <template #default="scope">
               <div class="cpu-usage">
@@ -71,30 +69,6 @@
           <el-table-column label="内存占用" width="120" sortable>
             <template #default="scope">
               {{ formatMemory(scope.row.memoryUsage) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
-            <template #default="scope">
-              <el-tag :type="getStatusType(scope.row.status)">
-                {{ getStatusText(scope.row.status) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="启动时间" width="170" v-if="displayMode === 'page'">
-            <template #default="scope">
-              {{ formatDateTime(scope.row.startTime) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="100" fixed="right">
-            <template #default="scope">
-              <el-button
-                type="primary"
-                size="small"
-                text
-                @click.stop="showProcessDetail(scope.row)"
-              >
-                详情
-              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -131,24 +105,12 @@
           <span class="value">{{ selectedProcess.name }}</span>
         </div>
         <div class="detail-item">
-          <span class="label">用户：</span>
-          <span class="value">{{ selectedProcess.user }}</span>
-        </div>
-        <div class="detail-item">
           <span class="label">CPU占用：</span>
           <span class="value">{{ selectedProcess.cpuUsage.toFixed(1) }}%</span>
         </div>
         <div class="detail-item">
           <span class="label">内存占用：</span>
           <span class="value">{{ formatMemory(selectedProcess.memoryUsage) }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">状态：</span>
-          <span class="value">
-            <el-tag :type="getStatusType(selectedProcess.status)">
-              {{ getStatusText(selectedProcess.status) }}
-            </el-tag>
-          </span>
         </div>
         <div class="detail-item">
           <span class="label">启动时间：</span>
@@ -179,7 +141,6 @@ import { Search, Refresh } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { getProcessList, getProcessListPaged, getTopProcesses, searchProcessByName } from '@/api/process';
 import type { SystemProcess, PageResponse } from '@/api/process';
-import dayjs from 'dayjs';
 
 // 状态变量
 const loading = ref(false);
@@ -298,12 +259,6 @@ const formatMemory = (memoryKB: number): string => {
   }
 };
 
-// 格式化日期时间
-const formatDateTime = (dateTimeStr: string | null): string => {
-  if (!dateTimeStr) return '未知';
-  return dayjs(dateTimeStr).format('YYYY-MM-DD HH:mm:ss');
-};
-
 // 获取CPU使用率颜色
 const getCpuUsageColor = (usage: number): string => {
   if (usage < 30) return '#67C23A';
@@ -311,39 +266,10 @@ const getCpuUsageColor = (usage: number): string => {
   return '#F56C6C';
 };
 
-// 获取状态类型
-const getStatusType = (status: string): string => {
-  switch (status.toLowerCase()) {
-    case 'running':
-      return 'success';
-    case 'terminated':
-      return 'danger';
-    default:
-      return 'info';
-  }
-};
-
-// 获取状态文本
-const getStatusText = (status: string): string => {
-  switch (status.toLowerCase()) {
-    case 'running':
-      return '运行中';
-    case 'terminated':
-      return '已终止';
-    default:
-      return status;
-  }
-};
-
 // 显示进程详情
 const showProcessDetail = (process: SystemProcess) => {
   selectedProcess.value = process;
   processDetailVisible.value = true;
-};
-
-// 点击行
-const handleRowClick = (row: SystemProcess) => {
-  showProcessDetail(row);
 };
 
 // 组件挂载后加载数据

@@ -6,10 +6,8 @@ import axios from 'axios';
 export interface SystemProcess {
   pid: number;           // 进程ID
   name: string;          // 进程名称
-  user: string;          // 用户
   cpuUsage: number;      // CPU占用率
   memoryUsage: number;   // 内存占用(KB)
-  status: string;        // 进程状态
   startTime: string;     // 启动时间
   command: string;       // 命令行
 }
