@@ -82,7 +82,7 @@
         </div>
         
         <div class="message-status">
-          <el-icon v-if="message.read" class="read-icon"><Check /></el-icon>
+          <el-icon v-if="message.isRead" class="read-icon"><Check /></el-icon>
         </div>
       </div>
       <div class="avatar">

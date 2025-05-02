@@ -1,7 +1,7 @@
 package com.example.auth.service;
 
-import com.example.auth.dto.DashboardStats;
-import com.example.auth.dto.SupervisorDashboardDTO;
+import com.example.auth.model.dto.DashboardStats;
+import com.example.auth.model.dto.SupervisorDashboardDTO;
 
 public interface DashboardService {
     DashboardStats getFullDashboardStats();  // 管理员使用

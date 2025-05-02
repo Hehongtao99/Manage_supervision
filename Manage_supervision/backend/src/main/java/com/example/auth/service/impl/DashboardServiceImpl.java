@@ -1,10 +1,10 @@
 package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.auth.dto.DashboardStats;
-import com.example.auth.dto.SupervisorDashboardDTO;
-import com.example.auth.entity.Role;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.DashboardStats;
+import com.example.auth.model.dto.SupervisorDashboardDTO;
+import com.example.auth.model.entity.Role;
+import com.example.auth.model.entity.User;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.service.DashboardService;

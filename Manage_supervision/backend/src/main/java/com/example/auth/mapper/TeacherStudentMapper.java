@@ -1,8 +1,7 @@
 package com.example.auth.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.auth.entity.TeacherStudentRelation;
-import com.example.auth.entity.User;
+import com.example.auth.model.entity.TeacherStudentRelation;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

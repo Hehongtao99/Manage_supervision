@@ -1,8 +1,8 @@
 package com.example.auth.service;
 
-import com.example.auth.dto.ChatMessageDTO;
-import com.example.auth.dto.ConversationDTO;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.ChatMessageDTO;
+import com.example.auth.model.dto.ConversationDTO;
+import com.example.auth.model.entity.User;
 
 import java.util.List;
 

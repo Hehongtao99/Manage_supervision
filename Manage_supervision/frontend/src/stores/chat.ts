@@ -3,6 +3,36 @@ import chatService from '../services/chat';
 import type { ChatMessage, Conversation } from '../services/chat';
 import { useUserStore } from './user';
 
+// 创建一个事件总线用于消息通知
+export const chatEvents = {
+  listeners: new Map<string, Function[]>(),
+  
+  // 添加事件监听器
+  on(event: string, callback: Function) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event)!.push(callback);
+    
+    // 返回取消监听函数
+    return () => {
+      const callbacks = this.listeners.get(event);
+      if (callbacks) {
+        const index = callbacks.indexOf(callback);
+        if (index !== -1) {
+          callbacks.splice(index, 1);
+        }
+      }
+    };
+  },
+  
+  // 发布事件
+  emit(event: string, data?: any) {
+    const callbacks = this.listeners.get(event) || [];
+    callbacks.forEach(callback => callback(data));
+  }
+};
+
 interface ChatState {
   conversations: Conversation[];
   activeConversationId: number | null;
@@ -130,8 +160,10 @@ export const useChatStore = defineStore('chat', {
           }
         }
         
-        // 如果有最近消息，添加到消息列表中
+        // 如果服务器返回了最近消息，添加到消息列表中
+        // @ts-ignore - 服务器可能返回recentMessages，但我们的类型定义中没有
         if (conversation.recentMessages && conversation.recentMessages.length > 0) {
+          // @ts-ignore
           this.messages[conversation.id] = conversation.recentMessages;
         }
         
@@ -228,20 +260,37 @@ export const useChatStore = defineStore('chat', {
         }
         
         // 发送消息
-        await chatService.sendMessage(recipientId, content);
+        const tempMessage = await chatService.sendMessage(recipientId, content) as ChatMessage;
         
-        // 如果已经存在与该接收者的会话
-        const conversation = this.conversations.find(c => 
-          (c.user1.id === recipientId || c.user2.id === recipientId)
-        );
-        
-        if (conversation) {
-          // 注意：由于WebSocket发送消息不会返回消息内容，我们不在这里添加消息
-          // 而是让WebSocket的onMessageReceived回调处理，这样就会触发handleNewMessage
-          // 这样可以避免消息重复添加
-        } else {
-          // 如果会话不存在，重新加载会话列表
-          await this.loadConversations();
+        // 如果有临时消息返回，立即添加到UI中
+        if (tempMessage) {
+          // 找到相应的会话
+          const conversation = this.conversations.find(c => 
+            (c.user1.id === recipientId || c.user2.id === recipientId)
+          );
+          
+          if (conversation) {
+            // 更新会话的最后消息和时间
+            conversation.lastMessage = tempMessage;
+            conversation.lastMessageTime = tempMessage.sentTime;
+            
+            // 将临时消息添加到现有会话
+            if (!this.messages[conversation.id]) {
+              this.messages[conversation.id] = [];
+            }
+            
+            // 添加临时消息到消息列表中
+            this.messages[conversation.id].push(tempMessage);
+            
+            // 发布临时消息添加事件
+            chatEvents.emit('messageAdded', {
+              conversationId: conversation.id,
+              message: tempMessage
+            });
+          } else {
+            // 如果会话不存在，重新加载会话列表
+            await this.loadConversations();
+          }
         }
       } catch (error: any) {
         console.error('发送消息失败:', error);
@@ -270,6 +319,15 @@ export const useChatStore = defineStore('chat', {
     
     // 处理新收到的消息
     handleNewMessage(message: ChatMessage) {
+      console.log("收到新消息，准备处理:", message);
+      
+      // 处理conversationId为null的情况
+      if (!message.conversationId) {
+        console.log("消息缺少conversationId，尝试重新加载会话列表");
+        this.loadConversations();
+        return;
+      }
+      
       // 查找相应的会话
       const conversationId = message.conversationId;
       const conversation = this.conversations.find(c => c.id === conversationId);
@@ -278,32 +336,58 @@ export const useChatStore = defineStore('chat', {
         // 更新会话的最后消息和时间
         conversation.lastMessage = message;
         conversation.lastMessageTime = message.sentTime;
-        // 不再增加未读计数
-        // conversation.unreadCount += 1;
         
         // 将消息添加到现有会话
         if (!this.messages[conversationId]) {
           this.messages[conversationId] = [];
         }
         
-        // 检查消息是否已存在，避免重复添加
-        const messageExists = this.messages[conversationId].some(m => m.id === message.id);
-        if (!messageExists) {
-          // 设置消息为已读状态
-          message.read = true;
-          this.messages[conversationId].push(message);
+        // 检查是否有对应的临时消息需要替换
+        const tempMessageIndex = this.messages[conversationId].findIndex(m => 
+          m.id < 0 && m.senderId === message.senderId && m.content === message.content
+        );
+
+        if (tempMessageIndex >= 0) {
+          // 找到了临时消息，替换它
+          console.log(`替换临时消息(${this.messages[conversationId][tempMessageIndex].id})为实际消息(${message.id})`);
+          this.messages[conversationId][tempMessageIndex] = message;
           
-          // 不再增加未读消息总数
-          // this.unreadCount += 1;
-          
-          // 自动将会话标记为已读
-          this.markConversationAsRead(conversationId).catch(error => {
-            console.error('自动标记会话为已读失败:', error);
+          // 发布消息更新事件
+          chatEvents.emit('messageUpdated', { 
+            conversationId, 
+            messageId: message.id 
           });
         } else {
-          console.log(`消息(ID: ${message.id})已存在，跳过添加`);
+          // 检查消息是否已存在，避免重复添加
+          const messageExists = this.messages[conversationId].some(m => m.id === message.id);
+          if (!messageExists) {
+            console.log(`添加新消息到会话 ${conversationId}, 消息ID: ${message.id}`);
+            // 设置消息为已读状态（如果是当前活跃会话）
+            message.isRead = this.activeConversationId === conversationId;
+            this.messages[conversationId].push(message);
+            
+            // 发布新消息事件
+            chatEvents.emit('messageAdded', { 
+              conversationId, 
+              message 
+            });
+            
+            // 如果不是当前活跃会话，增加未读消息计数
+            if (this.activeConversationId !== conversationId) {
+              conversation.unreadCount = (conversation.unreadCount || 0) + 1;
+              this.unreadCount += 1;
+            } else {
+              // 如果是当前活跃会话，自动标记为已读
+              this.markConversationAsRead(conversationId).catch(error => {
+                console.error('自动标记会话为已读失败:', error);
+              });
+            }
+          } else {
+            console.log(`消息(ID: ${message.id})已存在，跳过添加`);
+          }
         }
       } else {
+        console.log("收到消息的会话不存在，重新加载会话列表");
         // 如果会话不存在，重新加载会话列表
         this.loadConversations();
       }
@@ -327,7 +411,7 @@ export const useChatStore = defineStore('chat', {
         if (this.messages[conversationId]) {
           this.messages[conversationId] = this.messages[conversationId].map(m => ({
             ...m,
-            read: true
+            isRead: true
           }));
         }
       } catch (error) {

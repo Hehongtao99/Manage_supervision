@@ -3,6 +3,7 @@ import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import axios from '../utils/axios';
 import { useUserStore } from '../stores/user';
+import { chatEvents } from '../stores/chat';
 
 export interface ChatMessage {
   id: number;
@@ -15,7 +16,7 @@ export interface ChatMessage {
   recipientAvatar: string;
   content: string;
   sentTime: string;
-  read: boolean;
+  isRead: boolean;
   // 文件相关字段
   fileUrl?: string;
   fileName?: string;
@@ -50,6 +51,8 @@ class ChatService {
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 5000; // 5秒
   private pollingInterval: ReturnType<typeof setInterval> | undefined = undefined;
+  private messageSubscription: any;
+  private notificationSubscription: any;
 
   /**
    * 初始化聊天服务
@@ -194,20 +197,45 @@ class ChatService {
     // 清除连接超时
     if (this.connectionTimeout) {
       clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = undefined;
     }
     
+    // 停止轮询（如果正在进行）
+    this.stopPolling();
+    
+    // 订阅用户特定的消息通道
+    this.subscribeToUserChannels();
+  }
+  
+  // 订阅用户特定的消息通道
+  private subscribeToUserChannels() {
     const userStore = useUserStore();
     const userId = userStore.userId;
     
     if (this.client && userId) {
       try {
-        // 订阅私人消息
-        console.log(`订阅消息通道: /user/${userId}/queue/messages`);
-        this.client.subscribe(`/user/${userId}/queue/messages`, this.onMessageReceived.bind(this));
+        console.log(`订阅个人消息通道: /user/${userId}/queue/messages`);
+        // 首先取消所有现有订阅
+        if (this.messageSubscription) {
+          this.messageSubscription.unsubscribe();
+        }
+        if (this.notificationSubscription) {
+          this.notificationSubscription.unsubscribe();
+        }
         
-        // 订阅错误通知
-        console.log(`订阅错误通道: /user/${userId}/queue/errors`);
-        this.client.subscribe(`/user/${userId}/queue/errors`, this.onErrorReceived.bind(this));
+        // 订阅个人消息
+        this.messageSubscription = this.client.subscribe(
+          `/user/${userId}/queue/messages`, 
+          this.onMessageReceived.bind(this),
+          { id: `messages-${userId}` }
+        );
+        
+        // 订阅通知
+        this.notificationSubscription = this.client.subscribe(
+          `/user/${userId}/queue/notifications`, 
+          this.onErrorReceived.bind(this),
+          { id: `notifications-${userId}` }
+        );
         
         // 发送连接消息
         console.log('发送连接消息到: /app/chat.connect');
@@ -215,7 +243,7 @@ class ChatService {
           destination: '/app/chat.connect'
         });
       } catch (error) {
-        console.error('订阅或发送连接消息失败:', error);
+        console.error('订阅消息通道失败:', error);
       }
     }
   }
@@ -251,6 +279,9 @@ class ChatService {
       const chatMessage = JSON.parse(message.body) as ChatMessage;
       console.log('收到新消息:', chatMessage);
       console.log(`消息详情 - ID: ${chatMessage.id}, 发送者: ${chatMessage.senderId}, 会话ID: ${chatMessage.conversationId}`);
+      
+      // 立即触发消息接收事件，优先处理UI更新
+      chatEvents.emit('messageReceived', chatMessage);
       
       // 调用所有的消息回调
       const callbacks = this.messageCallbacks.get('message') || [];
@@ -306,7 +337,7 @@ class ChatService {
   }
   
   // 发送消息
-  async sendMessage(recipientId: number, content: string): Promise<void> {
+  async sendMessage(recipientId: number, content: string): Promise<ChatMessage | void> {
     const userStore = useUserStore();
     if (!userStore.isLoggedIn || !userStore.userId) {
         console.error('发送消息失败: 用户未登录或ID无效');
@@ -324,20 +355,20 @@ class ChatService {
         return Promise.reject(new Error('消息内容不能为空'));
     }
 
+    const senderId = Number(userStore.userId);
+    if (isNaN(senderId)) {
+        throw new Error('用户ID无效');
+    }
+
     if (!this.connected || !this.client) {
         console.warn('WebSocket未连接，使用HTTP API发送消息');
         return this.sendMessageHttp(recipientId, content);
     }
 
     try {
-        console.log(`通过WebSocket发送消息 - 发送者ID: ${userStore.userId}, 接收者ID: ${recipientId}`);
+        console.log(`通过WebSocket发送消息 - 发送者ID: ${senderId}, 接收者ID: ${recipientId}`);
         
-        // 确保用户ID是数字类型
-        const senderId = Number(userStore.userId);
-        if (isNaN(senderId)) {
-            throw new Error('用户ID无效');
-        }
-        
+        // 发送消息
         this.client.publish({
             destination: '/app/chat.sendMessage',
             body: JSON.stringify({
@@ -347,7 +378,23 @@ class ChatService {
             })
         });
 
-        return Promise.resolve();
+        // 创建本地临时消息对象以立即显示在发送方UI
+        const tempMessage: ChatMessage = {
+            id: -new Date().getTime(), // 使用负数时间戳作为临时ID
+            conversationId: -1, // 使用临时负数ID
+            senderId: senderId,
+            senderName: userStore.user?.nickname || userStore.user?.realName || userStore.user?.username || '',
+            senderAvatar: userStore.user?.avatar || '',
+            recipientId: recipientId,
+            recipientName: '', // 接收方信息可能不完整
+            recipientAvatar: '',
+            content: content,
+            sentTime: new Date().toISOString(),
+            isRead: false
+        };
+
+        // 返回临时消息对象以供调用者立即显示
+        return tempMessage;
     } catch (error) {
         console.error('发送消息失败:', error);
         // 降级到HTTP API
@@ -355,20 +402,85 @@ class ChatService {
     }
   }
   
-  // 发送文件消息
-  async sendFileMessage(recipientId: number, file: File, content: string = ''): Promise<void> {
+  // 通过HTTP API发送消息
+  private async sendMessageHttp(recipientId: number, content: string): Promise<ChatMessage | void> {
     try {
+      console.log(`通过HTTP API发送消息 - 接收者ID: ${recipientId}`);
+      
+      // 添加重试机制
+      let retries = 0;
+      const maxRetries = 2;
+      
+      while (retries <= maxRetries) {
+        try {
+          const response = await axios.post('/api/chat/send', {
+            recipientId,
+            content
+          });
+          
+          console.log('HTTP消息发送成功');
+          return response.data;
+        } catch (error: any) {
+          if (error.response && error.response.status === 401) {
+            // 认证问题，尝试刷新用户状态
+            const userStore = useUserStore();
+            console.warn('消息发送失败，可能是认证问题，尝试刷新用户状态');
+            
+            if (retries < maxRetries) {
+              retries++;
+              await userStore.fetchUserInfo(true);
+              continue;
+            }
+          }
+          
+          // 其他错误或重试失败，抛出异常
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('通过HTTP API发送消息失败:', error);
+      throw error;
+    }
+  }
+  
+  // 发送文件消息
+  async sendFileMessage(recipientId: number, file: File, content: string = ''): Promise<ChatMessage | void> {
+    try {
+      const userStore = useUserStore();
+      const senderId = Number(userStore.userId);
+      
+      if (isNaN(senderId)) {
+        throw new Error('用户ID无效');
+      }
+      
       // 先上传文件
       const fileInfo = await this.uploadChatFile(file);
+      
+      // 创建本地临时消息对象以立即显示在发送方UI
+      const tempMessage: ChatMessage = {
+        id: -new Date().getTime(), // 使用负数时间戳作为临时ID
+        conversationId: -1, // 使用临时负数ID
+        senderId: senderId,
+        senderName: userStore.user?.nickname || userStore.user?.realName || userStore.user?.username || '',
+        senderAvatar: userStore.user?.avatar || '',
+        recipientId: recipientId,
+        recipientName: '', // 接收方信息可能不完整
+        recipientAvatar: '',
+        content: content,
+        sentTime: new Date().toISOString(),
+        isRead: false,
+        fileUrl: fileInfo.fileUrl,
+        fileName: fileInfo.fileName,
+        fileType: fileInfo.fileType,
+        fileSize: fileInfo.fileSize
+      };
       
       // 然后发送包含文件信息的消息
       if (!this.connected || !this.client) {
         // 降级到HTTP API
-        return this.sendFileMessageHttp(recipientId, fileInfo, content);
+        await this.sendFileMessageHttp(recipientId, fileInfo, content);
+        return tempMessage;
       }
-      
-      const userStore = useUserStore();
-      const senderId = Number(userStore.userId);
       
       this.client.publish({
         destination: '/app/chat.sendMessage',
@@ -383,7 +495,7 @@ class ChatService {
         })
       });
       
-      return Promise.resolve();
+      return tempMessage;
     } catch (error) {
       console.error('发送文件消息失败:', error);
       throw error;
@@ -424,47 +536,6 @@ class ChatService {
       return response.data;
     } catch (error) {
       console.error('上传聊天文件失败:', error);
-      throw error;
-    }
-  }
-  
-  // 通过HTTP API发送消息
-  private async sendMessageHttp(recipientId: number, content: string) {
-    try {
-      console.log(`通过HTTP API发送消息 - 接收者ID: ${recipientId}`);
-      
-      // 添加重试机制
-      let retries = 0;
-      const maxRetries = 2;
-      
-      while (retries <= maxRetries) {
-        try {
-          const response = await axios.post('/api/chat/send', {
-            recipientId,
-            content
-          });
-          
-          console.log('HTTP消息发送成功');
-          return response.data;
-        } catch (error: any) {
-          if (error.response && error.response.status === 401) {
-            // 认证问题，尝试刷新用户状态
-            const userStore = useUserStore();
-            console.warn('消息发送失败，可能是认证问题，尝试刷新用户状态');
-            
-            if (retries < maxRetries) {
-              retries++;
-              await userStore.fetchUserInfo(true);
-              continue;
-            }
-          }
-          
-          // 其他错误或重试失败，抛出异常
-          throw error;
-        }
-      }
-    } catch (error) {
-      console.error('通过HTTP API发送消息失败:', error);
       throw error;
     }
   }

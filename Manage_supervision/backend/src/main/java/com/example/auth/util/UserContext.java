@@ -1,6 +1,6 @@
 package com.example.auth.util;
 
-import com.example.auth.entity.User;
+import com.example.auth.model.entity.User;
 import com.example.auth.service.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;

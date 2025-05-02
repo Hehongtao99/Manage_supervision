@@ -1,8 +1,8 @@
 package com.example.auth.controller;
 
-import com.example.auth.dto.ChatMessageDTO;
-import com.example.auth.dto.ConversationDTO;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.ChatMessageDTO;
+import com.example.auth.model.dto.ConversationDTO;
+import com.example.auth.model.entity.User;
 import com.example.auth.util.UserContext;
 import com.example.auth.service.ChatService;
 import com.example.auth.service.UserService;

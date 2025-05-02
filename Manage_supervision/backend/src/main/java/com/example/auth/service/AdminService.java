@@ -1,8 +1,8 @@
 package com.example.auth.service;
 
-import com.example.auth.dto.PageResponse;
-import com.example.auth.dto.RoleDTO;
-import com.example.auth.dto.UserDTO;
+import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.RoleDTO;
+import com.example.auth.model.dto.UserDTO;
 
 import java.util.List;
 import java.util.Map;

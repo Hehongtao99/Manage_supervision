@@ -1,9 +1,9 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.dto.StudentDTO;
-import com.example.auth.dto.StudentDetailDTO;
-import com.example.auth.dto.UserDTO;
+import com.example.auth.model.dto.StudentDTO;
+import com.example.auth.model.dto.StudentDetailDTO;
+import com.example.auth.model.dto.UserDTO;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
 import org.slf4j.Logger;

@@ -1,8 +1,8 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.dto.DashboardStats;
-import com.example.auth.dto.SupervisorDashboardDTO;
+import com.example.auth.model.dto.DashboardStats;
+import com.example.auth.model.dto.SupervisorDashboardDTO;
 import com.example.auth.service.DashboardService;
 import com.example.auth.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;

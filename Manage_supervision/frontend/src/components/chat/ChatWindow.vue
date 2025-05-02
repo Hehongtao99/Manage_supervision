@@ -6,7 +6,7 @@
         <span class="username">{{ otherUser.name }}</span>
       </div>
       <div v-else class="placeholder">
-        <span>Please select a chat</span>
+        <span>请选择一个聊天</span>
       </div>
     </div>
     
@@ -16,7 +16,7 @@
       ref="chatContent"
       @scroll="handleScroll"
     >
-      <el-empty v-if="!conversation" description="Select a contact to start chatting" />
+      <el-empty v-if="!conversation" description="选择一个联系人开始聊天" />
       
       <template v-else>
         <div v-if="loading" class="loading-container">
@@ -24,7 +24,7 @@
         </div>
         
         <div v-else-if="messages.length === 0" class="empty-conversation">
-          <el-empty description="No messages yet" />
+          <el-empty description="暂无消息" />
         </div>
         
         <template v-else>
@@ -34,7 +34,7 @@
               link 
               @click="loadMoreMessages"
             >
-              Load more
+              加载更多
             </el-button>
           </div>
           
@@ -55,7 +55,7 @@
           v-model="messageContent"
           type="textarea"
           :autosize="{ minRows: 2, maxRows: 5 }"
-          placeholder="Type a message..."
+          placeholder="输入消息..."
           @keydown.enter.exact.prevent="sendMessage"
         />
       </div>
@@ -70,7 +70,7 @@
           :on-change="handleFileSelected"
         >
           <el-button type="primary" :icon="Upload" plain class="upload-btn">
-            File
+            文件
           </el-button>
         </el-upload>
         
@@ -80,7 +80,7 @@
           @click="sendMessage"
           :loading="sending"
         >
-          Send
+          发送
         </el-button>
       </div>
       
@@ -110,6 +110,7 @@ import chatService from '../../services/chat';
 import type { ChatMessage as ChatMessageType } from '../../services/chat';
 import { Upload, Delete } from '@element-plus/icons-vue';
 import { ElNotification } from 'element-plus';
+import { chatEvents } from '../../stores/chat';
 
 // 组件属性
 const props = defineProps<{
@@ -229,11 +230,36 @@ const sendMessage = async () => {
   try {
     // 如果有文件，发送文件消息
     if (selectedFile.value) {
-      await chatService.sendFileMessage(
+      const tempMessage = await chatService.sendFileMessage(
         otherUser.value.id, 
         selectedFile.value, 
         messageContent.value.trim()
-      );
+      ) as ChatMessage;
+      
+      // 如果成功获取临时消息，立即添加到会话中
+      if (tempMessage && props.conversationId) {
+        // 通过 store 处理临时文件消息
+        const conversation = chatStore.conversations.find(c => c.id === props.conversationId);
+        if (conversation) {
+          // 初始化消息列表（如果不存在）
+          if (!chatStore.messages[conversation.id]) {
+            chatStore.messages[conversation.id] = [];
+          }
+          
+          // 添加临时消息到消息列表
+          chatStore.messages[conversation.id].push(tempMessage);
+          
+          // 更新会话的最后消息和时间
+          conversation.lastMessage = tempMessage;
+          conversation.lastMessageTime = tempMessage.sentTime;
+          
+          // 发布消息添加事件
+          chatEvents.emit('messageAdded', {
+            conversationId: conversation.id,
+            message: tempMessage
+          });
+        }
+      }
       
       // 清除已选文件
       clearSelectedFile();
@@ -252,8 +278,8 @@ const sendMessage = async () => {
   } catch (error) {
     console.error('Failed to send message:', error);
     ElNotification({
-      title: 'Send Failed',
-      message: error instanceof Error ? error.message : 'Failed to send message, please try again',
+      title: '发送失败',
+      message: error instanceof Error ? error.message : '消息发送失败，请重试',
       type: 'error'
     });
   } finally {
@@ -268,8 +294,8 @@ const handleFileSelected = (file: any) => {
   // 如果文件太大，显示警告
   if (file.size > 20 * 1024 * 1024) { // 20MB
     ElNotification({
-      title: 'File Too Large',
-      message: 'File size cannot exceed 20MB',
+      title: '文件过大',
+      message: '文件大小不能超过20MB',
       type: 'warning'
     });
   }
@@ -299,7 +325,13 @@ const formatFileSize = (bytes: number) => {
 // 滚动到底部
 const scrollToBottom = () => {
   if (chatContent.value) {
-    chatContent.value.scrollTop = chatContent.value.scrollHeight;
+    // 使用setTimeout确保在DOM完全更新后执行滚动
+    setTimeout(() => {
+      if (chatContent.value) {
+        chatContent.value.scrollTop = chatContent.value.scrollHeight;
+        console.log('滚动到底部完成');
+      }
+    }, 50);
   }
 };
 
@@ -312,6 +344,14 @@ const handleNewMessage = (message: ChatMessageType) => {
     });
   }
 };
+
+// 监听消息列表变化，使用更快的响应时间
+watch(() => messages.value.length, () => {
+  console.log('消息数量变化，准备滚动到底部');
+  nextTick(() => {
+    scrollToBottom();
+  });
+}, { immediate: true });
 
 // 加载会话消息
 const loadConversationMessages = async () => {
@@ -327,7 +367,6 @@ const loadConversationMessages = async () => {
     updateFirstMessageId();
     
     // 滚动到底部
-    await nextTick();
     scrollToBottom();
   } catch (error) {
     console.error('Failed to load conversation messages:', error);
@@ -347,12 +386,75 @@ watch(() => props.conversationId, (newId) => {
 // 组件挂载时
 onMounted(() => {
   // 注册消息监听
-  const unsubscribe = chatService.onMessage(handleNewMessage, props.conversationId);
+  const unsubscribe = chatService.onMessage(handleNewMessage);
+  
+  // 监听消息添加事件
+  const unsubscribeMessageAdded = chatEvents.on('messageAdded', (data: any) => {
+    if (data.conversationId === props.conversationId) {
+      nextTick(() => {
+        scrollToBottom();
+      });
+    }
+  });
+  
+  // 监听消息更新事件
+  const unsubscribeMessageUpdated = chatEvents.on('messageUpdated', (data: any) => {
+    if (data.conversationId === props.conversationId) {
+      nextTick(() => {
+        scrollToBottom();
+      });
+    }
+  });
+  
+  // 监听直接接收到的消息事件(WebSocket)
+  const unsubscribeMessageReceived = chatEvents.on('messageReceived', (message: ChatMessageType) => {
+    if (message.conversationId === props.conversationId) {
+      console.log('直接接收到新消息，准备滚动到底部', message);
+      nextTick(() => {
+        scrollToBottom();
+      });
+    }
+  });
+  
+  // 创建一个MutationObserver来监听内容区域的DOM变化
+  if (chatContent.value) {
+    const observer = new MutationObserver((mutations) => {
+      // 当有子节点添加时，很可能是新消息
+      if (mutations.some(mutation => mutation.type === 'childList' && mutation.addedNodes.length > 0)) {
+        scrollToBottom();
+      }
+    });
+    
+    // 开始观察
+    observer.observe(chatContent.value, {
+      childList: true,    // 观察直接子节点变化
+      subtree: true,      // 观察所有后代节点
+      attributes: false,  // 不观察属性变化
+      characterData: false // 不观察文本内容变化
+    });
+    
+    // 组件卸载时停止观察
+    onUnmounted(() => {
+      observer.disconnect();
+    });
+  }
   
   // 组件卸载时取消监听
   onUnmounted(() => {
     if (unsubscribe) unsubscribe();
+    unsubscribeMessageAdded();
+    unsubscribeMessageUpdated();
+    unsubscribeMessageReceived();
   });
+  
+  // 如果有会话ID，加载会话并滚动到底部
+  if (props.conversationId) {
+    loadConversationMessages().then(() => {
+      nextTick(() => {
+        scrollToBottom();
+      });
+    });
+  }
 });
 </script>
 

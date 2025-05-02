@@ -1,9 +1,9 @@
 package com.example.auth.service;
 
-import com.example.auth.dto.StudentDTO;
-import com.example.auth.dto.StudentDetailDTO;
-import com.example.auth.dto.UserDTO;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.StudentDTO;
+import com.example.auth.model.dto.StudentDetailDTO;
+import com.example.auth.model.dto.UserDTO;
+import com.example.auth.model.entity.User;
 import java.util.List;
 import java.util.Map;
 

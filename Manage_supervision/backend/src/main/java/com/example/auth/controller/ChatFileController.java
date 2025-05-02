@@ -1,6 +1,6 @@
 package com.example.auth.controller;
 
-import com.example.auth.entity.User;
+import com.example.auth.model.entity.User;
 import com.example.auth.util.UserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +24,9 @@ import java.util.UUID;
 public class ChatFileController {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatFileController.class);
+    
+    // 设置最大文件大小限制为20MB
+    private static final long MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -44,6 +47,13 @@ public class ChatFileController {
             if (currentUser == null) {
                 logger.error("上传文件失败：用户未登录");
                 return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+            }
+            
+            // 检查文件大小
+            if (file.getSize() > MAX_FILE_SIZE) {
+                logger.error("上传文件失败：文件大小超过限制 - 用户: {}, 文件大小: {}", 
+                            currentUser.getUsername(), file.getSize());
+                return ResponseEntity.badRequest().body(Map.of("error", "文件大小不能超过20MB"));
             }
 
             // 创建聊天文件目录

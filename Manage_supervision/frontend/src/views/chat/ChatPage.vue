@@ -3,24 +3,24 @@
     <div class="chat-container">
       <div class="chat-sidebar">
         <div class="sidebar-header">
-          <h2>Messages</h2>
+          <h2>消息</h2>
           <el-dropdown v-if="isSupervisor" @command="handleCommand">
             <el-button type="primary" size="small">
-              New Chat <el-icon><ArrowDown /></el-icon>
+              新建聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="showStudentList">Select Student</el-dropdown-item>
+                <el-dropdown-item command="showStudentList">选择学生</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
           <el-dropdown v-else @command="handleCommand">
             <el-button type="primary" size="small">
-              New Chat <el-icon><ArrowDown /></el-icon>
+              新建聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="showSupervisorList">Select Supervisor</el-dropdown-item>
+                <el-dropdown-item command="showSupervisorList">选择导师</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -41,12 +41,12 @@
     <!-- 学生选择对话框 -->
     <el-dialog
       v-model="showStudentDialog"
-      title="Select Student"
+      title="选择学生"
       width="500px"
     >
       <el-input
         v-model="searchKeyword"
-        placeholder="Search students"
+        placeholder="搜索学生"
         prefix-icon="Search"
         clearable
         @input="handleSearch"
@@ -58,12 +58,12 @@
         height="350px"
         v-loading="loadingStudents"
       >
-        <el-table-column prop="name" label="Name" width="120" />
-        <el-table-column prop="studentId" label="Student ID" width="180" />
-        <el-table-column fixed="right" label="Actions" width="120">
+        <el-table-column prop="name" label="姓名" width="120" />
+        <el-table-column prop="studentId" label="学号" width="180" />
+        <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
             <el-button link type="primary" @click="startChatWithStudent(scope.row)">
-              Start Chat
+              开始聊天
             </el-button>
           </template>
         </el-table-column>
@@ -73,12 +73,12 @@
     <!-- 教师选择对话框 -->
     <el-dialog
       v-model="showSupervisorDialog"
-      title="Select Supervisor"
+      title="选择导师"
       width="500px"
     >
       <el-input
         v-model="supervisorSearchKeyword"
-        placeholder="Search supervisors"
+        placeholder="搜索导师"
         prefix-icon="Search"
         clearable
         @input="handleSupervisorSearch"
@@ -90,11 +90,11 @@
         height="350px"
         v-loading="loadingSupervisors"
       >
-        <el-table-column prop="name" label="Name" width="180" />
-        <el-table-column fixed="right" label="Actions" width="120">
+        <el-table-column prop="name" label="姓名" width="180" />
+        <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
             <el-button link type="primary" @click="startChatWithSupervisor(scope.row)">
-              Start Chat
+              开始聊天
             </el-button>
           </template>
         </el-table-column>

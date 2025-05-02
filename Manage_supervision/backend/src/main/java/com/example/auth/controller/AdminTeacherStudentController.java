@@ -1,13 +1,12 @@
 package com.example.auth.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.dto.PageResponse;
-import com.example.auth.dto.StudentAssignmentDTO;
-import com.example.auth.dto.TeacherWithStudentsDTO;
-import com.example.auth.dto.UserDTO;
-import com.example.auth.entity.Role;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.StudentAssignmentDTO;
+import com.example.auth.model.dto.TeacherWithStudentsDTO;
+import com.example.auth.model.dto.UserDTO;
+import com.example.auth.model.entity.Role;
+import com.example.auth.model.entity.User;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.service.TeacherStudentService;

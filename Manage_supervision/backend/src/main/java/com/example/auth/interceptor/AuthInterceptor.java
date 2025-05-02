@@ -1,7 +1,7 @@
 package com.example.auth.interceptor;
 
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.entity.User;
+import com.example.auth.model.entity.User;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;

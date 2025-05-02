@@ -378,11 +378,13 @@ const beforeAvatarUpload = (file: File) => {
     ElMessage.error('头像只能是JPG或PNG格式!')
     return false
   }
+  
   if (!isLt2M) {
     ElMessage.error('头像大小不能超过2MB!')
     return false
   }
-  return true
+  
+  return isJPG || isPNG && isLt2M
 }
 </script>
 

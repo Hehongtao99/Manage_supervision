@@ -1,13 +1,12 @@
 package com.example.auth.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.auth.dto.ActivityDTO;
-import com.example.auth.dto.CourseDTO;
-import com.example.auth.dto.StudentDTO;
-import com.example.auth.dto.StudentDetailDTO;
-import com.example.auth.dto.UserDTO;
-import com.example.auth.entity.Role;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.ActivityDTO;
+import com.example.auth.model.dto.CourseDTO;
+import com.example.auth.model.dto.StudentDTO;
+import com.example.auth.model.dto.StudentDetailDTO;
+import com.example.auth.model.dto.UserDTO;
+import com.example.auth.model.entity.Role;
+import com.example.auth.model.entity.User;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
@@ -24,12 +23,10 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -464,6 +461,11 @@ public class UserServiceImpl implements UserService {
         dto.setUsername(user.getUsername());
         dto.setRealName(user.getRealName() != null ? user.getRealName() : "");
         dto.setUserNumber(user.getUserNumber() != null ? user.getUserNumber() : "");
+        
+        // 设置前端期望的字段
+        dto.setName(user.getRealName() != null ? user.getRealName() : user.getUsername());
+        dto.setStudentId(user.getUserNumber() != null ? user.getUserNumber() : "");
+        
         dto.setEmail(user.getEmail() != null ? user.getEmail() : "");
         dto.setPhone(user.getPhone() != null ? user.getPhone() : "");
         dto.setStatus(user.getStatus() != null ? user.getStatus() : "");

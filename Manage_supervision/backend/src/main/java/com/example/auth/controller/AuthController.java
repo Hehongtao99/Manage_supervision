@@ -1,9 +1,9 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.dto.ChangePasswordRequest;
-import com.example.auth.entity.User;
-import com.example.auth.entity.Role;
+import com.example.auth.model.dto.ChangePasswordRequest;
+import com.example.auth.model.entity.User;
+import com.example.auth.model.entity.Role;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
 import com.example.auth.util.UserContext;

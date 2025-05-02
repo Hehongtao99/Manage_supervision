@@ -1,9 +1,9 @@
 package com.example.auth.service;
 
-import com.example.auth.dto.PageResponse;
-import com.example.auth.dto.TeacherStudentDTO;
-import com.example.auth.dto.TeacherWithStudentsDTO;
-import com.example.auth.dto.UserDTO;
+import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.TeacherStudentDTO;
+import com.example.auth.model.dto.TeacherWithStudentsDTO;
+import com.example.auth.model.dto.UserDTO;
 
 import java.util.List;
 

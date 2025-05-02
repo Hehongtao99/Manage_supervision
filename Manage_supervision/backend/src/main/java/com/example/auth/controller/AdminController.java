@@ -1,9 +1,9 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.dto.PageResponse;
-import com.example.auth.dto.RoleDTO;
-import com.example.auth.dto.UserDTO;
+import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.RoleDTO;
+import com.example.auth.model.dto.UserDTO;
 import com.example.auth.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

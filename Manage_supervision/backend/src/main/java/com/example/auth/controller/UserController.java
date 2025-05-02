@@ -1,7 +1,6 @@
 package com.example.auth.controller;
 
-import com.example.auth.annotation.RequireRole;
-import com.example.auth.entity.User;
+import com.example.auth.model.entity.User;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
 import org.slf4j.Logger;
@@ -29,6 +28,9 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    
+    // 设置最大头像大小限制为2MB
+    private static final long MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
 
     @Autowired
     private UserService userService;
@@ -50,6 +52,21 @@ public class UserController {
 
             if (user == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "用户不存在"));
+            }
+            
+            // 检查文件大小限制
+            if (file.getSize() > MAX_AVATAR_SIZE) {
+                logger.error("头像上传失败：文件大小超过限制 - 用户: {}, 文件大小: {}", 
+                            username, file.getSize());
+                return ResponseEntity.badRequest().body(Map.of("message", "头像大小不能超过2MB"));
+            }
+            
+            // 检查文件类型限制
+            String contentType = file.getContentType();
+            if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+                logger.error("头像上传失败：文件类型不支持 - 用户: {}, 文件类型: {}", 
+                            username, contentType);
+                return ResponseEntity.badRequest().body(Map.of("message", "头像只能是JPG或PNG格式"));
             }
 
             // 确保上传目录存在

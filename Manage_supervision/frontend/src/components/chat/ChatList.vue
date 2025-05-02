@@ -3,7 +3,7 @@
     <el-skeleton v-if="loading" :rows="3" animated />
     
     <div v-else-if="conversations.length === 0" class="empty-state">
-      <el-empty description="No conversations" />
+      <el-empty description="暂无会话" />
     </div>
     
     <div v-else class="conversation-list">
@@ -37,7 +37,7 @@
             <span class="message-preview" v-if="conversation.lastMessage">
               {{ conversation.lastMessage.content }}
             </span>
-            <span class="no-message" v-else>No messages</span>
+            <span class="no-message" v-else>暂无消息</span>
           </div>
         </div>
       </div>
@@ -95,7 +95,7 @@ const formatTime = (timeString: string) => {
   if (isToday(date)) {
     return format(date, 'HH:mm');
   } else if (isYesterday(date)) {
-    return 'Yesterday';
+    return '昨天';
   } else {
     return format(date, 'MM-dd');
   }

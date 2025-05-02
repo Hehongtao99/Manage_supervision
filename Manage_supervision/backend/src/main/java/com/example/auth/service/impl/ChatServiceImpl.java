@@ -2,11 +2,11 @@ package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.auth.dto.ChatMessageDTO;
-import com.example.auth.dto.ConversationDTO;
-import com.example.auth.entity.ChatMessage;
-import com.example.auth.entity.Conversation;
-import com.example.auth.entity.User;
+import com.example.auth.model.dto.ChatMessageDTO;
+import com.example.auth.model.dto.ConversationDTO;
+import com.example.auth.model.entity.ChatMessage;
+import com.example.auth.model.entity.Conversation;
+import com.example.auth.model.entity.User;
 import com.example.auth.mapper.ChatMessageMapper;
 import com.example.auth.mapper.ConversationMapper;
 import com.example.auth.mapper.UserMapper;
