@@ -2,9 +2,6 @@
   <div class="role-management">
     <div class="page-header">
       <h2>角色管理</h2>
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>添加角色
-      </el-button>
     </div>
 
     <!-- 角色列表 -->
@@ -36,72 +33,39 @@
             <el-button
               type="primary"
               link
-              @click="handleEdit(row)"
+              @click="handleView(row)"
+              v-permission="'ROLE_VIEW'"
             >
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              link
-              @click="handleDelete(row)"
-              :disabled="row.name === 'ADMIN' || row.name === 'USER'"
-            >
-              删除
+              查看
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
-    <!-- 角色表单对话框 -->
+    <!-- 角色查看对话框 -->
     <el-dialog
-      :title="dialogTitle"
+      title="查看角色权限"
       v-model="dialogVisible"
       width="500px"
     >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="角色名称" prop="name">
-          <el-input
-            v-model="form.name"
-            placeholder="请输入角色名称"
-            :disabled="form.name === 'ADMIN' || form.name === 'USER'"
-          />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入角色描述"
-          />
-        </el-form-item>
-        <el-form-item label="权限" prop="permissions">
-          <el-checkbox-group v-model="form.permissions">
-            <el-checkbox
-              v-for="permission in availablePermissions"
-              :key="permission"
-              :label="permission"
-            >
-              {{ permissionLabels[permission] }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-      </el-form>
+      <el-descriptions border :column="1" size="large">
+        <el-descriptions-item label="角色名称">{{ viewForm.name }}</el-descriptions-item>
+        <el-descriptions-item label="描述">{{ viewForm.description }}</el-descriptions-item>
+        <el-descriptions-item label="权限">
+          <el-tree
+            :data="filterPermissionTree(permissionTree, viewForm.permissions)"
+            node-key="id"
+            :props="{ label: 'label', children: 'children' }"
+            :default-expanded-keys="['user_management', 'role_management', 'system_management', 'student_management']"
+            :render-after-expand="false"
+          >
+          </el-tree>
+        </el-descriptions-item>
+      </el-descriptions>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            @click="handleSubmit"
-            :loading="submitLoading"
-          >
-            确定
-          </el-button>
+          <el-button @click="dialogVisible = false">关闭</el-button>
         </span>
       </template>
     </el-dialog>
@@ -109,73 +73,91 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { FormInstance } from 'element-plus'
-import type { Role, CreateRoleRequest, UpdateRoleRequest } from '../../types/user'
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import type { Role } from '../../types/user'
 import axios from '../../utils/axios'
+import { hasPermission } from '../../utils/permission'
+import { useUserStore } from '../../stores/user'
+
+// 获取用户权限
+const userStore = useUserStore()
 
 // 状态
 const loading = ref(false)
-const submitLoading = ref(false)
 const dialogVisible = ref(false)
-const dialogType = ref<'add' | 'edit'>('add')
 const roleList = ref<Role[]>([])
 
 // 可用权限列表
 const availablePermissions = [
   'USER_VIEW',
   'USER_EDIT',
-  'USER_DELETE',
+  'USER_DISABLE',
   'ROLE_VIEW',
   'ROLE_EDIT',
   'ROLE_DELETE',
   'LOG_VIEW',
-  'SYSTEM_SETTINGS'
+  'SYSTEM_SETTINGS',
+  'STUDENT_MANAGEMENT'
 ]
 
 // 权限名称映射（英文到中文）
 const permissionLabels = {
   'USER_VIEW': '查看用户',
   'USER_EDIT': '编辑用户',
-  'USER_DELETE': '删除用户',
+  'USER_DISABLE': '禁用用户',
   'ROLE_VIEW': '查看角色',
   'ROLE_EDIT': '编辑角色',
   'ROLE_DELETE': '删除角色',
   'LOG_VIEW': '查看日志',
-  'SYSTEM_SETTINGS': '系统设置'
+  'SYSTEM_SETTINGS': '系统设置',
+  'STUDENT_MANAGEMENT': '学生管理'
 }
 
-// 表单
-const formRef = ref<FormInstance>()
+// 权限树形结构
+const permissionTree = [
+  {
+    id: 'user_management',
+    label: '用户管理',
+    children: [
+      { id: 'USER_VIEW', label: '查看用户' },
+      { id: 'USER_EDIT', label: '编辑用户' },
+      { id: 'USER_DISABLE', label: '禁用用户' }
+    ]
+  },
+  {
+    id: 'role_management',
+    label: '角色管理',
+    children: [
+      { id: 'ROLE_VIEW', label: '查看角色' },
+      { id: 'ROLE_EDIT', label: '编辑角色' },
+      { id: 'ROLE_DELETE', label: '删除角色' }
+    ]
+  },
+  {
+    id: 'system_management',
+    label: '系统管理',
+    children: [
+      { id: 'LOG_VIEW', label: '查看日志' },
+      { id: 'SYSTEM_SETTINGS', label: '系统设置' }
+    ]
+  },
+  {
+    id: 'student_management',
+    label: '学生管理',
+    children: [
+      { id: 'STUDENT_MANAGEMENT', label: '学生管理' }
+    ]
+  }
+]
 
-const form = reactive<CreateRoleRequest & UpdateRoleRequest>({
+// 查看表单
+const viewForm = reactive({
+  id: '',
   name: '',
   description: '',
-  permissions: []
+  permissions: [] as string[]
 })
-
-// 计算属性
-const dialogTitle = computed(() => {
-  return dialogType.value === 'add' ? '添加角色' : '编辑角色'
-})
-
-// 表单验证规则
-const rules = {
-  name: [
-    { required: true, message: '请输入角色名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
-  ],
-  description: [
-    { required: true, message: '请输入角色描述', trigger: 'blur' },
-    { max: 200, message: '描述不能超过200个字符', trigger: 'blur' }
-  ],
-  permissions: [
-    { required: true, message: '请选择权限', trigger: 'change' },
-    { type: 'array', min: 1, message: '请至少选择一个权限', trigger: 'change' }
-  ]
-}
 
 // 方法
 const fetchRoleList = async () => {
@@ -199,75 +181,50 @@ const fetchRoleList = async () => {
   }
 }
 
-const resetForm = () => {
-  if (formRef.value) {
-    formRef.value.resetFields()
+const handleView = (row: Role) => {
+  // 检查权限
+  if (!hasPermission('ROLE_VIEW')) {
+    ElMessage.error('您没有查看角色的权限')
+    return
   }
-  form.name = ''
-  form.description = ''
-  form.permissions = []
-}
-
-const handleAdd = () => {
-  dialogType.value = 'add'
-  resetForm()
+  
+  // 复制角色数据到查看表单
+  Object.assign(viewForm, row)
   dialogVisible.value = true
 }
 
-const handleEdit = (row: Role) => {
-  dialogType.value = 'edit'
-  Object.assign(form, row)
-  dialogVisible.value = true
-}
-
-const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      submitLoading.value = true
-      try {
-        if (dialogType.value === 'add') {
-          await axios.post('/api/admin/roles', form)
-          ElMessage.success('添加角色成功')
-        } else {
-          await axios.put(`/api/admin/roles/${form.id}`, form)
-          ElMessage.success('编辑角色成功')
+// 过滤权限树，只显示已授权的权限
+const filterPermissionTree = (tree: any[], permissions: string[]) => {
+  return tree.map(node => {
+    // 创建节点的副本，避免修改原始数据
+    const newNode = { ...node }
+    
+    if (newNode.children && newNode.children.length) {
+      // 递归处理子节点
+      const filteredChildren = filterPermissionTree(newNode.children, permissions)
+      // 只保留有权限的子节点
+      newNode.children = filteredChildren.filter(child => {
+        // 如果是叶子节点，检查是否有授权
+        if (!child.children || child.children.length === 0) {
+          return permissions.includes(child.id)
         }
-        dialogVisible.value = false
-        fetchRoleList()
-      } catch (error: any) {
-        ElMessage.error(
-          error.response?.data?.message ||
-          (dialogType.value === 'add' ? '添加角色失败' : '编辑角色失败')
-        )
-      } finally {
-        submitLoading.value = false
+        // 如果是分类节点，检查是否有子节点
+        return child.children && child.children.length > 0
+      })
+      
+      // 如果分类节点没有子节点，则不显示该分类
+      if (newNode.children.length === 0) {
+        return null
+      }
+    } else if (availablePermissions.includes(newNode.id)) {
+      // 叶子节点，检查是否有授权
+      if (!permissions.includes(newNode.id)) {
+        return null
       }
     }
-  })
-}
-
-const handleDelete = async (row: Role) => {
-  try {
-    await ElMessageBox.confirm(
-      '确定要删除该角色吗？删除后无法恢复。',
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    await axios.delete(`/api/admin/roles/${row.id}`)
-    ElMessage.success('删除角色成功')
-    fetchRoleList()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.response?.data?.message || '删除角色失败')
-    }
-  }
+    
+    return newNode
+  }).filter(Boolean) // 移除空节点
 }
 
 // 生命周期钩子
@@ -313,9 +270,32 @@ onMounted(() => {
   gap: 10px;
 }
 
-:deep(.el-checkbox-group) {
+:deep(.el-select) {
+  width: 100%;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  min-height: 60px;
+  height: auto;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+:deep(.el-select__tags) {
+  max-height: 60px;
+  overflow-y: auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+}
+
+:deep(.permission-select-dropdown) {
+  max-height: 300px;
+}
+
+.custom-tree-node {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-right: 8px;
 }
 </style> 

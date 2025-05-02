@@ -20,11 +20,7 @@ import jakarta.annotation.PostConstruct;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -383,5 +379,66 @@ public class AdminServiceImpl implements AdminService {
         }
         
         return dto;
+    }
+
+    // 实现统计数据相关接口
+    @Override
+    public Long countTotalUsers() {
+        return userMapper.selectCount(null);
+    }
+
+    @Override
+    public Long countActiveUsers() {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getStatus, "active");
+        return userMapper.selectCount(queryWrapper);
+    }
+
+    @Override
+    public Long countTotalRoles() {
+        return roleMapper.selectCount(null);
+    }
+
+    @Override
+    public Map<String, Long> getUserRoleDistribution() {
+        // 获取所有角色
+        List<Role> allRoles = roleMapper.selectList(null);
+        Map<String, Long> distribution = new HashMap<>();
+        
+        // 为每个角色查询用户数量
+        for (Role role : allRoles) {
+            Long userCount = (long) userRoleMapper.countUsersByRoleId(role.getId());
+            distribution.put(role.getName(), userCount);
+        }
+        
+        return distribution;
+    }
+
+    @Override
+    public Map<String, List<Object>> getUserActivityLastWeek() {
+        // 获取近7天日期
+        List<Object> datesList = new ArrayList<>();
+        List<Object> countsList = new ArrayList<>();
+        
+        LocalDateTime today = LocalDateTime.now();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("M/d");
+        
+        // 计算近7天的用户活跃数据
+        for (int i = 6; i >= 0; i--) {
+            LocalDateTime date = today.minusDays(i);
+            String formattedDate = date.format(dateFormatter);
+            datesList.add(formattedDate);
+            
+            // 在真实环境中，应该从日志表中查询每天的登录用户数
+            // 这里使用模拟数据
+            int randomCount = new Random().nextInt(70) + 120; // 生成120-190之间的随机数
+            countsList.add(randomCount);
+        }
+        
+        Map<String, List<Object>> result = new HashMap<>();
+        result.put("dates", datesList);
+        result.put("counts", countsList);
+        
+        return result;
     }
 } 

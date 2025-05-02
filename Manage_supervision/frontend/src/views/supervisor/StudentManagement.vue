@@ -1,6 +1,17 @@
 <template>
   <div class="student-management">
-    <el-card class="box-card">
+    <!-- 如果没有学生管理权限，显示提示信息 -->
+    <el-empty 
+      v-if="!hasPermission('STUDENT_MANAGEMENT')"
+      description="您没有学生管理权限"
+    >
+      <template #image>
+        <el-icon style="font-size: 48px;"><Lock /></el-icon>
+      </template>
+    </el-empty>
+
+    <!-- 有权限才显示学生管理内容 -->
+    <el-card class="box-card" v-if="hasPermission('STUDENT_MANAGEMENT')">
       <template #header>
         <div class="card-header">
           <span>学生管理</span>
@@ -46,13 +57,19 @@
         </el-table-column>
         <el-table-column label="操作" fixed="right" width="150">
           <template #default="scope">
-            <el-button type="primary" size="small" @click="viewStudentDetails(scope.row)">
+            <el-button 
+              type="primary" 
+              size="small" 
+              @click="viewStudentDetails(scope.row)"
+              v-permission="'USER_VIEW'"
+            >
               <el-icon><View /></el-icon>详情
             </el-button>
             <el-button 
               type="warning" 
               size="small"
               @click="toggleStudentStatus(scope.row)"
+              v-permission="'USER_EDIT'"
             >
               <el-icon><Lock /></el-icon>
               {{ scope.row.status === 'active' ? '禁用' : '启用' }}
@@ -97,6 +114,7 @@
 
         <el-divider />
         
+        <!-- 学生基本信息部分 - 所有权限用户都可查看 -->
         <el-descriptions :column="2" border>
           <el-descriptions-item label="用户名">{{ currentStudent.username }}</el-descriptions-item>
           <el-descriptions-item label="真实姓名">{{ currentStudent.realName }}</el-descriptions-item>
@@ -124,6 +142,66 @@
             {{ currentStudent.bio || '暂无个人简介' }}
           </el-descriptions-item>
         </el-descriptions>
+        
+        <!-- 学生进度部分 - 需要权限才能显示 -->
+        <div v-if="hasPermission('STUDENT_PROGRESS_VIEW')" class="student-progress mt-4">
+          <h3>学习进度</h3>
+          <el-divider />
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-card class="box-card" shadow="hover">
+                <template #header>
+                  <div class="card-header">
+                    <span>总体学习进度</span>
+                  </div>
+                </template>
+                <el-progress :percentage="75" :stroke-width="20" :format="percentFormat" :color="getProgressColor(75)"></el-progress>
+              </el-card>
+            </el-col>
+            <el-col :span="12">
+              <el-card class="box-card" shadow="hover">
+                <template #header>
+                  <div class="card-header">
+                    <span>最近活跃度</span>
+                  </div>
+                </template>
+                <el-progress :percentage="60" :stroke-width="20" :format="percentFormat" :color="getProgressColor(60)"></el-progress>
+              </el-card>
+            </el-col>
+          </el-row>
+          
+          <el-row :gutter="20" class="mt-4">
+            <el-col :span="24">
+              <el-card class="box-card" shadow="hover">
+                <template #header>
+                  <div class="card-header">
+                    <span>近期活动</span>
+                  </div>
+                </template>
+                <el-timeline>
+                  <el-timeline-item
+                    timestamp="2023-05-10 20:46"
+                    type="success"
+                  >
+                    完成作业：《第三章 数据结构》
+                  </el-timeline-item>
+                  <el-timeline-item
+                    timestamp="2023-05-08 09:30"
+                    type="primary"
+                  >
+                    参加在线答疑会议
+                  </el-timeline-item>
+                  <el-timeline-item
+                    timestamp="2023-05-05 18:12"
+                    type="warning"
+                  >
+                    延迟提交作业：《第二章 算法基础》
+                  </el-timeline-item>
+                </el-timeline>
+              </el-card>
+            </el-col>
+          </el-row>
+        </div>
       </div>
       
       <template #footer>
@@ -148,6 +226,7 @@ import {
 import { getStudents, getStudentDetail, updateStudentStatus, deleteStudent, getAssignedStudents } from '../../api/student';
 import type { Student } from '../../api/user';
 import { useRouter } from 'vue-router';
+import { hasPermission } from '../../utils/permission';
 
 // 状态变量
 const loading = ref<boolean>(false);
@@ -248,6 +327,12 @@ const handleCurrentChange = (newPage: number) => {
 };
 
 const viewStudentDetails = async (student: Student) => {
+  // 检查权限
+  if (!hasPermission('USER_VIEW')) {
+    ElMessage.error('您没有查看学生详情的权限');
+    return;
+  }
+  
   try {
     loading.value = true;
     console.log('查看学生详情, ID:', student.id);
@@ -295,6 +380,12 @@ const viewStudentDetails = async (student: Student) => {
 };
 
 const toggleStudentStatus = async (student: Student) => {
+  // 检查权限
+  if (!hasPermission('USER_EDIT')) {
+    ElMessage.error('您没有修改学生状态的权限');
+    return;
+  }
+  
   try {
     const newStatus = student.status === 'active' ? 'inactive' : 'active';
     const success = await updateStudentStatus(student.id, newStatus);
@@ -316,6 +407,12 @@ const toggleStudentStatus = async (student: Student) => {
 };
 
 const deleteStudentUser = async (student: Student) => {
+  // 检查权限
+  if (!hasPermission('USER_DELETE')) {
+    ElMessage.error('您没有删除学生的权限');
+    return;
+  }
+  
   try {
     const success = await deleteStudent(student.id);
     

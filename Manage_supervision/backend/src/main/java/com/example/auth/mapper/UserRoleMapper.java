@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 @Mapper
 public interface UserRoleMapper {
@@ -25,4 +26,10 @@ public interface UserRoleMapper {
      */
     @Delete("DELETE FROM user_roles WHERE user_id = #{userId} AND role_id = #{roleId}")
     int deleteUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
+    
+    /**
+     * 统计特定角色的用户数量
+     */
+    @Select("SELECT COUNT(*) FROM user_roles WHERE role_id = #{roleId}")
+    int countUsersByRoleId(@Param("roleId") Long roleId);
 } 

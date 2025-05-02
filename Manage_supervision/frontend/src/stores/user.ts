@@ -276,54 +276,73 @@ export const useUserStore = defineStore('user', {
     },
 
     async fetchUserInfo(forceRefresh = false) {
+      if (this.user.id && !forceRefresh) {
+        console.log('已存在用户信息，跳过获取:', this.user)
+        return true
+      }
+      
       if (!this.token) {
-        console.log('获取用户信息失败: 未找到token')
+        console.log('没有token，无法获取用户信息')
         return false
       }
       
       try {
-        console.log('开始获取用户信息...')
-        const timestamp = forceRefresh ? `?_t=${Date.now()}` : ''
-        const response = await axios.get(`/api/auth/info${timestamp}`)
+        console.log('开始获取用户信息')
+        const response = await axios.get('/api/auth/info')
         
-        if (response.data && response.data.user) {
-          // 确保所有用户数据被正确设置
-          this.user = {
-            ...this.user,
-            id: response.data.user.id || this.user.id,
-            name: response.data.user.realName || response.data.user.username || this.user.name,
-            username: response.data.user.username || this.user.username,
-            realName: response.data.user.realName || this.user.realName,
-            nickname: response.data.user.nickname || this.user.nickname,
-            email: response.data.user.email || this.user.email,
-            phone: response.data.user.phone || this.user.phone,
-            bio: response.data.user.bio || this.user.bio,
-            avatar: response.data.user.avatar || this.user.avatar,
-            userNumber: response.data.user.userNumber || this.user.userNumber,
-            roles: Array.isArray(response.data.user.roles) ? response.data.user.roles : this.user.roles
-          }
-        } else {
-          this.user = response.data.user
+        if (!response.data) {
+          throw new Error('服务器返回数据格式错误')
         }
         
-        console.log('获取用户信息成功:', this.user.name, '角色:', this.user.roles, '用户编号:', this.user.userNumber)
+        console.log('获取用户信息成功:', response.data)
+        
+        // 设置用户信息
+        this.user = {
+          id: response.data.id || null,
+          name: response.data.realName || response.data.username || '',
+          username: response.data.username || '',
+          email: response.data.email || '',
+          roles: Array.isArray(response.data.roles) ? response.data.roles : [],
+          realName: response.data.realName,
+          nickname: response.data.nickname,
+          phone: response.data.phone,
+          bio: response.data.bio,
+          avatar: response.data.avatar || '',
+          userNumber: response.data.userNumber || ''
+        }
+        
+        // 获取用户角色的权限
+        await this.fetchUserPermissions()
+        
         return true
-      } catch (error: any) {
-        console.error('获取用户信息失败:', error.message || error)
+      } catch (error) {
+        console.error('获取用户信息失败:', error)
+        return false
+      }
+    },
+    
+    // 获取用户权限
+    async fetchUserPermissions() {
+      if (!this.token || !this.user.id) {
+        console.log('没有token或用户ID，无法获取权限')
+        return false
+      }
+      
+      try {
+        console.log('开始获取用户权限')
+        const response = await axios.get('/api/auth/permissions')
         
-        // 判断是否为401错误
-        if (error.response?.status === 401) {
-          // 如果在非登录页面且不是自动初始化，尝试重定向到登录页
-          if (forceRefresh && window.location.pathname !== '/login') {
-            console.warn('用户未登录或登录已过期，正在重定向到登录页...')
-            this.handleAuthError()
-          }
+        if (!response.data || !Array.isArray(response.data)) {
+          console.log('权限数据格式错误:', response.data)
+          return false
         }
         
-        if (error.response?.status !== 401 || forceRefresh) {
-          throw error
-        }
+        this.permissions = response.data
+        console.log('获取用户权限成功:', this.permissions)
         
+        return true
+      } catch (error) {
+        console.error('获取用户权限失败:', error)
         return false
       }
     },

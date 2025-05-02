@@ -19,7 +19,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: BaseLayout,
-    redirect: '/chat',
+    redirect: to => {
+      const userStore = useUserStore()
+      if (userStore.isAdmin) {
+        return '/admin/dashboard'
+      } else if (userStore.isSupervisor) {
+        return '/supervisor/students'
+      } else {
+        return '/chat'
+      }
+    },
     children: [
       {
         path: 'profile',
@@ -227,6 +236,18 @@ router.beforeEach(async (to, from, next) => {
       next('/chat')
       return
     }
+  }
+  
+  // 如果用户已登录且访问登录页，根据角色重定向到对应页面
+  if (userStore.isLoggedIn && (to.path === '/login' || to.path === '/register')) {
+    if (userStore.isAdmin) {
+      next('/admin/dashboard')
+    } else if (userStore.isSupervisor) {
+      next('/supervisor/students')
+    } else {
+      next('/chat')
+    }
+    return
   }
   
   // 设置页面标题

@@ -3,14 +3,19 @@ package com.example.auth.controller;
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.dto.ChangePasswordRequest;
 import com.example.auth.entity.User;
+import com.example.auth.entity.Role;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
+import com.example.auth.util.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +26,9 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private UserContext userContext;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
@@ -119,9 +127,7 @@ public class AuthController {
             userData.put("bio", user.getBio());
             userData.put("userNumber", user.getUserNumber());
             
-            return ResponseEntity.ok(Map.of(
-                "user", userData
-            ));
+            return ResponseEntity.ok(userData);
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of(
                 "message", "获取用户信息失败: " + e.getMessage()
@@ -158,5 +164,40 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
             "message", "只有管理员才能看到这个信息"
         ));
+    }
+
+    /**
+     * 获取当前用户的权限信息
+     * @return 权限列表
+     */
+    @GetMapping("/permissions")
+    public ResponseEntity<?> getUserPermissions() {
+        User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "未登录"));
+        }
+        
+        // 获取用户所有角色的权限
+        Set<String> permissions = new HashSet<>();
+        for (Role role : currentUser.getRoles()) {
+            // 角色权限是以逗号分隔的字符串，需要转换为列表
+            if (role.getPermissions() != null && !role.getPermissions().isEmpty()) {
+                String[] rolePermissions = role.getPermissions().split(",");
+                for (String permission : rolePermissions) {
+                    permissions.add(permission.trim());
+                }
+            }
+        }
+        
+        // 如果用户是管理员，添加所有权限
+        if (currentUser.getRoles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()))) {
+            permissions.addAll(Arrays.asList(
+                "USER_VIEW", "USER_EDIT", "USER_DELETE",
+                "ROLE_VIEW", "ROLE_EDIT", "ROLE_DELETE",
+                "LOG_VIEW", "SYSTEM_SETTINGS"
+            ));
+        }
+        
+        return ResponseEntity.ok(permissions.toArray(new String[0]));
     }
 } 

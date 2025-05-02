@@ -6,6 +6,7 @@ import App from './App.vue'
 import router from './router'
 import axios from './utils/axios'
 import { useUserStore } from './stores/user'
+import permissionDirective from './directives/permission'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -13,6 +14,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
+app.use(permissionDirective)
 
 // 设置全局axios实例
 app.config.globalProperties.$axios = axios

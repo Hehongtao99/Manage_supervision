@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -99,5 +98,46 @@ public class AdminController {
     public ResponseEntity<?> deleteRole(@PathVariable Long id) {
         adminService.deleteRole(id);
         return ResponseEntity.ok().build();
+    }
+    
+    // 控制台统计数据接口
+    @GetMapping("/statistics")
+    @RequireRole("ADMIN")
+    public ResponseEntity<Map<String, Object>> getStatistics() {
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("totalUsers", adminService.countTotalUsers());
+        statistics.put("activeUsers", adminService.countActiveUsers());
+        statistics.put("totalRoles", adminService.countTotalRoles());
+        statistics.put("systemHealth", "正常");
+        
+        return ResponseEntity.ok(statistics);
+    }
+    
+    @GetMapping("/statistics/role-distribution")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<Map<String, Object>>> getRoleDistribution() {
+        List<Map<String, Object>> roleDistribution = new ArrayList<>();
+        
+        // 从service层获取角色分布数据
+        Map<String, Long> distribution = adminService.getUserRoleDistribution();
+        
+        // 转换为前端所需的格式
+        for (Map.Entry<String, Long> entry : distribution.entrySet()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("name", entry.getKey());
+            item.put("value", entry.getValue());
+            roleDistribution.add(item);
+        }
+        
+        return ResponseEntity.ok(roleDistribution);
+    }
+    
+    @GetMapping("/statistics/user-activity")
+    @RequireRole("ADMIN")
+    public ResponseEntity<Map<String, List<Object>>> getUserActivity() {
+        // 从service层获取近7天用户活跃数据
+        Map<String, List<Object>> activityData = adminService.getUserActivityLastWeek();
+        
+        return ResponseEntity.ok(activityData);
     }
 } 

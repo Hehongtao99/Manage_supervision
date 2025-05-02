@@ -116,4 +116,9 @@ INSERT INTO users (username, password, real_name, nickname, email, status, creat
 -- 为管理员用户分配ADMIN角色
 INSERT INTO user_roles (user_id, role_id) SELECT 
 (SELECT id FROM users WHERE username = 'admin'), 
-(SELECT id FROM roles WHERE name = 'ADMIN'); 
+(SELECT id FROM roles WHERE name = 'ADMIN');
+
+-- 确保roles表中的权限字段包含正确的权限设置
+UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,USER_DELETE,ROLE_VIEW,ROLE_EDIT,ROLE_DELETE,LOG_VIEW,SYSTEM_SETTINGS' WHERE name = 'ADMIN';
+UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW' WHERE name = 'SUPERVISOR';
+UPDATE roles SET permissions = 'USER_VIEW' WHERE name = 'USER'; 

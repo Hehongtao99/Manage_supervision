@@ -5,6 +5,7 @@ import com.example.auth.dto.RoleDTO;
 import com.example.auth.dto.UserDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AdminService {
     
@@ -27,4 +28,15 @@ public interface AdminService {
     RoleDTO updateRole(Long id, RoleDTO roleDTO);
     
     void deleteRole(Long id);
+    
+    // 统计数据相关接口
+    Long countTotalUsers();
+    
+    Long countActiveUsers();
+    
+    Long countTotalRoles();
+    
+    Map<String, Long> getUserRoleDistribution();
+    
+    Map<String, List<Object>> getUserActivityLastWeek();
 } 

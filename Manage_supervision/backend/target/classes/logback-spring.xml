@@ -1,42 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- 控制台输出 -->
+
+    <!-- 引入 Spring Boot 默认配置 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- 控制台 Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <!-- 彩色日志格式 -->
+            <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- 应用日志文件 -->
+    <!-- 文件 Appender (可选) -->
+    <!-- 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/application.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [ %-5level] [%thread] %logger{36} - %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
+        <file>logs/app.log</file> 
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> 
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+           <MaxFileSize>10MB</MaxFileSize>
+        </triggeringPolicy>
     </appender>
+    -->
 
-    <!-- 设置Spring框架日志级别 -->
-    <logger name="org.springframework" level="INFO" />
+    <!-- Logger 配置 -->
+    <!-- Spring Boot 的日志级别 -->
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springboot.sample" level="INFO"/>
     
-    <!-- 关闭Hibernate SQL日志 -->
-    <logger name="org.hibernate.SQL" level="ERROR" />
-    <logger name="org.hibernate.type.descriptor.sql" level="ERROR" />
-    <logger name="org.hibernate.engine.jdbc" level="ERROR" />
-    <logger name="org.hibernate.orm.jdbc.bind" level="ERROR" />
-    
-    <!-- 关闭JPA相关日志 -->
-    <logger name="org.springframework.orm.jpa" level="ERROR" />
-    <logger name="org.springframework.jdbc" level="ERROR" />
-    
-    <!-- 应用根日志级别 -->
+    <!-- MyBatis-Plus SQL 日志 -->
+    <logger name="com.example.auth.mapper" level="DEBUG"/> 
+    <!-- <logger name="com.baomidou.mybatisplus" level="DEBUG"/> -->
+
+    <!-- 项目日志级别 -->
+    <logger name="com.example.auth" level="INFO"/>
+
+    <!-- Root Logger -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE"/>
+        <!-- <appender-ref ref="FILE"/> -->
     </root>
+
 </configuration> 
