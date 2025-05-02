@@ -50,72 +50,6 @@ CREATE TABLE user_roles (
     CONSTRAINT FK_user_roles_role FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 创建课题表
-CREATE TABLE projects (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description VARCHAR(2000),
-    category VARCHAR(255),
-    start_time DATETIME,
-    end_time DATETIME,
-    status VARCHAR(255) NOT NULL DEFAULT '未开始',
-    supervisor_id BIGINT,
-    assignee_id BIGINT,
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    requirements VARCHAR(2000),
-    resources VARCHAR(1000),
-    CONSTRAINT FK_projects_supervisor FOREIGN KEY (supervisor_id) REFERENCES users (id) ON DELETE SET NULL,
-    CONSTRAINT FK_projects_assignee FOREIGN KEY (assignee_id) REFERENCES users (id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- 创建任务表
-CREATE TABLE tasks (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description VARCHAR(1000),
-    start_time DATETIME,
-    end_time DATETIME,
-    status VARCHAR(255) NOT NULL DEFAULT '初稿',
-    priority VARCHAR(255),
-    supervisor_id BIGINT,
-    assignee_id BIGINT,
-    project_id BIGINT,
-    completed BOOLEAN NOT NULL DEFAULT FALSE,
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_tasks_supervisor FOREIGN KEY (supervisor_id) REFERENCES users (id) ON DELETE SET NULL,
-    CONSTRAINT FK_tasks_assignee FOREIGN KEY (assignee_id) REFERENCES users (id) ON DELETE SET NULL,
-    CONSTRAINT FK_tasks_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- 创建任务提交表
-CREATE TABLE task_submissions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    task_id BIGINT NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
-    original_filename VARCHAR(255),
-    file_type VARCHAR(255),
-    file_size BIGINT,
-    submitter_id BIGINT NOT NULL,
-    submission_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    comment TEXT,
-    CONSTRAINT FK_task_submissions_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE,
-    CONSTRAINT FK_task_submissions_submitter FOREIGN KEY (submitter_id) REFERENCES users (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- 创建任务评价表
-CREATE TABLE task_evaluations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    task_id BIGINT NOT NULL,
-    score INT,
-    comment TEXT,
-    evaluated_by BIGINT NOT NULL,
-    evaluation_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_task_evaluations_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE,
-    CONSTRAINT FK_task_evaluations_evaluator FOREIGN KEY (evaluated_by) REFERENCES users (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 -- 创建会话表
 CREATE TABLE conversations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -160,16 +94,6 @@ CREATE TABLE teacher_student_relations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 创建索引以提高查询性能
-CREATE INDEX idx_tasks_supervisor_id ON tasks(supervisor_id);
-CREATE INDEX idx_tasks_assignee_id ON tasks(assignee_id);
-CREATE INDEX idx_tasks_project_id ON tasks(project_id);
-CREATE INDEX idx_tasks_completed ON tasks(completed);
-CREATE INDEX idx_projects_supervisor_id ON projects(supervisor_id);
-CREATE INDEX idx_projects_assignee_id ON projects(assignee_id);
-CREATE INDEX idx_submissions_task_id ON task_submissions(task_id);
-CREATE INDEX idx_submissions_submitter_id ON task_submissions(submitter_id);
-CREATE INDEX idx_task_evaluations_task_id ON task_evaluations(task_id);
-CREATE INDEX idx_task_evaluations_evaluated_by ON task_evaluations(evaluated_by);
 CREATE INDEX idx_conversations_user1_id ON conversations(user1_id);
 CREATE INDEX idx_conversations_user2_id ON conversations(user2_id);
 CREATE INDEX idx_chat_messages_conversation_id ON chat_messages(conversation_id);
