@@ -26,24 +26,17 @@
           <el-icon><Avatar /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/roles" @click="handleRoute('/admin/roles')">
-          <el-icon><Lock /></el-icon>
-          <span>角色管理</span>
+        <el-menu-item index="/admin/regions" @click="handleRoute('/admin/regions')">
+          <el-icon><Location /></el-icon>
+          <span>地区管理</span>
         </el-menu-item>
-      </el-sub-menu>
-
-      <el-sub-menu index="teacher-student-management">
-        <template #title>
-          <el-icon><User /></el-icon>
-          <span>教学管理</span>
-        </template>
-        <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
-          <el-icon><UserFilled /></el-icon>
-          <span>教师管理</span>
+        <el-menu-item index="/admin/scenic-spots" @click="handleRoute('/admin/scenic-spots')">
+          <el-icon><Picture /></el-icon>
+          <span>景区管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
-          <el-icon><Avatar /></el-icon>
-          <span>学生管理</span>
+        <el-menu-item index="/admin/hotels" @click="handleRoute('/admin/hotels')">
+          <el-icon><House /></el-icon>
+          <span>酒店管理</span>
         </el-menu-item>
       </el-sub-menu>
     </template>
@@ -57,13 +50,6 @@
         </template>
       </el-menu-item>
 
-      <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>
-          <span>聊天</span>
-        </template>
-      </el-menu-item>
-
       <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
@@ -74,10 +60,10 @@
 
     <!-- 学生菜单 -->
     <template v-else>
-      <el-menu-item index="/chat" @click="handleRoute('/chat')">
-        <el-icon><ChatDotRound /></el-icon>
+      <el-menu-item index="/travel-recommendation" @click="handleRoute('/travel-recommendation')">
+        <el-icon><Place /></el-icon>
         <template #title>
-          <span>聊天</span>
+          <span>旅游推荐</span>
         </template>
       </el-menu-item>
 
@@ -92,21 +78,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import {
-  Monitor,
-  User,
-  UserFilled,
-  Setting,
-  Management,
-  Avatar,
-  Lock,
-  Document,
-  List,
-  Folder,
-  ChatDotRound
+import { 
+  House, 
+  Menu as IconMenu, 
+  Location, 
+  Briefcase, 
+  User, 
+  UserFilled, 
+  ChatDotRound, 
+  Avatar, 
+  Setting, 
+  Histogram, 
+  Grid, 
+  Notebook,
+  Picture,
+  Place
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

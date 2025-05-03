@@ -26,13 +26,6 @@
         </div>
         
         <div class="navbar-right">
-          <!-- 聊天图标和未读消息提示 -->
-          <div class="notification-item" @click="navigateToChat">
-            <el-badge :value="unreadCount > 0 ? unreadCount : ''" :max="99" :hidden="unreadCount <= 0">
-              <el-icon :size="20"><ChatDotRound /></el-icon>
-            </el-badge>
-          </div>
-          
           <!-- 角色标识 -->
           <div class="role-indicator">
             <el-tag :type="roleTagType" effect="dark">
@@ -90,7 +83,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { useChatStore } from '../stores/chat'
 import SideMenu from '../components/SideMenu.vue'
 import Breadcrumb from '../components/Breadcrumb.vue'
 import { ElMessageBox } from 'element-plus'
@@ -101,17 +93,12 @@ import {
   SwitchButton,
   CaretBottom,
   Setting,
-  Monitor,
-  ChatDotRound
+  Monitor
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
-const chatStore = useChatStore()
 const isCollapsed = ref(false)
-
-// 未读消息计数
-const unreadCount = computed(() => chatStore.totalUnreadCount)
 
 // 计算当前角色名称
 const roleName = computed(() => {
@@ -146,15 +133,6 @@ const navigateToProfile = () => {
   }
 }
 
-// 根据角色导航到对应的聊天页面
-const navigateToChat = () => {
-  if (userStore.isSupervisor) {
-    router.push('/supervisor/chat')
-  } else {
-    router.push('/chat')
-  }
-}
-
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
@@ -169,22 +147,6 @@ const handleLogout = () => {
     router.push('/login')
   })
 }
-
-// 初始化聊天服务
-onMounted(async () => {
-  if (userStore.isLoggedIn) {
-    await chatStore.initChat()
-  }
-})
-
-// 监听用户登录状态
-watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
-  if (isLoggedIn) {
-    await chatStore.initChat()
-  } else {
-    chatStore.clearChatData()
-  }
-})
 </script>
 
 <style scoped>
@@ -272,16 +234,6 @@ watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
 .navbar-right {
   display: flex;
   align-items: center;
-}
-
-.notification-item {
-  cursor: pointer;
-  padding: 0 12px;
-  margin-right: 8px;
-}
-
-.notification-item:hover {
-  background-color: rgba(0, 0, 0, 0.025);
 }
 
 .role-indicator {
