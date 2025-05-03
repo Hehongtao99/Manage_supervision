@@ -1,7 +1,10 @@
 <template>
   <div class="face-login-container">
     <h2 class="face-login-title">人脸识别登录</h2>
-    <p class="face-login-description">请保持光线充足，面部清晰。确保画面中仅有您的脸部。</p>
+    <p class="face-login-description">
+      请保持光线充足，面部清晰。确保画面中仅有您的脸部。
+      <span v-if="autoDetectEnabled" class="auto-mode-hint">已开启自动识别模式</span>
+    </p>
     
     <div class="camera-container" v-if="!imageCapture">
       <video 
@@ -10,8 +13,16 @@
         autoplay 
         playsinline
       ></video>
+      <canvas 
+        ref="canvasElement" 
+        class="detection-canvas"
+      ></canvas>
       <div class="face-guide" :class="{ 'has-face': hasDetectedFace }">
         <div class="face-outline"></div>
+        <div v-if="hasDetectedFace && detectionProgress > 0" class="auto-detect-hint">
+          系统正在自动识别
+          <div class="progress-text">{{ Math.round(detectionProgress) }}%</div>
+        </div>
       </div>
       <div class="camera-controls">
         <el-button 
@@ -26,10 +37,16 @@
           type="success" 
           :icon="Camera" 
           @click="captureImage" 
-          :disabled="!isCameraStarted || isLoading"
+          :disabled="!isCameraStarted || isLoading || !hasDetectedFace"
         >
-          拍照
+          手动拍照
         </el-button>
+        <el-switch
+          v-model="autoDetectEnabled"
+          active-text="自动检测"
+          inactive-text="手动拍照"
+          class="auto-detect-switch"
+        />
       </div>
     </div>
     
@@ -65,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { VideoCameraFilled, Camera } from '@element-plus/icons-vue'
 import { useUserStore } from '../../stores/user'
@@ -75,16 +92,46 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const videoElement = ref<HTMLVideoElement | null>(null)
+const canvasElement = ref<HTMLCanvasElement | null>(null)
 const stream = ref<MediaStream | null>(null)
 const imageCapture = ref<string | null>(null)
 const isLoading = ref(false)
 const isCameraStarted = ref(false)
 const hasDetectedFace = ref(false)
 const errorMessage = ref('')
+const faceDetectionInterval = ref<number | null>(null)
+const modelsLoaded = ref(false)
+const faceDetectionTimer = ref<number | null>(null)
+const faceDetectionStartTime = ref<number | null>(null)
+const autoDetectEnabled = ref(true)
+const detectionProgress = ref(0)
+
+// 加载人脸检测模型
+const loadFaceDetectionModels = async () => {
+  try {
+    // 使用更简单的方法，不依赖TensorFlow模型
+    modelsLoaded.value = true;
+    console.log('准备就绪');
+  } catch (error) {
+    console.error('初始化失败:', error);
+    errorMessage.value = '初始化失败，请刷新页面重试';
+  }
+}
 
 // 开启摄像头
 const startCamera = async () => {
   try {
+    // 确保任何可能存在的旧流已经关闭
+    closeCamera()
+    
+    // 添加小延迟，避免设备资源竞争
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // 确保模型已加载
+    if (!modelsLoaded.value) {
+      await loadFaceDetectionModels();
+    }
+    
     stream.value = await navigator.mediaDevices.getUserMedia({
       video: {
         width: { ideal: 1280 },
@@ -95,39 +142,153 @@ const startCamera = async () => {
     
     if (videoElement.value) {
       videoElement.value.srcObject = stream.value
-      isCameraStarted.value = true
       
-      // 启动人脸检测
-      startFaceDetection()
+      // 确保视频元素加载完成
+      videoElement.value.onloadedmetadata = () => {
+        // 确保视频播放
+        videoElement.value?.play().catch(err => {
+          console.error('视频播放失败:', err)
+          errorMessage.value = '视频播放失败，请刷新页面重试'
+        })
+        
+        isCameraStarted.value = true
+        
+        // 启动人脸检测
+        startFaceDetection()
+      }
+    } else {
+      throw new Error('视频元素未找到')
     }
   } catch (error) {
     console.error('无法访问摄像头:', error)
-    errorMessage.value = '无法访问摄像头，请确保允许浏览器使用摄像头'
+    isCameraStarted.value = false
+    stream.value = null
+    errorMessage.value = '无法访问摄像头，请确保允许浏览器使用摄像头，并确保没有其他应用程序正在使用摄像头'
   }
 }
 
 // 启动人脸检测
 const startFaceDetection = () => {
-  if (!videoElement.value) return
+  if (!videoElement.value || !canvasElement.value) return
   
-  // 在实际的生产环境中，这里应该使用真实的人脸检测库
-  // 这里我们使用简单的定时器模拟人脸检测效果
-  const detectionInterval = setInterval(() => {
-    if (!isCameraStarted.value) {
-      clearInterval(detectionInterval)
+  // 设置canvas大小与视频相同
+  canvasElement.value.width = videoElement.value.clientWidth
+  canvasElement.value.height = videoElement.value.clientHeight
+  
+  // 使用简单的检测方法，不依赖face-api.js的复杂模型
+  faceDetectionInterval.value = window.setInterval(async () => {
+    if (!isCameraStarted.value || !videoElement.value || !canvasElement.value) {
+      if (faceDetectionInterval.value !== null) {
+        clearInterval(faceDetectionInterval.value)
+        faceDetectionInterval.value = null
+      }
       return
     }
     
-    // 随机模拟人脸检测结果
-    const detectionResult = Math.random() > 0.2
-    hasDetectedFace.value = detectionResult
-    
-    // 如果检测到人脸，并且还没有拍照，可以自动拍照
-    if (detectionResult && !imageCapture.value && isCameraStarted.value) {
-      // 可以选择自动拍照或让用户手动点击拍照按钮
-      // captureImage()
+    try {
+      // 检测画面亮度和对比度作为简单的人脸存在指标
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = 50;  // 缩小尺寸加快处理
+      tempCanvas.height = 50;
+      
+      if (tempCtx && videoElement.value) {
+        // 绘制视频帧到临时canvas
+        tempCtx.drawImage(
+          videoElement.value, 
+          0, 0, videoElement.value.videoWidth, videoElement.value.videoHeight,
+          0, 0, 50, 50
+        );
+        
+        // 获取画面数据
+        const imageData = tempCtx.getImageData(0, 0, 50, 50);
+        const data = imageData.data;
+        
+        // 计算中心区域的亮度变化
+        let centerPixels = 0;
+        let centerBrightness = 0;
+        
+        for (let y = 15; y < 35; y++) {
+          for (let x = 15; x < 35; x++) {
+            const i = (y * 50 + x) * 4;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const brightness = (r + g + b) / 3;
+            centerBrightness += brightness;
+            centerPixels++;
+          }
+        }
+        
+        centerBrightness /= centerPixels;
+        
+        // 简单判断：如果中心区域亮度在合理范围，可能存在人脸
+        const currentHasFace = centerBrightness > 50 && centerBrightness < 200;
+        
+        // 更新人脸检测状态
+        if (currentHasFace) {
+          if (!hasDetectedFace.value) {
+            // 首次检测到人脸，开始计时
+            hasDetectedFace.value = true;
+            faceDetectionStartTime.value = Date.now();
+          } else if (autoDetectEnabled.value && faceDetectionStartTime.value) {
+            // 已经检测到人脸，计算已检测时间
+            const detectionDuration = Date.now() - faceDetectionStartTime.value;
+            // 更新进度，最大为100%
+            detectionProgress.value = Math.min((detectionDuration / 2000) * 100, 100);
+            
+            // 如果检测到人脸超过2秒，自动捕获并登录
+            if (detectionDuration >= 2000 && !imageCapture.value) {
+              captureImage();
+              // 延迟200ms后自动登录，给用户时间看到捕获的图像
+              setTimeout(() => {
+                loginWithFace();
+              }, 200);
+            }
+          }
+        } else {
+          // 丢失人脸检测，重置计时
+          hasDetectedFace.value = false;
+          faceDetectionStartTime.value = null;
+          detectionProgress.value = 0;
+        }
+        
+        // 绘制指示框和进度
+        const ctx = canvasElement.value.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvasElement.value.width, canvasElement.value.height);
+          
+          if (hasDetectedFace.value) {
+            // 绘制人脸框
+            const centerX = canvasElement.value.width / 2;
+            const centerY = canvasElement.value.height / 2;
+            const size = Math.min(canvasElement.value.width, canvasElement.value.height) * 0.5;
+            
+            // 绘制人脸圆形指示
+            ctx.strokeStyle = '#67C23A';  // 绿色
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 绘制进度环
+            if (autoDetectEnabled.value && detectionProgress.value > 0) {
+              const startAngle = -Math.PI / 2; // 从顶部开始
+              const endAngle = startAngle + (Math.PI * 2 * detectionProgress.value / 100);
+              
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, size / 2 + 10, startAngle, endAngle);
+              ctx.strokeStyle = '#409EFF'; // 蓝色进度条
+              ctx.lineWidth = 5;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('检测错误:', error);
     }
-  }, 1000) // 每秒检测一次
+  }, 100); // 提高到100ms更新一次，使动画更流畅
 }
 
 // 拍照
@@ -146,9 +307,18 @@ const captureImage = () => {
 }
 
 // 重新拍照
-const retakePhoto = () => {
+const retakePhoto = async () => {
   imageCapture.value = null
   errorMessage.value = ''
+  
+  // 确保先关闭现有摄像头再重新启动
+  closeCamera()
+  
+  // 延迟一小段时间，确保摄像头资源被正确释放
+  await new Promise(resolve => setTimeout(resolve, 300))
+  
+  // 重新启动摄像头
+  startCamera()
 }
 
 // 人脸登录
@@ -177,8 +347,23 @@ const loginWithFace = async () => {
 
 // 关闭摄像头
 const closeCamera = () => {
+  if (faceDetectionInterval.value !== null) {
+    clearInterval(faceDetectionInterval.value)
+    faceDetectionInterval.value = null
+  }
+
+  // 重置人脸检测状态
+  faceDetectionStartTime.value = null;
+  detectionProgress.value = 0;
+
   if (stream.value) {
     stream.value.getTracks().forEach(track => track.stop())
+    
+    // 确保视频元素的 srcObject 被清除
+    if (videoElement.value) {
+      videoElement.value.srcObject = null
+    }
+    
     stream.value = null
     isCameraStarted.value = false
     hasDetectedFace.value = false
@@ -194,7 +379,9 @@ const backToPasswordLogin = () => {
 // 定义事件
 const emit = defineEmits(['switch-mode'])
 
-onMounted(() => {
+onMounted(async () => {
+  await loadFaceDetectionModels()
+  await nextTick()
   startCamera()
 })
 
@@ -273,6 +460,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 1rem;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
 .preview-container {
@@ -305,5 +493,47 @@ onUnmounted(() => {
 
 .login-options .el-divider {
   width: 100%;
+}
+
+.detection-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.auto-detect-hint {
+  position: absolute;
+  bottom: 20%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.progress-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.auto-detect-switch {
+  margin-top: 8px;
+}
+
+.auto-mode-hint {
+  display: block;
+  color: #409EFF;
+  font-weight: bold;
+  margin-top: 5px;
+  font-size: 14px;
 }
 </style> 

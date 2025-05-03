@@ -777,6 +777,8 @@ const getQuestionTypeText = (type: string) => {
 <style scoped>
 .create-exam-container {
   padding: 20px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .header {
@@ -784,6 +786,11 @@ const getQuestionTypeText = (type: string) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+  padding: 10px 0;
 }
 
 .form-card {
@@ -813,6 +820,11 @@ const getQuestionTypeText = (type: string) => {
   justify-content: center;
   gap: 15px;
   margin-top: 30px;
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  padding: 15px 0;
+  z-index: 1;
 }
 
 .dialog-filter {

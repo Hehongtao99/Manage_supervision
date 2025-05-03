@@ -9,6 +9,7 @@
           <el-card>
             <div class="avatar-container">
               <el-avatar
+                :key="avatarKey"
                 :size="100"
                 :src="userStore.user.avatar || '/placeholder-avatar.png'"
               />
@@ -137,6 +138,7 @@ const userStore = useUserStore();
 const activeTab = ref('basic'); // 默认选中基本信息标签页
 const statsLoading = ref(false); // 添加加载状态标志
 const fileInputRef = ref<HTMLInputElement | null>(null); // 文件输入引用
+const avatarKey = ref(0); // 用于强制刷新头像组件
 
 // 用户统计数据
 const userStats = reactive({
@@ -265,7 +267,7 @@ const handleFileSelected = async (event: Event) => {
   }
   
   const formData = new FormData();
-  formData.append('avatar', file);
+  formData.append('file', file);
 
   const loading = ElLoading.service({
     lock: true,
@@ -274,16 +276,28 @@ const handleFileSelected = async (event: Event) => {
   });
 
   try {
-    const response = await axios.post<{ avatar: string }>('/api/users/avatar', formData, {
+    const response = await axios.post<{ url: string, message: string }>('/api/user/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
     
-    if (response.data && response.data.avatar) {
-      // 更新用户头像
-      userStore.user.avatar = response.data.avatar;
+    console.log('头像上传响应:', response.data);
+    
+    // 解析响应数据，获取头像URL
+    const avatarUrl = response.data.url;
+    if (avatarUrl) {
+      // 添加时间戳以清除缓存
+      const newAvatarUrl = `${avatarUrl}?t=${new Date().getTime()}`;
+      // 更新用户存储中的头像
+      userStore.user.avatar = newAvatarUrl;
+      // 调用store中的方法同步头像更新
+      userStore.setUserAvatar(newAvatarUrl);
       ElMessage.success('头像更新成功');
+      avatarKey.value++; // 强制刷新头像组件
+    } else {
+      console.error('服务器响应中没有头像URL:', response.data);
+      ElMessage.error('头像上传响应格式错误');
     }
   } catch (error) {
     ElMessage.error('头像上传失败');

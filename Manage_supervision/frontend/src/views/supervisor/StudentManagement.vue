@@ -310,22 +310,53 @@ const viewStudentDetails = async (student: Student) => {
 
 const toggleStudentStatus = async (student: Student) => {
   try {
+    // 确认对话框
+    await ElMessageBox.confirm(
+      `确定要${student.status === 'active' ? '禁用' : '启用'}学生"${student.realName || student.name || student.username}"吗？`,
+      '操作确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    loading.value = true;
     const newStatus = student.status === 'active' ? 'inactive' : 'active';
+    console.log(`尝试将学生 ${student.id} 状态更改为 ${newStatus}`);
+    
     const success = await updateStudentStatus(student.id, newStatus);
     
     if (success) {
-      ElMessage.success(`学生${student.name}状态已${newStatus === 'active' ? '启用' : '禁用'}`);
+      ElMessage.success(`学生"${student.realName || student.name || student.username}"已${newStatus === 'active' ? '启用' : '禁用'}`);
       // 更新本地数据
       const index = students.value.findIndex(s => s.id === student.id);
       if (index !== -1) {
         students.value[index].status = newStatus;
       }
     } else {
-      ElMessage.error('更新学生状态失败');
+      ElMessage.error('操作失败，请稍后重试');
     }
-  } catch (error) {
-    console.error('更新学生状态失败:', error);
-    ElMessage.error('更新学生状态失败');
+  } catch (error: any) {
+    // 判断是否为用户取消操作
+    if (error === 'cancel' || error.toString().includes('cancel')) {
+      console.log('用户取消了操作');
+      return;
+    }
+    
+    // 处理权限错误
+    if (error.response && error.response.status === 403) {
+      ElMessage.error('权限不足，无法执行此操作');
+      console.error('权限错误:', error);
+    } else if (error.message && error.message.includes('权限')) {
+      ElMessage.error(error.message);
+      console.error('权限错误:', error);
+    } else {
+      console.error('更新学生状态失败:', error);
+      ElMessage.error('禁用学生失败');
+    }
+  } finally {
+    loading.value = false;
   }
 };
 

@@ -1,7 +1,10 @@
 <template>
   <div class="face-register-container">
     <h2 class="face-register-title">人脸录入</h2>
-    <p class="face-register-description">请保持光线充足，面部清晰，并确保画面中只有您的脸部。</p>
+    <p class="face-register-description">
+      请保持光线充足，面部清晰，并确保画面中只有您的脸部。
+      <span v-if="autoDetectEnabled" class="auto-mode-hint">已开启自动录入模式</span>
+    </p>
     
     <div class="camera-container" v-if="!imageCapture">
       <video 
@@ -10,8 +13,16 @@
         autoplay 
         playsinline
       ></video>
+      <canvas 
+        ref="canvasElement" 
+        class="detection-canvas"
+      ></canvas>
       <div class="face-guide" :class="{ 'has-face': hasDetectedFace }">
         <div class="face-outline"></div>
+        <div v-if="hasDetectedFace && detectionProgress > 0" class="auto-detect-hint">
+          系统正在自动采集
+          <div class="progress-text">{{ Math.round(detectionProgress) }}%</div>
+        </div>
       </div>
       <div class="camera-controls">
         <el-button 
@@ -26,10 +37,16 @@
           type="success" 
           :icon="Camera" 
           @click="captureImage" 
-          :disabled="!isCameraStarted || isLoading"
+          :disabled="!isCameraStarted || isLoading || !hasDetectedFace"
         >
-          拍照
+          手动拍照
         </el-button>
+        <el-switch
+          v-model="autoDetectEnabled"
+          active-text="自动检测"
+          inactive-text="手动拍照"
+          class="auto-detect-switch"
+        />
       </div>
     </div>
     
@@ -52,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   VideoCameraFilled, 
@@ -62,6 +79,7 @@ import {
 import { registerFaceWithBase64, deleteFace, checkFaceStatus } from '../../api/face'
 
 const videoElement = ref<HTMLVideoElement | null>(null)
+const canvasElement = ref<HTMLCanvasElement | null>(null)
 const stream = ref<MediaStream | null>(null)
 const imageCapture = ref<string | null>(null)
 const isLoading = ref(false)
@@ -69,6 +87,11 @@ const isDeleteLoading = ref(false)
 const isCameraStarted = ref(false)
 const hasDetectedFace = ref(false)
 const isRegistered = ref(false)
+const faceDetectionInterval = ref<number | null>(null)
+const modelsLoaded = ref(false)
+const faceDetectionStartTime = ref<number | null>(null)
+const autoDetectEnabled = ref(true)
+const detectionProgress = ref(0)
 
 // 检查是否已注册人脸
 const checkRegistrationStatus = async () => {
@@ -79,9 +102,29 @@ const checkRegistrationStatus = async () => {
   }
 }
 
+// 加载人脸检测模型 - 改为简单检测
+const loadFaceDetectionModels = async () => {
+  try {
+    // 使用更简单的方法，不再需要加载模型
+    modelsLoaded.value = true;
+    console.log('准备就绪');
+  } catch (error) {
+    console.error('初始化失败:', error);
+    ElMessage.error('初始化失败，请刷新页面重试');
+  }
+}
+
 // 开启摄像头
 const startCamera = async () => {
   try {
+    // 关闭现有摄像头
+    closeCamera()
+    
+    // 确保模型已加载
+    if (!modelsLoaded.value) {
+      await loadFaceDetectionModels();
+    }
+    
     stream.value = await navigator.mediaDevices.getUserMedia({
       video: {
         width: { ideal: 1280 },
@@ -92,6 +135,7 @@ const startCamera = async () => {
     
     if (videoElement.value) {
       videoElement.value.srcObject = stream.value
+      videoElement.value.play()
       isCameraStarted.value = true
       
       // 启动人脸检测
@@ -103,28 +147,131 @@ const startCamera = async () => {
   }
 }
 
-// 启动人脸检测
+// 启动人脸检测 - 使用更简单的检测方法
 const startFaceDetection = () => {
-  if (!videoElement.value) return
+  if (!videoElement.value || !canvasElement.value) return
   
-  // 在实际的生产环境中，这里应该使用真实的人脸检测库
-  // 这里我们使用简单的定时器模拟人脸检测效果
-  const detectionInterval = setInterval(() => {
-    if (!isCameraStarted.value) {
-      clearInterval(detectionInterval)
+  // 设置canvas大小与视频相同
+  canvasElement.value.width = videoElement.value.clientWidth
+  canvasElement.value.height = videoElement.value.clientHeight
+  
+  // 使用简单的检测方法
+  faceDetectionInterval.value = window.setInterval(async () => {
+    if (!isCameraStarted.value || !videoElement.value || !canvasElement.value) {
+      if (faceDetectionInterval.value !== null) {
+        clearInterval(faceDetectionInterval.value)
+        faceDetectionInterval.value = null
+      }
       return
     }
     
-    // 随机模拟人脸检测结果
-    const detectionResult = Math.random() > 0.2
-    hasDetectedFace.value = detectionResult
-    
-    // 如果检测到人脸，并且还没有拍照，可以自动拍照
-    if (detectionResult && !imageCapture.value && isCameraStarted.value) {
-      // 可以选择自动拍照或让用户手动点击拍照按钮
-      // captureImage()
+    try {
+      // 检测画面亮度和对比度作为简单的人脸存在指标
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = 50;  // 缩小尺寸加快处理
+      tempCanvas.height = 50;
+      
+      if (tempCtx && videoElement.value) {
+        // 绘制视频帧到临时canvas
+        tempCtx.drawImage(
+          videoElement.value, 
+          0, 0, videoElement.value.videoWidth, videoElement.value.videoHeight,
+          0, 0, 50, 50
+        );
+        
+        // 获取画面数据
+        const imageData = tempCtx.getImageData(0, 0, 50, 50);
+        const data = imageData.data;
+        
+        // 计算中心区域的亮度变化
+        let centerPixels = 0;
+        let centerBrightness = 0;
+        
+        for (let y = 15; y < 35; y++) {
+          for (let x = 15; x < 35; x++) {
+            const i = (y * 50 + x) * 4;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const brightness = (r + g + b) / 3;
+            centerBrightness += brightness;
+            centerPixels++;
+          }
+        }
+        
+        centerBrightness /= centerPixels;
+        
+        // 简单判断：如果中心区域亮度在合理范围，可能存在人脸
+        const currentHasFace = centerBrightness > 50 && centerBrightness < 200;
+        
+        // 更新人脸检测状态
+        if (currentHasFace) {
+          if (!hasDetectedFace.value) {
+            // 首次检测到人脸，开始计时
+            hasDetectedFace.value = true;
+            faceDetectionStartTime.value = Date.now();
+          } else if (autoDetectEnabled.value && faceDetectionStartTime.value) {
+            // 已经检测到人脸，计算已检测时间
+            const detectionDuration = Date.now() - faceDetectionStartTime.value;
+            // 更新进度，最大为100%
+            detectionProgress.value = Math.min((detectionDuration / 2000) * 100, 100);
+            
+            // 如果检测到人脸超过2秒，自动捕获
+            if (detectionDuration >= 2000 && !imageCapture.value) {
+              captureImage();
+              
+              // 如果自动检测启用，在捕获照片后延迟500ms自动注册
+              if (autoDetectEnabled.value) {
+                setTimeout(() => {
+                  registerFace();
+                }, 500);
+              }
+            }
+          }
+        } else {
+          // 丢失人脸检测，重置计时
+          hasDetectedFace.value = false;
+          faceDetectionStartTime.value = null;
+          detectionProgress.value = 0;
+        }
+        
+        // 绘制指示框和进度
+        const ctx = canvasElement.value.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvasElement.value.width, canvasElement.value.height);
+          
+          if (hasDetectedFace.value) {
+            // 绘制人脸框
+            const centerX = canvasElement.value.width / 2;
+            const centerY = canvasElement.value.height / 2;
+            const size = Math.min(canvasElement.value.width, canvasElement.value.height) * 0.5;
+            
+            // 绘制人脸圆形指示
+            ctx.strokeStyle = '#67C23A';  // 绿色
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 绘制进度环
+            if (autoDetectEnabled.value && detectionProgress.value > 0) {
+              const startAngle = -Math.PI / 2; // 从顶部开始
+              const endAngle = startAngle + (Math.PI * 2 * detectionProgress.value / 100);
+              
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, size / 2 + 10, startAngle, endAngle);
+              ctx.strokeStyle = '#409EFF'; // 蓝色进度条
+              ctx.lineWidth = 5;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('检测错误:', error);
     }
-  }, 1000) // 每秒检测一次
+  }, 100); // 提高到100ms更新一次，使动画更流畅
 }
 
 // 拍照
@@ -203,6 +350,15 @@ const handleDeleteFace = async () => {
 
 // 关闭摄像头
 const closeCamera = () => {
+  if (faceDetectionInterval.value !== null) {
+    clearInterval(faceDetectionInterval.value)
+    faceDetectionInterval.value = null
+  }
+
+  // 重置人脸检测状态
+  faceDetectionStartTime.value = null;
+  detectionProgress.value = 0;
+
   if (stream.value) {
     stream.value.getTracks().forEach(track => track.stop())
     stream.value = null
@@ -211,8 +367,13 @@ const closeCamera = () => {
   }
 }
 
-onMounted(() => {
-  checkRegistrationStatus()
+onMounted(async () => {
+  await checkRegistrationStatus()
+  if (!isRegistered.value) {
+    await loadFaceDetectionModels()
+    await nextTick()
+    startCamera()
+  }
 })
 
 onUnmounted(() => {
@@ -293,6 +454,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 1rem;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
 .preview-container {
@@ -337,5 +499,47 @@ onUnmounted(() => {
 
 .success-icon {
   font-size: 1.5rem;
+}
+
+.detection-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.auto-detect-hint {
+  position: absolute;
+  bottom: 20%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.progress-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.auto-detect-switch {
+  margin-top: 8px;
+}
+
+.auto-mode-hint {
+  display: block;
+  color: #409EFF;
+  font-weight: bold;
+  margin-top: 5px;
+  font-size: 14px;
 }
 </style>

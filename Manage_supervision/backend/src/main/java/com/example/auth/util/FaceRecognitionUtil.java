@@ -1,9 +1,8 @@
 package com.example.auth.util;
 
-import org.bytedeco.javacpp.*;
+import jakarta.annotation.PostConstruct;
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.indexer.IntIndexer;
-import org.bytedeco.opencv.global.opencv_imgcodecs;
-import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.*;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
@@ -14,17 +13,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.PostConstruct;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 
-import static org.bytedeco.opencv.global.opencv_core.*;
-import static org.bytedeco.opencv.global.opencv_face.*;
+import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
+import static org.bytedeco.opencv.global.opencv_core.CV_8UC1;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.*;
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
-import static org.bytedeco.opencv.global.opencv_objdetect.*;
+import static org.bytedeco.opencv.global.opencv_objdetect.CASCADE_SCALE_IMAGE;
 
 /**
  * 人脸识别工具类，封装JavaCV/OpenCV的人脸检测和识别功能
@@ -40,7 +40,7 @@ public class FaceRecognitionUtil {
     private FaceRecognizer faceRecognizer;
     
     // 阈值 - 低于此值认为是同一个人 (LBPH距离，越小越相似)
-    private static final double LBPH_RECOGNITION_THRESHOLD = 70.0;
+    private static final double LBPH_RECOGNITION_THRESHOLD = 85.0;
     
     // 确保资源文件被正确加载
     private static boolean resourcesLoaded = false;
@@ -100,8 +100,10 @@ public class FaceRecognitionUtil {
      * 将内置的Haar级联分类器文件提取到临时文件
      */
     private String extractHaarCascadeToTempFile() throws IOException {
-        // 尝试多个可能的路径
+        // 尝试多个可能的路径，优先使用alt和alt2模型，这些模型对不同条件更鲁棒
         String[] possiblePaths = {
+            "/models/haarcascade_frontalface_alt2.xml",
+            "/haarcascade_frontalface_alt2.xml",
             "/models/haarcascade_frontalface_alt.xml",
             "/haarcascade_frontalface_alt.xml", 
             "/models/haarcascade_frontalface_default.xml",
@@ -190,18 +192,76 @@ public class FaceRecognitionUtil {
         Mat grayImage = new Mat();
         cvtColor(image, grayImage, COLOR_BGR2GRAY);
         
-        // 检测人脸
-        RectVector faces = new RectVector();
-        faceDetector.detectMultiScale(grayImage, faces, 1.1, 3, 0, new Size(30, 30), new Size());
+        // 应用直方图均衡化以增强对比度
+        equalizeHist(grayImage, grayImage);
         
-        // 如果没有检测到人脸或检测到多个人脸，返回null
-        if (faces.empty() || faces.size() > 1) {
+        // 检测人脸 - 更优化的参数
+        RectVector faces = new RectVector();
+        // 减小缩放因子，更多缩放步骤，提高检测概率
+        faceDetector.detectMultiScale(
+            grayImage, 
+            faces, 
+            1.03,     // 缩放因子，从1.05改为1.03，更精细的缩放步骤
+            3,        // 最小邻居数，从5改为3，提高检测灵敏度
+            CASCADE_SCALE_IMAGE, // 使用图像金字塔进行缩放
+            new Size(20, 20),    // 最小尺寸
+            new Size()
+        );
+        
+        // 如果没有检测到人脸，尝试使用更宽松的参数再次检测
+        if (faces.empty()) {
+            faceDetector.detectMultiScale(
+                grayImage, 
+                faces, 
+                1.05,      // 更大的缩放因子
+                2,        // 更少的最小邻居
+                CASCADE_SCALE_IMAGE, 
+                new Size(20, 20), 
+                new Size()
+            );
+        }
+        
+        // 如果仍然没有检测到人脸，再次尝试更宽松的参数
+        if (faces.empty()) {
+            faceDetector.detectMultiScale(
+                grayImage, 
+                faces, 
+                1.1,      // 更大的缩放因子
+                1,        // 最小邻居设为1，最宽松的检测
+                CASCADE_SCALE_IMAGE, 
+                new Size(15, 15), // 更小的最小尺寸
+                new Size()
+            );
+            
+            if (!faces.empty()) {
+                logger.info("在第三次尝试中检测到人脸");
+            }
+        }
+        
+        // 如果没有检测到人脸，返回null
+        if (faces.empty()) {
             return null;
         }
         
-        // 获取人脸区域
+        // 如果检测到多个人脸，选择最大的一个（假设最大的人脸更可能是主体）
         Rect faceRect = faces.get(0);
-        Mat faceROI = new Mat(grayImage, faceRect);
+        if (faces.size() > 1) {
+            for (int i = 1; i < faces.size(); i++) {
+                Rect currentRect = faces.get(i);
+                if (currentRect.area() > faceRect.area()) {
+                    faceRect = currentRect;
+                }
+            }
+        }
+        
+        // 获取人脸区域，略微扩大区域以包含更多面部特征
+        int x = Math.max(0, faceRect.x() - (int)(faceRect.width() * 0.05));
+        int y = Math.max(0, faceRect.y() - (int)(faceRect.height() * 0.05));
+        int width = Math.min(grayImage.cols() - x, (int)(faceRect.width() * 1.1));
+        int height = Math.min(grayImage.rows() - y, (int)(faceRect.height() * 1.1));
+        
+        Rect expandedRect = new Rect(x, y, width, height);
+        Mat faceROI = new Mat(grayImage, expandedRect);
         
         // 调整大小为标准尺寸 (100x100)
         Mat resizedFace = new Mat();
@@ -209,6 +269,9 @@ public class FaceRecognitionUtil {
         
         // 执行直方图均衡化以提高对光照变化的鲁棒性
         equalizeHist(resizedFace, resizedFace);
+        
+        // 应用高斯模糊以减少噪声
+        GaussianBlur(resizedFace, resizedFace, new Size(5, 5), 0);
         
         return resizedFace;
     }
@@ -345,18 +408,71 @@ public class FaceRecognitionUtil {
         Mat grayImage = new Mat();
         cvtColor(image, grayImage, COLOR_BGR2GRAY);
         
-        // 检测人脸
-        RectVector faces = new RectVector();
-        faceDetector.detectMultiScale(grayImage, faces);
+        // 应用直方图均衡化以增强对比度
+        equalizeHist(grayImage, grayImage);
         
-        // 如果没有检测到人脸或检测到多个人脸，返回null
-        if (faces.empty() || faces.size() > 1) {
+        // 检测人脸 - 使用与extractFaceFeatures相同的优化参数
+        RectVector faces = new RectVector();
+        faceDetector.detectMultiScale(
+            grayImage, 
+            faces, 
+            1.03,     // 缩放因子，从1.05改为1.03
+            3,        // 最小邻居数，从5改为3
+            CASCADE_SCALE_IMAGE, 
+            new Size(20, 20), 
+            new Size()
+        );
+        
+        // 如果没有检测到人脸，尝试更宽松的参数
+        if (faces.empty()) {
+            faceDetector.detectMultiScale(
+                grayImage, 
+                faces, 
+                1.05,
+                2,
+                CASCADE_SCALE_IMAGE, 
+                new Size(20, 20), 
+                new Size()
+            );
+        }
+        
+        // 如果仍然没有检测到人脸，再次尝试更宽松的参数
+        if (faces.empty()) {
+            faceDetector.detectMultiScale(
+                grayImage, 
+                faces, 
+                1.1,      // 更大的缩放因子
+                1,        // 最小邻居设为1
+                CASCADE_SCALE_IMAGE, 
+                new Size(15, 15), // 更小的最小尺寸
+                new Size()
+            );
+        }
+        
+        // 如果没有检测到人脸，返回null
+        if (faces.empty()) {
             return null;
         }
         
-        // 获取人脸区域
+        // 如果检测到多个人脸，选择最大的一个
         Rect faceRect = faces.get(0);
-        Mat faceROI = new Mat(image, faceRect);
+        if (faces.size() > 1) {
+            for (int i = 1; i < faces.size(); i++) {
+                Rect currentRect = faces.get(i);
+                if (currentRect.area() > faceRect.area()) {
+                    faceRect = currentRect;
+                }
+            }
+        }
+        
+        // 获取人脸区域，略微扩大区域以包含更多面部特征
+        int x = Math.max(0, faceRect.x() - (int)(faceRect.width() * 0.05));
+        int y = Math.max(0, faceRect.y() - (int)(faceRect.height() * 0.05));
+        int width = Math.min(image.cols() - x, (int)(faceRect.width() * 1.1));
+        int height = Math.min(image.rows() - y, (int)(faceRect.height() * 1.1));
+        
+        Rect expandedRect = new Rect(x, y, width, height);
+        Mat faceROI = new Mat(image, expandedRect);
         
         // 调整大小为标准尺寸 (200x200)
         Mat resizedFace = new Mat();
@@ -387,18 +503,71 @@ public class FaceRecognitionUtil {
         Mat grayImage = new Mat();
         cvtColor(image, grayImage, COLOR_BGR2GRAY);
         
-        // 检测人脸
-        RectVector faces = new RectVector();
-        faceDetector.detectMultiScale(grayImage, faces);
+        // 应用直方图均衡化以增强对比度
+        equalizeHist(grayImage, grayImage);
         
-        // 如果没有检测到人脸或检测到多个人脸，返回null
-        if (faces.empty() || faces.size() > 1) {
+        // 检测人脸 - 使用与extractFaceFeatures相同的优化参数
+        RectVector faces = new RectVector();
+        faceDetector.detectMultiScale(
+            grayImage, 
+            faces, 
+            1.03,     // 缩放因子，与extractFaceFeatures相同
+            3,        // 最小邻居数，与extractFaceFeatures相同
+            CASCADE_SCALE_IMAGE, 
+            new Size(20, 20), 
+            new Size()
+        );
+        
+        // 如果没有检测到人脸，尝试更宽松的参数
+        if (faces.empty()) {
+            faceDetector.detectMultiScale(
+                grayImage, 
+                faces, 
+                1.05,
+                2,
+                CASCADE_SCALE_IMAGE, 
+                new Size(20, 20), 
+                new Size()
+            );
+        }
+        
+        // 如果仍然没有检测到人脸，再次尝试更宽松的参数
+        if (faces.empty()) {
+            faceDetector.detectMultiScale(
+                grayImage, 
+                faces, 
+                1.1,      // 更大的缩放因子
+                1,        // 最小邻居设为1
+                CASCADE_SCALE_IMAGE, 
+                new Size(15, 15), // 更小的最小尺寸
+                new Size()
+            );
+        }
+        
+        // 如果没有检测到人脸，返回null
+        if (faces.empty()) {
             return null;
         }
         
-        // 获取人脸区域
+        // 如果检测到多个人脸，选择最大的一个
         Rect faceRect = faces.get(0);
-        Mat faceROI = new Mat(image, faceRect);
+        if (faces.size() > 1) {
+            for (int i = 1; i < faces.size(); i++) {
+                Rect currentRect = faces.get(i);
+                if (currentRect.area() > faceRect.area()) {
+                    faceRect = currentRect;
+                }
+            }
+        }
+        
+        // 获取人脸区域，略微扩大区域以包含更多面部特征
+        int x = Math.max(0, faceRect.x() - (int)(faceRect.width() * 0.05));
+        int y = Math.max(0, faceRect.y() - (int)(faceRect.height() * 0.05));
+        int width = Math.min(image.cols() - x, (int)(faceRect.width() * 1.1));
+        int height = Math.min(image.rows() - y, (int)(faceRect.height() * 1.1));
+        
+        Rect expandedRect = new Rect(x, y, width, height);
+        Mat faceROI = new Mat(image, expandedRect);
         
         // 调整大小为标准尺寸 (200x200)
         Mat resizedFace = new Mat();

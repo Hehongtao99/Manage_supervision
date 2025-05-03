@@ -111,11 +111,37 @@ export const getStudentDetail = async (studentId: number) => {
 // 更新学生状态
 export const updateStudentStatus = async (studentId: number, status: string) => {
   try {
-    const response = await axios.post(`/api/admin/users/${studentId}/toggle-status`);
-    return true;
+    // 从localStorage获取用户角色
+    const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
+    console.log('当前用户角色:', userRoles);
+    
+    let response;
+    if (userRoles.includes('ADMIN')) {
+      // 管理员路径和方法
+      const url = `/api/admin/users/${studentId}/toggle-status`;
+      console.log('使用管理员API路径 (POST):', url);
+      response = await axios.post(url); // 管理员接口通常是POST，且不带body切换状态
+    } else if (userRoles.includes('SUPERVISOR')) {
+      // 督导员/教师路径和方法
+      const url = `/api/supervisor/students/${studentId}/status`; // 修改路径
+      console.log('使用督导员API路径 (PUT):', url);
+      response = await axios.put(url, { status: status }); // 修改方法为 PUT 并发送状态 body
+    } else {
+      throw new Error('当前用户没有权限执行此操作');
+    }
+    
+    // 检查响应状态码是否表示成功 (例如 200 OK)
+    if (response.status === 200) {
+        console.log('更新学生状态成功，服务器响应:', response.data);
+        return true;
+    } else {
+        console.error('更新学生状态请求成功，但服务器返回非200状态:', response);
+        // 可以根据后端返回的具体错误信息抛出错误或返回 false
+        throw new Error(response.data?.message || '更新学生状态失败');
+    }
   } catch (error) {
     console.error('更新学生状态失败:', error);
-    throw error;
+    throw error; // 将错误向上抛出，由调用方处理
   }
 };
 
