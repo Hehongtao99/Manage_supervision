@@ -138,4 +138,31 @@ public class TravelController {
             return ResponseEntity.status(500).body(new ArrayList<>());
         }
     }
+
+    /**
+     * 根据地区获取酒店列表
+     */
+    @GetMapping("/hotels/region")
+    public ResponseEntity<PageResponse<HotelDTO>> getHotelsByRegion(
+            @RequestParam(required = false) Long provinceId,
+            @RequestParam(required = false) Long cityId,
+            @RequestParam(required = false) Long districtId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        logger.info("根据地区获取酒店列表请求: provinceId={}, cityId={}, districtId={}, page={}, size={}", 
+                provinceId, cityId, districtId, page, size);
+        
+        try {
+            // 只获取启用状态的酒店
+            PageResponse<HotelDTO> response = hotelService.getHotelList(
+                    page, size, null, provinceId, cityId, districtId, null, null, "active");
+            
+            logger.info("成功获取地区酒店列表, 总数: {}", response.getTotal());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("获取地区酒店列表失败", e);
+            return ResponseEntity.status(500).body(new PageResponse<>(Collections.emptyList(), 0L, page, size));
+        }
+    }
 } 

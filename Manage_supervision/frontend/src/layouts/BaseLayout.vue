@@ -4,7 +4,7 @@
     <div class="sidebar-container" :class="{ 'is-collapsed': isCollapsed }">
       <div class="logo-container">
         <img src="../assets/logo.png" alt="Logo" class="logo-image" />
-        <span class="logo-text" v-show="!isCollapsed">管理系统</span>
+        <span class="logo-text" v-show="!isCollapsed">旅游系统</span>
       </div>
       
       <el-scrollbar>
@@ -46,16 +46,6 @@
                 <!-- 根据角色不同，跳转到不同的个人信息页面 -->
                 <el-dropdown-item @click="navigateToProfile">
                   <el-icon><User /></el-icon>个人信息
-                </el-dropdown-item>
-                
-                <!-- 管理员可以直接进入管理页面 -->
-                <el-dropdown-item v-if="userStore.isAdmin" @click="$router.push('/admin/dashboard')">
-                  <el-icon><Setting /></el-icon>管理控制台
-                </el-dropdown-item>
-                
-                <!-- 教师可以直接进入教师页面 -->
-                <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/students')">
-                  <el-icon><Monitor /></el-icon>学生管理
                 </el-dropdown-item>
                 
                 <el-dropdown-item divided @click="handleLogout">
@@ -107,7 +97,7 @@ const roleName = computed(() => {
   } else if (userStore.isSupervisor) {
     return '教师'
   } else {
-    return '学生'
+    return '用户'
   }
 })
 

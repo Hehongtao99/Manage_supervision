@@ -292,14 +292,28 @@ const rules = reactive<FormRules>({
   ]
 })
 
+// 加载状态
+const loading = ref(false)
+
 // 加载地区树数据
 const loadRegionTree = async () => {
+  loading.value = true
   try {
     const data = await getRegionTree()
     treeData.value = data
-  } catch (error) {
+    ElMessage.success('地区数据加载成功')
+  } catch (error: any) {
     console.error('获取地区树失败', error)
-    ElMessage.error('获取地区树失败')
+    // 显示更详细的错误信息
+    let errorMessage = '获取地区树失败'
+    if (error.code === 'ECONNABORTED') {
+      errorMessage = '获取地区树超时，请检查网络连接或服务器状态'
+    } else if (error.message) {
+      errorMessage = `获取地区树失败: ${error.message}`
+    }
+    ElMessage.error(errorMessage)
+  } finally {
+    loading.value = false
   }
 }
 

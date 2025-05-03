@@ -253,6 +253,24 @@
             </el-col>
           </el-row>
         </div>
+        
+        <!-- 酒店无结果提示 -->
+        <div v-if="searched && recommendationResult.scenicSpots.length > 0 && recommendationResult.hotels.length === 0" class="empty-hotel-result">
+          <el-alert
+            title="未找到符合条件的酒店"
+            type="info"
+            :closable="false"
+            show-icon
+          >
+            <template #default>
+              <p>当前区域暂无符合条件的酒店信息，请尝试：</p>
+              <ul>
+                <li>选择其他城市或地区</li>
+                <li>放宽筛选条件</li>
+              </ul>
+            </template>
+          </el-alert>
+        </div>
       </div>
       
       <!-- 无结果提示 -->
@@ -280,7 +298,7 @@ import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Picture } from '@element-plus/icons-vue'
 import PublicRegionSelect from '../components/PublicRegionSelect.vue'
-import { getScenicSpotsByRegion, getHotScenicSpots, getHotelsByScenicSpot } from '../api/travel'
+import { getScenicSpotsByRegion, getHotScenicSpots, getHotelsByScenicSpot, getHotelsByRegion } from '../api/travel'
 import type { ScenicSpotData } from '../types/scenicSpot'
 import type { HotelData } from '../types/hotel'
 
@@ -448,34 +466,33 @@ const handleSearch = async () => {
         console.log('随机选择的景区:', randomScenicSpots.map(spot => spot.name))
         recommendationResult.scenicSpots = randomScenicSpots
         
-        // 为每个景区获取周边酒店，并合并结果
-        let allHotels = []
-        
-        // 依次获取每个景区的酒店
-        for (const spot of randomScenicSpots.slice(0, 2)) { // 只取前两个景区的酒店，避免请求过多
-          try {
-            console.log(`获取景区ID${spot.id}的周边酒店...`)
-            const hotelResponse = await getHotelsByScenicSpot(spot.id, 3)
-            
-            // 检查酒店数据结构
-            const hotels = hotelResponse.records || hotelResponse.content || hotelResponse || [];
-            
-            if (hotels && hotels.length > 0) {
-              console.log(`景区${spot.id}周边找到${hotels.length}家酒店`)
-              allHotels = [...allHotels, ...hotels]
-            }
-          } catch (error) {
-            console.error(`获取景区${spot.id}周边酒店失败:`, error)
+        // 获取选定地区的酒店数据，而不是景区周边的酒店
+        try {
+          console.log('开始获取目的地酒店数据...')
+          const hotelResponse = await getHotelsByRegion(
+            form.toProvinceId,
+            form.toCityId,
+            form.toDistrictId
+          )
+          
+          // 检查酒店数据结构
+          const hotels = hotelResponse.records || hotelResponse.content || hotelResponse || [];
+          
+          if (hotels && hotels.length > 0) {
+            console.log(`找到${hotels.length}家酒店`)
+            // 如果有多家酒店，随机选择5家展示
+            recommendationResult.hotels = getRandomItems(hotels, Math.min(5, hotels.length))
+          } else {
+            console.log('未找到任何酒店')
+            recommendationResult.hotels = []
+            // 添加提示信息
+            ElMessage.info(`未找到${getLocationDescription()}的酒店信息，请尝试选择其他地区`)
           }
-        }
-        
-        // 如果有多家酒店，随机选择5家展示
-        if (allHotels.length > 0) {
-          console.log(`总共找到${allHotels.length}家酒店`)
-          recommendationResult.hotels = getRandomItems(allHotels, Math.min(5, allHotels.length))
-        } else {
-          console.log('未找到任何酒店')
+        } catch (error) {
+          console.error('获取酒店数据失败:', error)
           recommendationResult.hotels = []
+          // 只显示友好提示，不影响整体推荐结果展示
+          ElMessage.warning(`获取${getLocationDescription()}的酒店数据失败，仅显示景区推荐`)
         }
       } else {
         ElMessage.warning(`未找到${getLocationDescription()}的景区，请尝试选择其他地区`)
@@ -1215,13 +1232,26 @@ const getLocationDescription = () => {
 }
 
 .empty-suggestion {
-  font-size: 16px;
   color: #909399;
-  margin-bottom: 35px;
-  max-width: 450px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.6;
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* 酒店无结果提示框样式 */
+.empty-hotel-result {
+  margin: 20px 0;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.empty-hotel-result ul {
+  margin-top: 10px;
+  padding-left: 20px;
+  color: #606266;
+}
+
+.empty-hotel-result li {
+  margin-bottom: 5px;
 }
 
 :deep(.empty-result .el-empty__image) {

@@ -10,22 +10,11 @@
   >
     <!-- 管理员菜单 -->
     <template v-if="userStore.isAdmin">
-      <el-menu-item index="/admin/dashboard" @click="handleRoute('/admin/dashboard')">
-        <el-icon><Monitor /></el-icon>
-        <template #title>
-          <span>管理控制台</span>
-        </template>
-      </el-menu-item>
-
       <el-sub-menu index="admin-management">
         <template #title>
           <el-icon><Management /></el-icon>
           <span>系统管理</span>
         </template>
-        <el-menu-item index="/admin/users" @click="handleRoute('/admin/users')">
-          <el-icon><Avatar /></el-icon>
-          <span>用户管理</span>
-        </el-menu-item>
         <el-menu-item index="/admin/regions" @click="handleRoute('/admin/regions')">
           <el-icon><Location /></el-icon>
           <span>地区管理</span>
@@ -43,13 +32,6 @@
 
     <!-- 督导员菜单 -->
     <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
       <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
@@ -58,7 +40,7 @@
       </el-menu-item>
     </template>
 
-    <!-- 学生菜单 -->
+    <!-- 用户菜单 -->
     <template v-else>
       <el-menu-item index="/travel-recommendation" @click="handleRoute('/travel-recommendation')">
         <el-icon><Place /></el-icon>

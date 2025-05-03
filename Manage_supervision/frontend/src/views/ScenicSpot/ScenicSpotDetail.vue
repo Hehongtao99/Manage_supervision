@@ -46,8 +46,8 @@
                 <el-tag v-if="scenicSpot.level" class="meta-tag" :type="getLevelTagType(scenicSpot.level)">
                   {{ scenicSpot.level }}级景区
                 </el-tag>
-                <el-tag class="meta-tag" :type="scenicSpot.status === 'ACTIVE' ? 'success' : 'info'">
-                  {{ scenicSpot.status === 'ACTIVE' ? '正常运营' : '暂停开放' }}
+                <el-tag class="meta-tag" :type="scenicSpot.status === 'active' ? 'success' : 'info'">
+                  {{ scenicSpot.status === 'active' ? '正常运营' : '暂停开放' }}
                 </el-tag>
               </div>
             </div>
@@ -60,7 +60,7 @@
             <el-descriptions :column="2" border>
               <el-descriptions-item label="景区名称">{{ scenicSpot.name }}</el-descriptions-item>
               <el-descriptions-item label="景区等级">{{ displayLevel(scenicSpot.level) }}</el-descriptions-item>
-              <el-descriptions-item label="所在地区">{{ scenicSpot.locationPath }}</el-descriptions-item>
+              <el-descriptions-item label="所在地区">{{ scenicSpot.locationPath || `${scenicSpot.provinceName} ${scenicSpot.cityName} ${scenicSpot.districtName}` }}</el-descriptions-item>
               <el-descriptions-item label="详细地址">{{ scenicSpot.address }}</el-descriptions-item>
               <el-descriptions-item label="营业时间">{{ scenicSpot.businessHours || '暂无' }}</el-descriptions-item>
               <el-descriptions-item label="门票价格">{{ scenicSpot.ticketPrice ? `¥${scenicSpot.ticketPrice}` : '免费' }}</el-descriptions-item>
@@ -103,7 +103,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
@@ -113,7 +113,7 @@ import ScenicSpotForm from './components/ScenicSpotForm.vue'
 
 const route = useRoute()
 const router = useRouter()
-const scenicSpotId = ref<number>(Number(route.params.id))
+const scenicSpotId = ref<number>(Number(route.params.id || route.query.id))
 const scenicSpot = ref<ScenicSpotData>()
 const loading = ref(true)
 const dialogVisible = ref(false)
@@ -122,8 +122,14 @@ const dialogVisible = ref(false)
 const fetchScenicSpotDetail = async () => {
   loading.value = true
   try {
+    console.log('获取景区详情，ID:', scenicSpotId.value)
     const res = await getScenicSpotDetail(scenicSpotId.value)
-    scenicSpot.value = res.data
+    console.log('景区详情数据:', res)
+    if (res.data) {
+      scenicSpot.value = res.data
+    } else {
+      scenicSpot.value = res
+    }
   } catch (error) {
     console.error('获取景区详情失败:', error)
     ElMessage.error('获取景区详情失败，请稍后重试')
@@ -188,6 +194,17 @@ const displayLevel = (level: string | undefined) => {
 
 // 页面加载时获取景区详情
 onMounted(() => {
+  console.log('组件挂载，路由参数:', route.params)
+  console.log('组件挂载，查询参数:', route.query)
+  
+  if (route.params.id) {
+    scenicSpotId.value = Number(route.params.id)
+  } else if (route.query.id) {
+    scenicSpotId.value = Number(route.query.id)
+  }
+  
+  console.log('最终使用的景区ID:', scenicSpotId.value)
+  
   if (scenicSpotId.value) {
     fetchScenicSpotDetail()
   } else {
@@ -195,11 +212,37 @@ onMounted(() => {
     ElMessage.error('景区ID无效')
   }
 })
+
+// 监听景区数据变化
+watch(scenicSpot, (newVal) => {
+  console.log('景区数据发生变化:', newVal)
+}, { deep: true })
 </script>
 
 <style scoped>
 .scenic-spot-detail-container {
   padding: 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  position: relative;
+  /* 自定义滚动条 - Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #dcdfe6 #f5f7fa;
+}
+
+/* 自定义滚动条 - Webkit (Chrome, Safari, Edge) */
+.scenic-spot-detail-container::-webkit-scrollbar {
+  width: 8px;
+  background-color: #f5f7fa;
+}
+
+.scenic-spot-detail-container::-webkit-scrollbar-thumb {
+  background-color: #dcdfe6;
+  border-radius: 4px;
+}
+
+.scenic-spot-detail-container::-webkit-scrollbar-thumb:hover {
+  background-color: #c0c4cc;
 }
 
 .scenic-spot-header {

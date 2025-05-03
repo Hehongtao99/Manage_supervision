@@ -156,6 +156,7 @@ public class ScenicSpotServiceImpl implements ScenicSpotService {
         scenicSpot.setContactPhone(scenicSpotDTO.getContactPhone());
         scenicSpot.setImageUrl(scenicSpotDTO.getImageUrl());
         scenicSpot.setSort(scenicSpotDTO.getSort());
+        scenicSpot.setStatus(scenicSpotDTO.getStatus());
         scenicSpot.setUpdateTime(LocalDateTime.now());
         
         // 更新景区

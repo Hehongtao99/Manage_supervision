@@ -7,9 +7,9 @@
 
     <!-- 搜索过滤框 -->
     <div class="hotel-search">
-      <el-form :inline="true" :model="queryParams" class="search-form">
+      <el-form :inline="true" :model="queryParams" class="search-form" label-width="80px">
         <el-form-item label="酒店名称">
-          <el-input v-model="queryParams.name" placeholder="请输入酒店名称" clearable @keyup.enter="handleSearch" />
+          <el-input v-model="queryParams.name" placeholder="请输入酒店名称" clearable @keyup.enter="handleSearch" class="wider-input" />
         </el-form-item>
         <el-form-item label="省份">
           <region-select 
@@ -17,6 +17,7 @@
             level="province" 
             placeholder="请选择省份"
             @change="handleProvinceChange"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="城市">
@@ -27,6 +28,7 @@
             placeholder="请选择城市"
             :disabled="!queryParams.provinceId"
             @change="handleCityChange"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="区县">
@@ -36,10 +38,11 @@
             :parent-id="queryParams.cityId" 
             placeholder="请选择区县"
             :disabled="!queryParams.cityId"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="酒店等级">
-          <el-select v-model="queryParams.level" placeholder="请选择酒店等级" clearable>
+          <el-select v-model="queryParams.level" placeholder="请选择酒店等级" clearable class="wider-select">
             <el-option label="五星级" value="五星级" />
             <el-option label="四星级" value="四星级" />
             <el-option label="三星级" value="三星级" />
@@ -55,17 +58,18 @@
             :district-id="queryParams.districtId"
             :disabled="!queryParams.provinceId"
             placeholder="请选择关联景区"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable class="wider-select">
             <el-option label="启用" value="active" />
             <el-option label="禁用" value="inactive" />
           </el-select>
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
+        <el-form-item class="button-item">
+          <el-button type="primary" @click="handleSearch" size="large">搜索</el-button>
+          <el-button @click="handleReset" size="large">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -355,6 +359,27 @@ onMounted(() => {
 <style scoped>
 .hotel-list-container {
   padding: 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  position: relative;
+  /* 自定义滚动条 - Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #dcdfe6 #f5f7fa;
+}
+
+/* 自定义滚动条 - Webkit (Chrome, Safari, Edge) */
+.hotel-list-container::-webkit-scrollbar {
+  width: 8px;
+  background-color: #f5f7fa;
+}
+
+.hotel-list-container::-webkit-scrollbar-thumb {
+  background-color: #dcdfe6;
+  border-radius: 4px;
+}
+
+.hotel-list-container::-webkit-scrollbar-thumb:hover {
+  background-color: #c0c4cc;
 }
 
 .hotel-header {
@@ -373,13 +398,46 @@ onMounted(() => {
 .hotel-search {
   margin-bottom: 20px;
   background-color: #f5f7fa;
-  padding: 18px;
-  border-radius: 4px;
+  padding: 25px;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .search-form {
   display: flex;
   flex-wrap: wrap;
+  gap: 15px;
+}
+
+.wider-input,
+.wider-select {
+  width: 240px !important;
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 18px;
+  margin-right: 5px;
+}
+
+:deep(.el-form-item__label) {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+:deep(.el-input__inner) {
+  height: 40px;
+  line-height: 40px;
+  font-size: 14px;
+}
+
+.button-item {
+  margin-top: 5px;
+}
+
+:deep(.button-item .el-button) {
+  padding: 12px 20px;
+  font-size: 15px;
 }
 
 .pagination-container {

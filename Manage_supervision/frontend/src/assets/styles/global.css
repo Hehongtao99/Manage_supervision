@@ -1,0 +1,104 @@
+/* 全局样式文件 */
+/* 下拉框样式优化 */
+.el-select-dropdown {
+  min-width: 260px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e4e7ed !important;
+  padding: 8px 0 !important;
+}
+
+.larger-dropdown .el-select-dropdown__item,
+.larger-region-dropdown .el-select-dropdown__item {
+  padding: 14px 20px !important;
+  font-size: 16px !important;
+  height: auto !important;
+  line-height: 1.5 !important;
+}
+
+.el-select-dropdown__item.selected {
+  font-weight: bold !important;
+  color: var(--el-color-primary) !important;
+  background-color: rgba(64, 158, 255, 0.15) !important;
+}
+
+.el-select-dropdown__item:hover {
+  background-color: rgba(236, 245, 255, 0.8) !important;
+}
+
+.el-select-dropdown__item.selected:hover {
+  background-color: rgba(64, 158, 255, 0.2) !important;
+}
+
+/* 弹出框中表单元素样式 */
+.el-dialog .el-form-item__label {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.el-dialog .el-input__inner,
+.el-dialog .el-textarea__inner {
+  padding: 10px 15px !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  height: 44px !important;
+}
+
+.el-dialog .el-textarea__inner {
+  height: auto !important;
+  min-height: 100px !important;
+}
+
+.el-dialog .el-input-number__decrease,
+.el-dialog .el-input-number__increase {
+  height: 44px !important;
+  width: 44px !important;
+  line-height: 44px !important;
+}
+
+.el-dialog .el-button {
+  font-size: 16px !important;
+  padding: 12px 20px !important;
+}
+
+/* 表单组件全局样式增强 */
+.el-form-item__label {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.el-input__inner {
+  height: 44px !important;
+  font-size: 16px !important;
+  padding: 0 15px !important;
+}
+
+.el-input-number.is-controls-right .el-input__inner {
+  padding-right: 50px !important;
+}
+
+.el-select .el-input .el-select__caret {
+  font-size: 20px !important;
+}
+
+.el-radio__label {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  padding-left: 8px !important;
+}
+
+/* 下拉选择框加强 */
+.el-select .el-input.is-focus .el-input__wrapper {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+}
+
+.el-select:hover .el-input__wrapper:not(.is-disabled) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+}
+
+.el-select-dropdown__item .option-label {
+  font-weight: 500 !important;
+}
+
+.el-select-dropdown__item.selected .option-label {
+  font-weight: bold !important;
+} 

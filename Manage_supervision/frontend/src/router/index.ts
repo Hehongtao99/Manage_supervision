@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: BaseLayout,
-    redirect: '/admin/dashboard',
+    redirect: '/travel-recommendation',
     children: [
       {
         path: 'profile',
@@ -53,32 +53,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin',
     component: BaseLayout,
-    redirect: '/admin/dashboard',
+    redirect: '/admin/regions',
     meta: { 
       requiresAuth: true,
       requiresAdmin: true
     },
     children: [
-      {
-        path: 'dashboard',
-        name: 'AdminDashboard',
-        component: () => import('../views/admin/Dashboard.vue'),
-        meta: { 
-          title: '管理控制台',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
-        path: 'students',
-        name: 'AdminStudentManagement',
-        component: () => import('../views/admin/StudentManagement.vue'),
-        meta: { 
-          title: '用户管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
       {
         path: 'regions',
         name: 'RegionManagement',
@@ -134,22 +114,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/supervisor',
     component: BaseLayout,
-    redirect: '/supervisor/students',
+    redirect: '/supervisor/profile',
     meta: { 
       requiresAuth: true,
       requiresSupervisor: true
     },
     children: [
-      {
-        path: 'students',
-        name: 'StudentManagement',
-        component: () => import('../views/supervisor/StudentManagement.vue'),
-        meta: { 
-          title: '用户管理',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
       {
         path: 'profile',
         name: 'SupervisorProfile',
@@ -185,6 +155,13 @@ router.beforeEach(async (to, from, next) => {
   if (!userStore.initialized) {
     console.log('用户认证状态尚未初始化，执行初始化...')
     await userStore.initializeAuth()
+  }
+  
+  // 处理管理员访问首页的情况，直接重定向到管理页面
+  if (to.path === '/' && userStore.isAdmin) {
+    console.log('管理员访问首页，重定向到管理页面')
+    next('/admin/regions')
+    return
   }
   
   // 如果需要身份验证
@@ -238,7 +215,7 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // 设置页面标题
-  document.title = `${to.meta.title || '首页'} - 毕业设计督导系统`
+  document.title = `${to.meta.title || '首页'} - 旅游系统`
   
   // 放行路由
   console.log('路由检查通过，允许导航到:', to.path)

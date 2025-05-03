@@ -94,7 +94,7 @@
                   :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
                   style="margin-right: 5px"
                 >
-                  {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+                  {{ role === 'USER' ? '用户' : role === 'ADMIN' ? '管理员' : '教师' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -104,7 +104,7 @@
       </el-col>
     </el-row>
 
-    <!-- 学生任务概览 - 只对学生显示 -->
+    <!-- 用户任务概览 - 只对用户显示 -->
     <el-row style="margin-top: 20px" v-if="userStore.isStudent">
       <el-col :span="24">
         <el-card class="task-card">
@@ -165,7 +165,7 @@
 
     <!-- 管理员入口 -->
     <div class="admin-actions" v-if="userStore.isAdmin">
-      <el-button type="primary" @click="$router.push('/admin/users')">进入管理面板</el-button>
+      <el-button type="primary" @click="$router.push('/admin/regions')">进入管理面板</el-button>
     </div>
   </div>
 </template>
@@ -200,13 +200,13 @@ const router = useRouter()
 const userStore = useUserStore()
 const stats = ref<DashboardStats>()
 
-// 学生统计数据
+// 用户统计数据
 const studentStats = ref({
   totalTasks: 0,
   completedTasks: 0
 })
 
-// 学生任务数据
+// 用户任务数据
 const myTasks = ref([])
 const tasksLoading = ref(false)
 
@@ -217,7 +217,7 @@ const getDashboardTitle = computed(() => {
   } else if (userStore.isSupervisor) {
     return '督导工作台'
   } else {
-    return '学生首页'
+    return '用户首页'
   }
 })
 
@@ -238,7 +238,7 @@ const fetchDashboardData = async () => {
   }
 }
 
-// 获取学生任务数据
+// 获取用户任务数据
 const fetchMyTasks = async () => {
   if (userStore.isStudent) {
     tasksLoading.value = true

@@ -15,8 +15,19 @@ export const getScenicSpotList = async (params: ScenicSpotQueryParams = {}) => {
  * @param id 景区ID
  */
 export const getScenicSpotDetail = async (id: number) => {
-  const response = await axios.get(`/api/admin/scenic-spots/${id}`)
-  return response.data
+  console.log('API调用: 获取景区详情, ID:', id);
+  if (!id || isNaN(id)) {
+    console.error('无效的景区ID:', id);
+    throw new Error('无效的景区ID');
+  }
+  try {
+    const response = await axios.get(`/api/admin/scenic-spots/${id}`);
+    console.log('API原始返回结果:', response);
+    return response.data;
+  } catch (error) {
+    console.error('获取景区详情API错误:', error);
+    throw error;
+  }
 }
 
 /**

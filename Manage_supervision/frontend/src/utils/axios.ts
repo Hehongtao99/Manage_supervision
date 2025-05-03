@@ -5,7 +5,7 @@ import { ElMessage } from 'element-plus'
 // 创建axios实例
 const instance = axios.create({
   // 移除baseURL，使用相对路径
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -54,6 +54,14 @@ instance.interceptors.response.use(
       requestUrl.includes('/evaluation') || 
       requestUrl.includes('/evaluate')
     )
+    
+    // 检查是否为超时错误
+    const isTimeoutError = error.code === 'ECONNABORTED' && error.message.includes('timeout')
+    if (isTimeoutError) {
+      console.log(`请求超时 (${requestUrl}): ${error.message}`)
+      // 不在这里显示错误消息，让调用方处理
+      return Promise.reject(error)
+    }
     
     // 根据状态码处理不同的错误情况
     switch (statusCode) {

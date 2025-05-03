@@ -1,12 +1,31 @@
 import axios from '../utils/axios'
 import type { RegionData } from '../types/region'
+import { ElMessage } from 'element-plus'
 
 /**
- * 获取地区树结构
+ * 获取地区树结构 - 添加重试逻辑
  */
-export const getRegionTree = async () => {
-  const response = await axios.get('/api/admin/regions/tree')
-  return response.data
+export const getRegionTree = async (retryCount = 3, retryDelay = 2000) => {
+  let lastError = null;
+  
+  for (let attempt = 0; attempt < retryCount; attempt++) {
+    try {
+      const response = await axios.get('/api/admin/regions/tree')
+      return response.data
+    } catch (error: any) {
+      lastError = error
+      console.warn(`获取地区树结构失败，尝试重试 (${attempt + 1}/${retryCount})`, error.message)
+      
+      // 如果不是最后一次尝试，等待一段时间后重试
+      if (attempt < retryCount - 1) {
+        await new Promise(resolve => setTimeout(resolve, retryDelay))
+      }
+    }
+  }
+  
+  // 所有重试都失败了
+  console.error(`获取地区树结构失败，已重试${retryCount}次`, lastError)
+  throw lastError
 }
 
 /**

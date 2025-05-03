@@ -7,9 +7,15 @@
 
     <!-- 搜索过滤框 -->
     <div class="scenic-spot-search">
-      <el-form :inline="true" :model="queryParams" class="search-form">
+      <el-form :inline="true" :model="queryParams" class="search-form" label-width="80px">
         <el-form-item label="景区名称">
-          <el-input v-model="queryParams.name" placeholder="请输入景区名称" clearable @keyup.enter="handleSearch" />
+          <el-input 
+            v-model="queryParams.name" 
+            placeholder="请输入景区名称" 
+            clearable 
+            @keyup.enter="handleSearch"
+            class="wider-input"
+          />
         </el-form-item>
         <el-form-item label="省份">
           <region-select 
@@ -17,6 +23,7 @@
             level="province" 
             placeholder="请选择省份"
             @change="handleProvinceChange"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="城市">
@@ -27,6 +34,7 @@
             placeholder="请选择城市"
             :disabled="!queryParams.provinceId"
             @change="handleCityChange"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="区县">
@@ -36,10 +44,17 @@
             :parent-id="queryParams.cityId" 
             placeholder="请选择区县"
             :disabled="!queryParams.cityId"
+            class="wider-select"
           />
         </el-form-item>
         <el-form-item label="景区等级">
-          <el-select v-model="queryParams.level" placeholder="请选择景区等级" clearable>
+          <el-select 
+            v-model="queryParams.level" 
+            placeholder="请选择景区等级" 
+            clearable
+            class="wider-select"
+            popper-class="larger-dropdown"
+          >
             <el-option label="5A" value="5A" />
             <el-option label="4A" value="4A" />
             <el-option label="3A" value="3A" />
@@ -49,14 +64,20 @@
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+          <el-select 
+            v-model="queryParams.status" 
+            placeholder="请选择状态" 
+            clearable
+            class="wider-select"
+            popper-class="larger-dropdown"
+          >
             <el-option label="启用" value="active" />
             <el-option label="禁用" value="inactive" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch" size="large">搜索</el-button>
+          <el-button @click="handleReset" size="large">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -104,7 +125,12 @@
       </el-table-column>
       <el-table-column prop="ticketPrice" label="门票价格" width="120">
         <template #default="scope">
-          {{ scope.row.ticketPrice ? `¥${scope.row.ticketPrice}` : '免费' }}
+          <template v-if="scope.row.ticketPrice === 0 || scope.row.ticketPrice === null || scope.row.ticketPrice === undefined">
+            <span class="free-price">免费</span>
+          </template>
+          <template v-else>
+            <span class="ticket-price">¥ {{ formatPrice(scope.row.ticketPrice) }}</span>
+          </template>
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" width="100">
@@ -162,7 +188,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { ScenicSpotData, ScenicSpotQueryParams } from '../../types/scenicSpot'
-import { getScenicSpotList, deleteScenicSpot, toggleScenicSpotStatus } from '../../api/scenicSpot'
+import { getScenicSpotList, deleteScenicSpot, updateScenicSpot } from '../../api/scenicSpot'
 import ScenicSpotForm from './components/ScenicSpotForm.vue'
 import RegionSelect from '../../components/RegionSelect.vue'
 import { useRouter } from 'vue-router'
@@ -267,7 +293,11 @@ const handleEditScenicSpot = (row: ScenicSpotData) => {
 
 // 查看景区详情
 const handleViewScenicSpot = (row: ScenicSpotData) => {
-  router.push(`/admin/scenic-spots/${row.id}`)
+  console.log('查看景区详情:', row.id)
+  router.push({
+    path: `/admin/scenic-spots/${row.id}`,
+    query: { id: row.id.toString() }
+  })
 }
 
 // 删除景区
@@ -291,7 +321,12 @@ const handleDeleteScenicSpot = (row: ScenicSpotData) => {
 // 切换景区状态
 const handleStatusChange = async (row: ScenicSpotData) => {
   try {
-    await toggleScenicSpotStatus(row.id)
+    // 发送当前状态到后端保存，而不是仅仅通知后端切换状态
+    await updateScenicSpot(row.id as number, { 
+      id: row.id,
+      status: row.status
+    } as ScenicSpotData)
+    
     ElMessage.success(`已${row.status === 'active' ? '启用' : '禁用'}景区`)
   } catch (error) {
     console.error('切换景区状态失败:', error)
@@ -328,6 +363,12 @@ const handleCityChange = () => {
   queryParams.districtId = undefined
 }
 
+// 格式化价格显示
+const formatPrice = (price: number): string => {
+  if (typeof price !== 'number') return '0.00';
+  return price.toFixed(2);
+}
+
 // 页面加载时获取列表
 onMounted(() => {
   fetchScenicSpotList()
@@ -337,6 +378,27 @@ onMounted(() => {
 <style scoped>
 .scenic-spot-list-container {
   padding: 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  position: relative;
+  /* 自定义滚动条 - Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #dcdfe6 #f5f7fa;
+}
+
+/* 自定义滚动条 - Webkit (Chrome, Safari, Edge) */
+.scenic-spot-list-container::-webkit-scrollbar {
+  width: 8px;
+  background-color: #f5f7fa;
+}
+
+.scenic-spot-list-container::-webkit-scrollbar-thumb {
+  background-color: #dcdfe6;
+  border-radius: 4px;
+}
+
+.scenic-spot-list-container::-webkit-scrollbar-thumb:hover {
+  background-color: #c0c4cc;
 }
 
 .scenic-spot-header {
@@ -355,18 +417,85 @@ onMounted(() => {
 .scenic-spot-search {
   margin-bottom: 20px;
   background-color: #f5f7fa;
-  padding: 18px;
-  border-radius: 4px;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .search-form {
   display: flex;
   flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wider-input,
+.wider-select {
+  width: 240px !important;
+}
+
+:deep(.wider-input .el-input__inner),
+:deep(.wider-select .el-input__inner) {
+  height: 42px !important;
+  line-height: 42px !important;
+  font-size: 15px !important;
+  padding-left: 15px !important;
+}
+
+:deep(.search-form .el-form-item__label) {
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+:deep(.search-form .el-button) {
+  height: 42px !important;
+  padding: 0 20px !important;
+  font-size: 15px !important;
+}
+
+.el-form-item {
+  margin-bottom: 18px;
+  margin-right: 0;
 }
 
 .pagination-container {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+/* 全局样式，为了使下拉框更大更明显 */
+:deep(.el-select-dropdown__item) {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+
+:deep(.larger-dropdown) {
+  --el-select-dropdown-max-height: 300px;
+}
+
+:deep(.el-select-dropdown) {
+  min-width: 220px !important;
+}
+
+:deep(.el-select .el-input__inner) {
+  height: 40px;
+  line-height: 40px;
+  font-size: 14px;
+}
+
+:deep(.el-input__inner) {
+  height: 40px;
+  line-height: 40px;
+  font-size: 14px;
+}
+
+.free-price {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+.ticket-price {
+  color: #e6a23c;
+  font-weight: 500;
 }
 </style> 

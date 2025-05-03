@@ -38,11 +38,21 @@ public class RegionController {
     }
     
     /**
-     * 获取子地区列表
+     * 获取子地区列表 - 原有接口
      */
     @GetMapping("/children/{parentId}")
     @RequireRole("ADMIN")
     public ResponseEntity<List<RegionDTO>> getChildRegions(@PathVariable Long parentId) {
+        List<RegionDTO> regions = regionService.getRegionsByParentId(parentId);
+        return ResponseEntity.ok(regions);
+    }
+    
+    /**
+     * 获取子地区列表 - 新增接口，与前端请求匹配
+     */
+    @GetMapping("/parent/{parentId}")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<RegionDTO>> getRegionsByParent(@PathVariable Long parentId) {
         List<RegionDTO> regions = regionService.getRegionsByParentId(parentId);
         return ResponseEntity.ok(regions);
     }
@@ -107,5 +117,15 @@ public class RegionController {
         } else {
             return ResponseEntity.badRequest().build();
         }
+    }
+    
+    /**
+     * 获取地区路径
+     */
+    @GetMapping("/{id}/path")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<RegionDTO>> getRegionPath(@PathVariable Long id) {
+        List<RegionDTO> path = regionService.getRegionPath(id);
+        return ResponseEntity.ok(path);
     }
 } 

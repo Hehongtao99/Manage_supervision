@@ -180,6 +180,7 @@ public class HotelServiceImpl implements HotelService {
         hotel.setStartPrice(hotelDTO.getStartPrice() != null ? 
                 new BigDecimal(hotelDTO.getStartPrice().toString()) : null);
         hotel.setSort(hotelDTO.getSort());
+        hotel.setStatus(hotelDTO.getStatus());
         hotel.setUpdateTime(LocalDateTime.now());
         
         // 更新酒店

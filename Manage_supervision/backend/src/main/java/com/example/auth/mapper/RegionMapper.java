@@ -36,6 +36,12 @@ public interface RegionMapper extends BaseMapper<Region> {
     List<Region> findAllRegions();
     
     /**
+     * 获取所有地区数据（包含非活跃状态）
+     */
+    @Select("SELECT * FROM regions ORDER BY level ASC, sort ASC, id ASC")
+    List<Region> findAll();
+    
+    /**
      * 根据地区编码查询
      */
     @Select("SELECT * FROM regions WHERE code = #{code} LIMIT 1")

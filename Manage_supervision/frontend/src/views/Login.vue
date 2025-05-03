@@ -107,7 +107,14 @@ const handleLogin = async () => {
     const success = await userStore.login(form.value.username.trim(), form.value.password)
     if (success) {
       ElMessage.success('登录成功')
-      router.push('/')
+      
+      if (userStore.isAdmin) {
+        router.push('/admin/regions')
+      } else if (userStore.isSupervisor) {
+        router.push('/supervisor/profile')
+      } else {
+        router.push('/travel-recommendation')
+      }
     } else {
       errorMessage.value = userStore.error || '登录失败，请检查用户名和密码'
       console.log('Login failure details:', userStore.error)

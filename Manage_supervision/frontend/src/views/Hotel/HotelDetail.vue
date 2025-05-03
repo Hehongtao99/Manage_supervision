@@ -168,6 +168,27 @@ onMounted(() => {
 <style scoped>
 .hotel-detail-container {
   padding: 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  position: relative;
+  /* 自定义滚动条 - Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #dcdfe6 #f5f7fa;
+}
+
+/* 自定义滚动条 - Webkit (Chrome, Safari, Edge) */
+.hotel-detail-container::-webkit-scrollbar {
+  width: 8px;
+  background-color: #f5f7fa;
+}
+
+.hotel-detail-container::-webkit-scrollbar-thumb {
+  background-color: #dcdfe6;
+  border-radius: 4px;
+}
+
+.hotel-detail-container::-webkit-scrollbar-thumb:hover {
+  background-color: #c0c4cc;
 }
 
 .page-header {

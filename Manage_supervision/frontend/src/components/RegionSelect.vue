@@ -5,6 +5,7 @@
     :disabled="disabled"
     clearable
     @change="handleChange"
+    popper-class="larger-region-dropdown"
   >
     <el-option
       v-for="item in options"
@@ -131,5 +132,55 @@ onMounted(() => {
 <style scoped>
 .el-select {
   width: 100%;
+}
+
+:deep(.el-input__inner) {
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 16px !important;
+  padding-left: 15px !important;
+  font-weight: 500 !important;
+}
+
+:deep(.larger-region-dropdown) {
+  --el-select-dropdown-max-height: 400px !important;
+  min-width: 280px !important;
+}
+
+:deep(.larger-region-dropdown .el-select-dropdown__item) {
+  padding: 14px 20px !important;
+  font-size: 16px !important;
+  height: auto !important;
+  line-height: 1.5 !important;
+}
+
+:deep(.el-select .el-input .el-select__caret) {
+  font-size: 20px !important;
+}
+
+:deep(.el-select-dropdown__item.selected) {
+  font-weight: bold !important;
+  color: var(--el-color-primary) !important;
+  background-color: rgba(64, 158, 255, 0.15) !important;
+}
+
+:deep(.el-select:hover .el-input__inner) {
+  border-color: var(--el-color-primary) !important;
+}
+
+:deep(.el-select:not(.is-disabled):hover .el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+}
+
+:deep(.el-select-dropdown__list) {
+  padding: 8px 0 !important; 
+}
+
+:deep(.el-select-dropdown__wrap) {
+  max-height: 400px !important;
+}
+
+:deep(.el-scrollbar__view) {
+  padding: 0 !important;
 }
 </style> 

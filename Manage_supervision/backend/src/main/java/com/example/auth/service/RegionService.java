@@ -47,12 +47,9 @@ public interface RegionService {
     boolean toggleRegionStatus(Long id);
     
     /**
-     * 将实体转换为DTO
-     */
-    RegionDTO convertToDTO(Region region);
-    
-    /**
      * 获取地区路径（省市区完整路径）
+     * @param regionId 地区ID
+     * @return 返回地区路径的DTO列表，从顶级地区到目标地区
      */
-    String getRegionPath(Long regionId);
+    List<RegionDTO> getRegionPath(Long regionId);
 } 
