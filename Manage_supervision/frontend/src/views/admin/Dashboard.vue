@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { User, UserFilled, Avatar } from '@element-plus/icons-vue'
+import { getDashboardStats } from '../../api/dashboard'
+import { ElMessage } from 'element-plus'
 
 const statistics = ref({
   totalUsers: 0,
@@ -10,7 +12,18 @@ const statistics = ref({
 })
 
 onMounted(async () => {
-  // TODO: 从后端获取实际统计数据
+  try {
+    const data = await getDashboardStats()
+    
+    // 更新统计数据
+    statistics.value.totalUsers = data.totalUsers || 0
+    statistics.value.activeUsers = data.activeUsers || 0
+    statistics.value.totalAnalysts = data.totalAnalysts || 0
+    statistics.value.systemHealth = data.systemInfo?.systemStatus || '正常'
+  } catch (error) {
+    console.error('获取仪表盘数据失败', error)
+    ElMessage.error('获取仪表盘数据失败')
+  }
 })
 </script>
 
@@ -43,14 +56,14 @@ onMounted(async () => {
     <div class="dashboard-section">
       <h2>用户管理快捷入口</h2>
       <div class="quick-links">
-        <router-link to="/admin/students" class="quick-link-card">
+        <router-link to="/admin/users" class="quick-link-card">
           <div class="icon-container">
             <el-icon><Avatar /></el-icon>
           </div>
           <div class="link-text">用户管理</div>
         </router-link>
         
-        <router-link to="/admin/teachers" class="quick-link-card">
+        <router-link to="/admin/security-analysts" class="quick-link-card">
           <div class="icon-container">
             <el-icon><UserFilled /></el-icon>
           </div>
@@ -74,84 +87,86 @@ onMounted(async () => {
 
 .statistics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 32px;
 }
 
 .stat-card {
-  background: white;
-  padding: 20px;
+  background-color: #fff;
   border-radius: 8px;
+  padding: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
 .stat-card h3 {
-  margin: 0 0 12px 0;
-  color: #666;
-  font-size: 14px;
+  font-size: 16px;
+  color: #606266;
+  margin-bottom: 16px;
+  font-weight: normal;
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: 500;
-  color: #333;
+  font-size: 32px;
+  font-weight: bold;
+  color: #409EFF;
 }
 
 .dashboard-section {
-  background: white;
-  padding: 24px;
+  background-color: #fff;
   border-radius: 8px;
+  padding: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 32px;
 }
 
 .dashboard-section h2 {
-  margin: 0 0 16px 0;
   font-size: 18px;
+  margin-bottom: 24px;
+  font-weight: 500;
 }
 
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 .quick-link-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
   text-decoration: none;
-  color: #333;
-  transition: all 0.3s ease;
+  padding: 24px;
+  border-radius: 8px;
+  background-color: #f5f7fa;
+  transition: all 0.3s;
 }
 
 .quick-link-card:hover {
-  background-color: #ecf5ff;
   transform: translateY(-5px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .icon-container {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #ecf5ff;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 60px;
-  height: 60px;
-  background-color: #409EFF;
-  border-radius: 50%;
   margin-bottom: 12px;
 }
 
 .icon-container .el-icon {
-  font-size: 30px;
-  color: white;
+  font-size: 24px;
+  color: #409EFF;
 }
 
 .link-text {
+  font-size: 14px;
   font-size: 16px;
   font-weight: 500;
 }

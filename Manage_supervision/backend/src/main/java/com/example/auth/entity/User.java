@@ -43,6 +43,9 @@ public class User {
     
     @Column(name = "user_number", unique = true)
     private String userNumber;
+    
+    @Column(name = "last_login_time")
+    private LocalDateTime lastLoginTime;
 
     @PrePersist
     protected void onCreate() {
@@ -110,6 +113,10 @@ public class User {
         return userNumber;
     }
 
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+
     // Setters
     public void setId(Long id) {
         this.id = id;
@@ -161,5 +168,9 @@ public class User {
     
     public void setUserNumber(String userNumber) {
         this.userNumber = userNumber;
+    }
+
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
     }
 }

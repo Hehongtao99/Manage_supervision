@@ -18,17 +18,29 @@
             </div>
           </template>
           <div class="stat-content">
-            <el-row>
-              <el-col :span="12">
+            <el-row :gutter="20">
+              <el-col :span="6">
                 <div class="stat-item">
                   <div class="stat-value primary">{{ stats?.totalUsers || 0 }}</div>
                   <div class="stat-label">总用户数</div>
                 </div>
               </el-col>
-              <el-col :span="12">
+              <el-col :span="6">
                 <div class="stat-item">
-                  <div class="stat-value success">{{ adminCount }}</div>
-                  <div class="stat-label">管理员数量</div>
+                  <div class="stat-value success">{{ stats?.activeUsers || 0 }}</div>
+                  <div class="stat-label">活跃用户</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <div class="stat-value warning">{{ stats?.totalAnalysts || 0 }}</div>
+                  <div class="stat-label">安全分析师数量</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <div class="stat-value info">{{ stats?.systemInfo?.systemStatus || '正常' }}</div>
+                  <div class="stat-label">系统状态</div>
                 </div>
               </el-col>
             </el-row>
@@ -165,7 +177,7 @@
 
     <!-- 管理员入口 -->
     <div class="admin-actions" v-if="userStore.isAdmin">
-      <el-button type="primary" @click="$router.push('/admin/users')">进入管理面板</el-button>
+      <el-button type="primary" @click="$router.push('/admin/dashboard')">进入管理控制台</el-button>
     </div>
   </div>
 </template>
@@ -438,6 +450,18 @@ onMounted(() => {
 
 .stat-value.success {
   color: #67C23A;
+}
+
+.stat-value.warning {
+  color: #E6A23C;
+}
+
+.stat-value.danger {
+  color: #F56C6C;
+}
+
+.stat-value.info {
+  color: #909399;
 }
 
 .stat-label {

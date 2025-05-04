@@ -76,6 +76,16 @@ public class DashboardServiceImpl implements DashboardService {
         // 获取用户总数
         stats.setTotalUsers(userRepository.count());
         
+        // 获取活跃用户数 (这里以最近30天登录的用户为活跃用户)
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        Long activeUsersCount = userRepository.countByLastLoginTimeAfter(thirtyDaysAgo);
+        stats.setActiveUsers(activeUsersCount);
+        
+        // 获取安全分析师数量
+        Role supervisorRole = roleRepository.findByName("SUPERVISOR");
+        Long supervisorCount = userRepository.countByRolesContaining(supervisorRole);
+        stats.setTotalAnalysts(supervisorCount);
+        
         // 获取角色分布
         Map<String, Long> roleDistribution = new HashMap<>();
         for (Role role : roleRepository.findAll()) {
@@ -85,7 +95,12 @@ public class DashboardServiceImpl implements DashboardService {
         stats.setRoleDistribution(roleDistribution);
         
         // 获取系统信息
-        stats.setSystemInfo(getSystemInfo());
+        DashboardStats.SystemInfo systemInfo = getSystemInfo();
+        
+        // 设置系统状态
+        systemInfo.setSystemStatus("正常");
+        
+        stats.setSystemInfo(systemInfo);
         
         // 获取用户列表
         stats.setUserList(getUserList());
