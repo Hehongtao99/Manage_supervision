@@ -60,6 +60,10 @@
           <el-icon><List /></el-icon>
           <span>陪玩服务</span>
         </el-menu-item>
+        <el-menu-item index="/admin/orders" @click="handleRoute('/admin/orders')">
+          <el-icon><Tickets /></el-icon>
+          <span>订单管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 

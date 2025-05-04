@@ -3,7 +3,13 @@
     <el-card class="main-card">
       <template #header>
         <div class="card-header">
-          <span>陪玩服务管理</span>
+          <div class="header-left">
+            <el-button @click="goBack">
+              <el-icon><Back /></el-icon>
+              返回
+            </el-button>
+            <span>陪玩服务管理</span>
+          </div>
           <div class="header-controls">
             <el-select v-model="statusFilter" placeholder="状态筛选" @change="handleStatusChange">
               <el-option label="全部" value="" />
@@ -183,9 +189,34 @@
           </el-descriptions-item>
         </el-descriptions>
         
-        <div class="dialog-footer" v-if="currentService.reviewStatus === 'pending'">
-          <el-button type="success" @click="handleReview(currentService, true)">审核通过</el-button>
-          <el-button type="danger" @click="handleReview(currentService, false)">拒绝服务</el-button>
+        <!-- 审核历史记录展示区域 -->
+        <div class="review-history" v-if="currentService.reviewStatus !== 'pending'">
+          <h3>审核历史记录</h3>
+          <div class="history-item">
+            <div class="history-header">
+              <span class="history-status">
+                <el-tag :type="getReviewStatusType(currentService.reviewStatus)">
+                  {{ getReviewStatusText(currentService.reviewStatus) }}
+                </el-tag>
+              </span>
+              <span class="history-time">{{ formatDate(currentService.reviewTime) }}</span>
+            </div>
+            <div class="history-reviewer">审核人: {{ currentService.reviewerName || '未知' }}</div>
+            <div class="history-comment" v-if="currentService.reviewComment">
+              <span class="comment-label">审核意见:</span>
+              <span class="comment-content">{{ currentService.reviewComment }}</span>
+            </div>
+            <div class="history-comment" v-else>
+              <span class="comment-label">审核意见:</span>
+              <span class="comment-content">无</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dialog-footer">
+          <el-button @click="detailDialogVisible = false">返回</el-button>
+          <el-button v-if="currentService.reviewStatus === 'pending'" type="success" @click="handleReview(currentService, true)">审核通过</el-button>
+          <el-button v-if="currentService.reviewStatus === 'pending'" type="danger" @click="handleReview(currentService, false)">拒绝服务</el-button>
         </div>
       </div>
     </el-dialog>
@@ -225,6 +256,22 @@ import {
   getPendingCompanionServices,
   reviewCompanionService
 } from '../../api/admin'
+import { Back } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
+
+// 初始化路由
+const router = useRouter()
+
+// 返回上一页
+const goBack = () => {
+  // 重置筛选条件并刷新列表
+  statusFilter.value = ''
+  currentPage.value = 1
+  loadServices()
+  
+  // 替换当前路由历史以防止返回到当前状态
+  router.replace('/admin/companion-services')
+}
 
 // 状态变量
 const services = ref([])
@@ -506,6 +553,12 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .header-controls {
   display: flex;
   gap: 10px;
@@ -541,5 +594,43 @@ onBeforeUnmount(() => {
 .pending-badge {
   margin-top: -8px;
   margin-left: 5px;
+}
+
+.review-history {
+  margin-top: 20px;
+}
+
+.history-item {
+  margin-bottom: 10px;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-status {
+  font-weight: 500;
+}
+
+.history-time {
+  margin-left: 10px;
+}
+
+.history-reviewer {
+  margin-top: 5px;
+}
+
+.history-comment {
+  margin-top: 5px;
+}
+
+.comment-label {
+  font-weight: 500;
+}
+
+.comment-content {
+  margin-left: 10px;
 }
 </style> 

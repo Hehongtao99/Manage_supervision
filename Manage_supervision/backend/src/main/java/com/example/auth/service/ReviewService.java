@@ -65,4 +65,38 @@ public interface ReviewService {
      * @return 平均评分
      */
     double getCompanionAverageRating(Long companionId);
+    
+    /**
+     * 审核评价通过
+     * @param reviewId 评价ID
+     * @param adminId 管理员ID
+     * @return 是否成功
+     */
+    boolean approveReview(Long reviewId, Long adminId);
+    
+    /**
+     * 审核评价拒绝
+     * @param reviewId 评价ID
+     * @param comment 拒绝理由
+     * @param adminId 管理员ID
+     * @return 是否成功
+     */
+    boolean rejectReview(Long reviewId, String comment, Long adminId);
+    
+    /**
+     * 获取待审核的评价列表
+     * @param page 页码
+     * @param size 每页数量
+     * @return 评价分页列表
+     */
+    Page<ReviewDTO> getPendingReviews(int page, int size);
+    
+    /**
+     * 按审核状态获取评价列表
+     * @param status 审核状态
+     * @param page 页码
+     * @param size 每页数量
+     * @return 评价分页列表
+     */
+    Page<ReviewDTO> getReviewsByStatus(String status, int page, int size);
 } 

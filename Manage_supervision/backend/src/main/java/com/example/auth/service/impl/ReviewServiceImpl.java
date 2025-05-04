@@ -69,6 +69,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setContent(request.getContent());
         review.setAnonymous(request.getAnonymous());
         review.setReplied(false);
+        // 设置审核状态为待审核
+        review.setReviewStatus("pending");
         review.setCreateTime(LocalDateTime.now());
         review.setUpdateTime(LocalDateTime.now());
         
@@ -80,18 +82,24 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public boolean replyReview(ReplyReviewRequest request, Long companionId) {
-        // 查询评价
         Review review = reviewMapper.selectById(request.getReviewId());
         if (review == null) {
             throw new RuntimeException("评价不存在");
         }
         
-        // 验证陪玩身份
-        if (!review.getCompanionId().equals(companionId)) {
-            throw new RuntimeException("您不是该评价的陪玩");
+        if (!Objects.equals(review.getCompanionId(), companionId)) {
+            throw new RuntimeException("只能回复自己收到的评价");
         }
         
-        // 更新评价回复
+        if (review.getReplied()) {
+            throw new RuntimeException("该评价已回复，不能重复回复");
+        }
+        
+        // 只有审核通过的评价才能回复
+        if (!"approved".equals(review.getReviewStatus())) {
+            throw new RuntimeException("该评价尚未审核通过，暂时无法回复");
+        }
+        
         review.setReply(request.getReply());
         review.setReplied(true);
         review.setReplyTime(LocalDateTime.now());
@@ -99,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
         
         return reviewMapper.updateById(review) > 0;
     }
-
+    
     @Override
     public ReviewDTO getReviewById(Long reviewId) {
         Review review = reviewMapper.selectById(reviewId);
@@ -109,95 +117,136 @@ public class ReviewServiceImpl implements ReviewService {
         
         return convertToDTO(review);
     }
-
+    
     @Override
     public Page<ReviewDTO> getCompanionReviews(Long companionId, int page, int size) {
-        // 创建查询条件
+        // 只能查看已审核通过的评价
         LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Review::getCompanionId, companionId);
-        queryWrapper.orderByDesc(Review::getCreateTime);
+        queryWrapper.eq(Review::getCompanionId, companionId)
+                   .eq(Review::getReviewStatus, "approved")
+                   .orderByDesc(Review::getCreateTime);
         
-        // 执行分页查询
         Page<Review> reviewPage = new Page<>(page, size);
-        Page<Review> resultPage = reviewMapper.selectPage(reviewPage, queryWrapper);
+        reviewMapper.selectPage(reviewPage, queryWrapper);
         
-        // 转换结果为DTO
-        List<ReviewDTO> reviewDTOList = new ArrayList<>();
-        for (Review review : resultPage.getRecords()) {
-            reviewDTOList.add(convertToDTO(review));
-        }
-        
-        // 创建返回结果
-        Page<ReviewDTO> dtoPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
-        dtoPage.setRecords(reviewDTOList);
-        
-        return dtoPage;
+        return convertToPageDTO(reviewPage);
     }
-
+    
     @Override
     public Page<ReviewDTO> getPlayerReviews(Long playerId, int page, int size) {
-        // 创建查询条件
+        // 玩家可以查看自己发布的所有评价，包括审核中和被拒绝的
         LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Review::getReviewerId, playerId);
-        queryWrapper.orderByDesc(Review::getCreateTime);
+        queryWrapper.eq(Review::getReviewerId, playerId)
+                   .orderByDesc(Review::getCreateTime);
         
-        // 执行分页查询
         Page<Review> reviewPage = new Page<>(page, size);
-        Page<Review> resultPage = reviewMapper.selectPage(reviewPage, queryWrapper);
+        reviewMapper.selectPage(reviewPage, queryWrapper);
         
-        // 转换结果为DTO
-        List<ReviewDTO> reviewDTOList = new ArrayList<>();
-        for (Review review : resultPage.getRecords()) {
-            reviewDTOList.add(convertToDTO(review));
-        }
-        
-        // 创建返回结果
-        Page<ReviewDTO> dtoPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
-        dtoPage.setRecords(reviewDTOList);
-        
-        return dtoPage;
+        return convertToPageDTO(reviewPage);
     }
-
+    
     @Override
     public boolean canReviewOrder(Long orderId, Long playerId) {
-        // 获取订单信息
         Order order = orderService.getOrderEntity(orderId);
+        
         if (order == null) {
             return false;
         }
         
-        // 验证玩家身份
-        if (!order.getPlayerId().equals(playerId)) {
+        // 检查订单是否属于该玩家
+        if (!Objects.equals(order.getPlayerId(), playerId)) {
             return false;
         }
         
-        // 验证订单状态，只有已完成的订单才可以评价
+        // 检查订单状态是否为已完成
         return OrderStatus.COMPLETED.name().equals(order.getStatus());
     }
-
+    
     @Override
     public double getCompanionAverageRating(Long companionId) {
-        // 创建查询条件
+        // 只计算已审核通过的评价的平均分
         LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Review::getCompanionId, companionId);
-        queryWrapper.select(Review::getRating);
+        queryWrapper.eq(Review::getCompanionId, companionId)
+                   .eq(Review::getReviewStatus, "approved")
+                   .select(Review::getRating);
         
-        // 查询所有评分
         List<Review> reviews = reviewMapper.selectList(queryWrapper);
+        
         if (reviews.isEmpty()) {
             return 0.0;
         }
         
-        // 计算平均分
-        double totalRating = reviews.stream()
-                .mapToInt(Review::getRating)
-                .sum();
+        double sum = reviews.stream().mapToInt(Review::getRating).sum();
+        return sum / reviews.size();
+    }
+    
+    @Override
+    @Transactional
+    public boolean approveReview(Long reviewId, Long adminId) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null) {
+            throw new RuntimeException("评价不存在");
+        }
         
-        return totalRating / reviews.size();
+        if (!"pending".equals(review.getReviewStatus())) {
+            throw new RuntimeException("该评价已审核，不能重复审核");
+        }
+        
+        review.setReviewStatus("approved");
+        review.setReviewTime(LocalDateTime.now());
+        review.setReviewerAdminId(adminId);
+        review.setUpdateTime(LocalDateTime.now());
+        
+        return reviewMapper.updateById(review) > 0;
+    }
+    
+    @Override
+    @Transactional
+    public boolean rejectReview(Long reviewId, String comment, Long adminId) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null) {
+            throw new RuntimeException("评价不存在");
+        }
+        
+        if (!"pending".equals(review.getReviewStatus())) {
+            throw new RuntimeException("该评价已审核，不能重复审核");
+        }
+        
+        review.setReviewStatus("rejected");
+        review.setReviewTime(LocalDateTime.now());
+        review.setReviewComment(comment);
+        review.setReviewerAdminId(adminId);
+        review.setUpdateTime(LocalDateTime.now());
+        
+        return reviewMapper.updateById(review) > 0;
+    }
+    
+    @Override
+    public Page<ReviewDTO> getPendingReviews(int page, int size) {
+        LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Review::getReviewStatus, "pending")
+                   .orderByAsc(Review::getCreateTime);
+        
+        Page<Review> reviewPage = new Page<>(page, size);
+        reviewMapper.selectPage(reviewPage, queryWrapper);
+        
+        return convertToPageDTO(reviewPage);
+    }
+    
+    @Override
+    public Page<ReviewDTO> getReviewsByStatus(String status, int page, int size) {
+        LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Review::getReviewStatus, status)
+                   .orderByDesc(Review::getCreateTime);
+        
+        Page<Review> reviewPage = new Page<>(page, size);
+        reviewMapper.selectPage(reviewPage, queryWrapper);
+        
+        return convertToPageDTO(reviewPage);
     }
     
     /**
-     * 将Review实体转换为ReviewDTO
+     * 转换评价实体为DTO
      */
     private ReviewDTO convertToDTO(Review review) {
         ReviewDTO dto = new ReviewDTO();
@@ -209,25 +258,48 @@ public class ReviewServiceImpl implements ReviewService {
             dto.setOrderNumber(order.getOrderNumber());
             dto.setServiceId(order.getServiceId());
             dto.setGameType(order.getGameType());
-            
-            // 设置服务标题
-            dto.setServiceTitle(companionServiceService.getServiceById(order.getServiceId()).getTitle());
         }
         
-        // 获取玩家信息
-        User player = userService.getUserById(review.getReviewerId());
-        if (player != null && (!review.getAnonymous() || Objects.equals(player.getId(), review.getReviewerId()))) {
-            dto.setReviewerName(player.getUsername());
-        } else {
-            dto.setReviewerName("匿名用户");
+        // 获取评价人信息（玩家）
+        User reviewer = userService.getUserById(review.getReviewerId());
+        if (reviewer != null) {
+            // 匿名评价不显示评价人信息
+            if (review.getAnonymous()) {
+                dto.setReviewerName("匿名用户");
+            } else {
+                dto.setReviewerName(reviewer.getRealName() != null ? reviewer.getRealName() : reviewer.getUsername());
+            }
         }
         
-        // 获取陪玩信息
+        // 获取被评价人信息（陪玩）
         User companion = userService.getUserById(review.getCompanionId());
         if (companion != null) {
-            dto.setCompanionName(companion.getUsername());
+            dto.setCompanionName(companion.getRealName() != null ? companion.getRealName() : companion.getUsername());
+        }
+        
+        // 获取审核管理员信息
+        if (review.getReviewerAdminId() != null) {
+            User admin = userService.getUserById(review.getReviewerAdminId());
+            if (admin != null) {
+                dto.setReviewerAdminName(admin.getRealName() != null ? admin.getRealName() : admin.getUsername());
+            }
         }
         
         return dto;
+    }
+    
+    /**
+     * 转换评价分页为DTO分页
+     */
+    private Page<ReviewDTO> convertToPageDTO(Page<Review> reviewPage) {
+        Page<ReviewDTO> dtoPage = new Page<>(reviewPage.getCurrent(), reviewPage.getSize(), reviewPage.getTotal());
+        
+        List<ReviewDTO> dtoList = new ArrayList<>();
+        for (Review review : reviewPage.getRecords()) {
+            dtoList.add(convertToDTO(review));
+        }
+        
+        dtoPage.setRecords(dtoList);
+        return dtoPage;
     }
 } 

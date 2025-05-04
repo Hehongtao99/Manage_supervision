@@ -57,6 +57,21 @@ public class ReviewDTO {
     // 回复时间
     private LocalDateTime replyTime;
     
+    // 审核状态：pending-待审核，approved-已通过，rejected-已拒绝
+    private String reviewStatus;
+    
+    // 审核时间
+    private LocalDateTime reviewTime;
+    
+    // 审核意见
+    private String reviewComment;
+    
+    // 审核管理员ID
+    private Long reviewerAdminId;
+    
+    // 审核管理员名称
+    private String reviewerAdminName;
+    
     // 创建时间
     private LocalDateTime createTime;
     

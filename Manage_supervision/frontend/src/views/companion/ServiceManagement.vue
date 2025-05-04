@@ -56,12 +56,28 @@
         <el-table-column label="操作" fixed="right" width="220">
           <template #default="scope">
             <el-button 
+              type="info" 
+              size="small" 
+              @click="viewServiceDetail(scope.row)"
+            >
+              详情
+            </el-button>
+            <el-button 
+              v-if="scope.row.reviewStatus !== 'rejected'"
               type="primary" 
               size="small" 
               @click="editService(scope.row)"
               :disabled="scope.row.reviewStatus === 'pending'"
             >
               编辑
+            </el-button>
+            <el-button 
+              v-else
+              type="success" 
+              size="small" 
+              @click="reSubmitService(scope.row)"
+            >
+              重新上架
             </el-button>
             <el-button 
               :type="scope.row.status === 'active' ? 'warning' : 'success'" 
@@ -92,10 +108,82 @@
       </el-empty>
     </el-card>
     
+    <!-- 服务详情对话框 -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="服务详情"
+      width="60%"
+    >
+      <div v-if="currentService" class="service-detail">
+        <el-descriptions border :column="2">
+          <el-descriptions-item label="服务标题">{{ currentService.title }}</el-descriptions-item>
+          <el-descriptions-item label="游戏类型">{{ currentService.gameTypes }}</el-descriptions-item>
+          <el-descriptions-item label="价格">{{ currentService.price }} 元/小时</el-descriptions-item>
+          <el-descriptions-item label="服务时间">
+            <span v-if="currentService.serviceStartTime && currentService.serviceEndTime">
+              {{ currentService.serviceStartTime }} - {{ currentService.serviceEndTime }}
+            </span>
+            <span v-else>未设置</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="可用性">{{ currentService.availability || '未设置' }}</el-descriptions-item>
+          <el-descriptions-item label="审核状态">
+            <el-tag :type="getReviewStatusType(currentService.reviewStatus)">
+              {{ getReviewStatusText(currentService.reviewStatus) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="服务状态">
+            <el-tag :type="currentService.status === 'active' ? 'success' : 'info'">
+              {{ currentService.status === 'active' ? '已上线' : '已下线' }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ formatDate(currentService.createdTime) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="更新时间">
+            {{ formatDate(currentService.updatedTime) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="服务描述" :span="2">
+            {{ currentService.description }}
+          </el-descriptions-item>
+        </el-descriptions>
+        
+        <!-- 审核拒绝信息 -->
+        <div v-if="currentService.reviewStatus === 'rejected'" class="review-feedback">
+          <el-alert
+            type="error"
+            show-icon
+            :closable="false"
+            title="审核未通过"
+          >
+            <template #default>
+              <div class="reject-reason">
+                <p><strong>拒绝理由：</strong></p>
+                <p>{{ currentService.reviewComment || '管理员未提供拒绝理由' }}</p>
+              </div>
+              <div class="mt-2">
+                <p>您可以点击下方的"重新上架"按钮，修改服务信息后重新提交审核。</p>
+              </div>
+            </template>
+          </el-alert>
+        </div>
+        
+        <div class="dialog-footer">
+          <el-button @click="detailDialogVisible = false">关闭</el-button>
+          <el-button 
+            v-if="currentService.reviewStatus === 'rejected'"
+            type="success" 
+            @click="reSubmitService(currentService)"
+          >
+            重新上架
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+    
     <!-- 创建/编辑服务对话框 -->
     <el-dialog
       v-model="serviceDialogVisible"
-      :title="isEditing ? '编辑陪玩服务' : '发布新陪玩服务'"
+      :title="isResubmit ? '重新上架服务' : (isEditing ? '编辑陪玩服务' : '发布新陪玩服务')"
       width="60%"
       destroy-on-close
     >
@@ -206,7 +294,10 @@ const submitting = ref(false)
 const services = ref<CompanionService[]>([])
 const serviceDialogVisible = ref(false)
 const isEditing = ref(false)
+const isResubmit = ref(false)
 const currentServiceId = ref<number | undefined>(undefined)
+const detailDialogVisible = ref(false)
+const currentService = ref<CompanionService | null>(null)
 
 // 游戏类型选项
 const gameOptions = [
@@ -224,12 +315,16 @@ const serviceForm = reactive<{
   price: number
   description: string
   availability: string
+  serviceStartTime?: string
+  serviceEndTime?: string
 }>({
   title: '',
   gameTypes: [],
   price: 50,
   description: '',
-  availability: '每天'
+  availability: '每天',
+  serviceStartTime: '',
+  serviceEndTime: ''
 })
 
 // 服务时间范围
@@ -285,6 +380,7 @@ const fetchServices = async () => {
 // 显示创建服务对话框
 const showCreateServiceDialog = () => {
   isEditing.value = false
+  isResubmit.value = false
   currentServiceId.value = undefined
   resetServiceForm()
   serviceDialogVisible.value = true
@@ -380,34 +476,41 @@ const submitServiceForm = async () => {
     
     try {
       // 处理自定义可用性
-      if (serviceForm.value.availability === 'custom' && customAvailability.value) {
-        serviceForm.value.availability = customAvailability.value
+      if (serviceForm.availability === 'custom' && customAvailability.value) {
+        serviceForm.availability = customAvailability.value
       }
       
       // 处理服务时间
       if (serviceTimeRange.value && serviceTimeRange.value[0] && serviceTimeRange.value[1]) {
-        serviceForm.value.serviceStartTime = formatTimeToString(serviceTimeRange.value[0])
-        serviceForm.value.serviceEndTime = formatTimeToString(serviceTimeRange.value[1])
+        serviceForm.serviceStartTime = formatTimeToString(serviceTimeRange.value[0])
+        serviceForm.serviceEndTime = formatTimeToString(serviceTimeRange.value[1])
       }
       
       // 处理游戏类型，从数组转为逗号分隔的字符串
-      if (Array.isArray(serviceForm.value.gameTypes)) {
-        serviceForm.value.gameTypes = serviceForm.value.gameTypes.join(',')
+      let formData = { ...serviceForm }
+      if (Array.isArray(formData.gameTypes)) {
+        formData.gameTypes = formData.gameTypes.join(',')
       }
       
       let result
       if (isEditing.value && currentServiceId.value) {
         // 更新服务
-        result = await updateCompanionService(currentServiceId.value, serviceForm.value)
-        ElMessage.success('服务已更新，需要等待管理员审核后才能显示')
+        result = await updateCompanionService(currentServiceId.value, formData)
+        
+        if (isResubmit.value) {
+          ElMessage.success('服务已重新提交审核，请等待管理员审核')
+          isResubmit.value = false
+        } else {
+          ElMessage.success('服务已更新，需要等待管理员审核后才能显示')
+        }
       } else {
         // 创建新服务
-        result = await createCompanionService(serviceForm.value)
+        result = await createCompanionService(formData)
         ElMessage.success('服务已创建，需要等待管理员审核后才能显示')
       }
       
       // 重新加载服务列表
-      loadServices()
+      await fetchServices()
       
       // 关闭对话框
       serviceDialogVisible.value = false
@@ -469,6 +572,40 @@ const confirmDeleteService = async (service: CompanionService) => {
 const formatTime = (timeStr: string) => {
   return timeStr
 }
+
+// 格式化日期
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '未设置'
+  
+  const date = new Date(dateStr)
+  return date.toLocaleString()
+}
+
+// 将Date对象转换为HH:mm格式的时间字符串
+const formatTimeToString = (date: Date) => {
+  if (!date) return ''
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+// 查看服务详情
+const viewServiceDetail = (service: CompanionService) => {
+  currentService.value = service
+  detailDialogVisible.value = true
+}
+
+// 重新提交服务
+const reSubmitService = (service: CompanionService) => {
+  // 关闭详情对话框（如果打开的话）
+  detailDialogVisible.value = false
+  
+  // 标记为特殊的重新上架操作
+  isResubmit.value = true
+  
+  // 调用编辑函数打开编辑对话框
+  editService(service)
+}
 </script>
 
 <style scoped>
@@ -493,5 +630,25 @@ const formatTime = (timeStr: string) => {
 
 .ml-1 {
   margin-left: 4px;
+}
+
+.service-detail {
+  padding: 10px;
+}
+
+.review-feedback {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.reject-reason {
+  margin: 10px 0;
+}
+
+.dialog-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style> 

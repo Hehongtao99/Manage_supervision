@@ -265,7 +265,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @Deprecated
     public boolean refundOrder(Long orderId, Long operatorId, String reason) {
+        // 该方法已废弃，请使用requestRefund替代
         // 为了向后兼容，调用新方法
         return requestRefund(orderId, operatorId, reason);
     }
@@ -384,5 +386,31 @@ public class OrderServiceImpl implements OrderService {
         }
         
         return dto;
+    }
+
+    @Override
+    public Page<OrderDTO> getAllOrders(int page, int size, String status) {
+        // 创建查询条件
+        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<>();
+        if (status != null && !status.isEmpty()) {
+            queryWrapper.eq(Order::getStatus, status);
+        }
+        queryWrapper.orderByDesc(Order::getCreateTime);
+        
+        // 执行分页查询
+        Page<Order> orderPage = new Page<>(page, size);
+        Page<Order> resultPage = orderMapper.selectPage(orderPage, queryWrapper);
+        
+        // 转换结果为DTO
+        List<OrderDTO> orderDTOList = new ArrayList<>();
+        for (Order order : resultPage.getRecords()) {
+            orderDTOList.add(convertToDTO(order));
+        }
+        
+        // 创建返回结果
+        Page<OrderDTO> dtoPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
+        dtoPage.setRecords(orderDTOList);
+        
+        return dtoPage;
     }
 } 

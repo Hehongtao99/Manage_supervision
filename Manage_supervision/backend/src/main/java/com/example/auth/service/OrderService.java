@@ -46,4 +46,7 @@ public interface OrderService {
     
     // 生成订单号
     String generateOrderNumber();
+    
+    // 管理员获取所有订单（可按状态筛选）
+    Page<OrderDTO> getAllOrders(int page, int size, String status);
 } 
