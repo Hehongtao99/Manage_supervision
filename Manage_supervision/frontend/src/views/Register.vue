@@ -1,5 +1,19 @@
 <template>
   <div class="register-container">
+    <!-- 装饰元素 -->
+    <div class="particles-container">
+      <div class="particle particle-1"></div>
+      <div class="particle particle-2"></div>
+      <div class="particle particle-3"></div>
+      <div class="particle particle-4"></div>
+      <div class="particle particle-5"></div>
+      <div class="particle particle-6"></div>
+      <div class="particle particle-7"></div>
+      <div class="particle particle-8"></div>
+    </div>
+    
+    <div class="animated-bg"></div>
+
     <div class="register-content">
       <div class="brand-container">
         <img src="../assets/logo.png" alt="Logo" class="brand-logo" />
@@ -8,8 +22,14 @@
       </div>
       
       <el-card class="register-card">
+        <div class="card-header">
+          <h2 class="card-title">用户注册</h2>
+          <div class="card-subtitle">填写信息完成注册</div>
+        </div>
+
         <el-form :model="form" @submit.prevent="handleRegister" class="register-form">
-          <el-form-item>
+          <el-form-item class="form-item">
+            <label class="input-label">用户名</label>
             <el-input 
               v-model="form.username" 
               placeholder="请输入用户名"
@@ -19,7 +39,8 @@
             />
           </el-form-item>
           
-          <el-form-item>
+          <el-form-item class="form-item">
+            <label class="input-label">密码</label>
             <el-input 
               v-model="form.password" 
               type="password" 
@@ -31,7 +52,8 @@
             />
           </el-form-item>
           
-          <el-form-item>
+          <el-form-item class="form-item">
+            <label class="input-label">确认密码</label>
             <el-input 
               v-model="form.confirmPassword" 
               type="password" 
@@ -59,7 +81,10 @@
               :size="'large'"
               :disabled="!agreeToTerms"
             >
-              注册
+              <span class="btn-text">注册</span>
+              <span class="btn-icon">
+                <i class="el-icon-right"></i>
+              </span>
             </el-button>
           </el-form-item>
         </el-form>
@@ -126,16 +151,150 @@ const handleRegister = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
-  padding: 20px;
-  animation: gradientBG 15s ease infinite;
-  background-size: 200% 200%;
+  position: relative;
+  overflow: hidden;
+  background-color: #050b29;
 }
 
-@keyframes gradientBG {
-  0% { background-position: 0% 50% }
-  50% { background-position: 100% 50% }
-  100% { background-position: 0% 50% }
+/* 动态背景 */
+.animated-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(-45deg, #0b1642, #1a237e, #4527a0, #7b1fa2);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 粒子效果 */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.particle {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.3);
+  animation: float 25s infinite ease-in-out;
+}
+
+.particle-1 {
+  width: 80px;
+  height: 80px;
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  width: 20px;
+  height: 20px;
+  top: 30%;
+  left: 20%;
+  animation-delay: 2s;
+  animation-duration: 30s;
+}
+
+.particle-3 {
+  width: 40px;
+  height: 40px;
+  top: 60%;
+  left: 5%;
+  animation-delay: 4s;
+  animation-duration: 35s;
+}
+
+.particle-4 {
+  width: 60px;
+  height: 60px;
+  top: 10%;
+  left: 80%;
+  animation-delay: 6s;
+  animation-duration: 40s;
+}
+
+.particle-5 {
+  width: 35px;
+  height: 35px;
+  top: 50%;
+  left: 90%;
+  animation-delay: 8s;
+  animation-duration: 45s;
+}
+
+.particle-6 {
+  width: 25px;
+  height: 25px;
+  top: 80%;
+  left: 15%;
+  animation-delay: 10s;
+  animation-duration: 50s;
+}
+
+.particle-7 {
+  width: 15px;
+  height: 15px;
+  top: 70%;
+  left: 70%;
+  animation-delay: 12s;
+  animation-duration: 55s;
+}
+
+.particle-8 {
+  width: 30px;
+  height: 30px;
+  top: 90%;
+  left: 60%;
+  animation-delay: 14s;
+  animation-duration: 45s;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translate(100px, -100px) rotate(90deg) scale(1.2);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(200px, 0) rotate(180deg) scale(1);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translate(100px, 100px) rotate(270deg) scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+    opacity: 0.8;
+  }
 }
 
 .register-content {
@@ -145,6 +304,8 @@ const handleRegister = async () => {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  position: relative;
+  z-index: 10;
 }
 
 .brand-container {
@@ -157,7 +318,7 @@ const handleRegister = async () => {
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-30px);
   }
   to {
     opacity: 1;
@@ -166,46 +327,91 @@ const handleRegister = async () => {
 }
 
 .brand-logo {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   margin-bottom: 1.5rem;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-  transition: transform 0.3s ease;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+  transition: all 0.5s ease;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 8px 16px rgba(255, 255, 255, 0.2));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.4));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 8px 16px rgba(255, 255, 255, 0.2));
+  }
 }
 
 .brand-logo:hover {
-  transform: scale(1.05);
+  transform: rotate(5deg) scale(1.1);
 }
 
 .brand-title {
-  font-size: 2.5rem;
-  font-weight: 600;
+  font-size: 3rem;
+  font-weight: 700;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   letter-spacing: -0.5px;
+  background: linear-gradient(to right, #fff, #c1c8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .brand-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   opacity: 0.95;
   margin: 0.75rem 0 0;
   font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 .register-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3), 0 0 30px rgba(81, 105, 240, 0.3);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
   padding: 40px;
-  animation: fadeIn 0.8s ease;
+  animation: fadeIn 1s ease;
   border: none;
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.register-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4), 0 0 40px rgba(81, 105, 240, 0.4);
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.card-title {
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+
+.card-subtitle {
+  color: #666;
+  font-size: 0.95rem;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -213,11 +419,23 @@ const handleRegister = async () => {
   margin-top: 0;
 }
 
+.form-item {
+  margin-bottom: 20px;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
 .terms {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0.5rem 0 1.5rem;
+  margin: 0.5rem 0 1.8rem;
   flex-wrap: wrap;
   color: #64748b;
   font-size: 0.9rem;
@@ -225,53 +443,84 @@ const handleRegister = async () => {
 
 .terms-link {
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  color: #4a5cff;
 }
 
 .terms-link:hover {
-  color: #4facfe;
+  color: #7a3bff;
+  transform: translateX(3px);
 }
 
 .submit-btn {
   width: 100%;
-  height: 48px;
+  height: 52px;
   font-size: 1.1rem;
-  border-radius: 12px;
+  border-radius: 16px;
   margin: 0;
-  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #4a5cff 0%, #7a3bff 100%);
   border: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s ease;
 }
 
 .submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(79, 172, 254, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(74, 92, 255, 0.5);
+}
+
+.submit-btn:hover::before {
+  left: 100%;
 }
 
 .submit-btn:active {
   transform: translateY(0);
 }
 
+.btn-text {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 .login-link {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
   color: #666;
   font-size: 0.95rem;
 }
 
 .signin-link {
-  font-weight: 500;
+  font-weight: 600;
   margin-left: 0.5rem;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  color: #4a5cff;
 }
 
 .signin-link:hover {
-  color: #4facfe;
+  color: #7a3bff;
+  transform: translateX(3px);
 }
 
 :deep(.el-input__wrapper) {
   border-radius: 12px;
-  height: 48px;
+  height: 52px;
   background: #f8fafc;
   box-shadow: none;
   border: 2px solid transparent;
@@ -285,8 +534,8 @@ const handleRegister = async () => {
 
 :deep(.el-input__wrapper.is-focus) {
   background: #fff;
-  border-color: #4facfe;
-  box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
+  border-color: #4a5cff;
+  box-shadow: 0 0 0 4px rgba(74, 92, 255, 0.15);
 }
 
 :deep(.el-input__inner) {
@@ -310,7 +559,7 @@ const handleRegister = async () => {
   }
   
   .brand-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
   
   .brand-subtitle {
@@ -318,11 +567,15 @@ const handleRegister = async () => {
   }
 
   .submit-btn {
-    height: 44px;
+    height: 48px;
   }
 
   :deep(.el-input__wrapper) {
-    height: 44px;
+    height: 48px;
+  }
+  
+  .card-title {
+    font-size: 1.5rem;
   }
 }
 </style> 
