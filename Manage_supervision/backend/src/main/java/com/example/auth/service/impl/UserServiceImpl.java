@@ -11,7 +11,7 @@ import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
 import com.example.auth.service.UserService;
-import com.example.auth.service.TeacherStudentService;
+import com.example.auth.service.CompanionPlayerService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     private UserNumberGenerator userNumberGenerator;
     
     @Autowired
-    private TeacherStudentService teacherStudentService;
+    private CompanionPlayerService companionPlayerService;
 
     @Override
     @Transactional
@@ -72,8 +72,8 @@ public class UserServiceImpl implements UserService {
             user.setStatus("active");
             user.setCreateTime(LocalDateTime.now());
             
-            // 生成学生编号(默认注册用户为学生)
-            String userNumber = userNumberGenerator.generateStudentNumber();
+            // 生成玩家编号(默认注册用户为玩家)
+            String userNumber = userNumberGenerator.generatePlayerNumber();
             user.setUserNumber(userNumber);
             
             // 保存用户基本信息
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
             // 添加用户-角色关联
             userRoleMapper.insertUserRole(user.getId(), userRole.getId());
             
-            logger.info("用户 {} 注册成功，学号: {}", username, userNumber);
+            logger.info("用户 {} 注册成功，玩家ID: {}", username, userNumber);
             return user;
         } catch (Exception e) {
             logger.error("用户注册过程中发生异常", e);
@@ -120,6 +120,11 @@ public class UserServiceImpl implements UserService {
             user.setRoles(new HashSet<>(roles));
         }
         return user;
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        return findById(id);
     }
 
     @Override
@@ -443,7 +448,7 @@ public class UserServiceImpl implements UserService {
     public List<UserDTO> getStudentsByTeacher(Long teacherId) {
         logger.info("获取教师ID为{}的学生列表", teacherId);
         try {
-            return teacherStudentService.getStudentsByTeacher(teacherId);
+            return companionPlayerService.getPlayersByCompanion(teacherId);
         } catch (Exception e) {
             logger.error("获取教师学生列表失败", e);
             return new ArrayList<>();

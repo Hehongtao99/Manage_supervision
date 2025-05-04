@@ -7,35 +7,35 @@ import java.util.Random;
 
 /**
  * 用户编号生成工具类
- * 用于生成学号和教师号
+ * 用于生成玩家号和陪玩号
  */
 @Component
 public class UserNumberGenerator {
     
-    private static final String STUDENT_PREFIX = "S"; // 学生前缀
-    private static final String TEACHER_PREFIX = "T"; // 教师前缀
+    private static final String PLAYER_PREFIX = "P"; // 玩家前缀
+    private static final String COMPANION_PREFIX = "C"; // 陪玩前缀
     private static final Random random = new Random();
     
     /**
-     * 生成学生学号
-     * 格式：S + 年份后两位 + 随机6位数字
-     * 示例：S23123456
+     * 生成玩家号
+     * 格式：P + 年份后两位 + 随机6位数字
+     * 示例：P23123456
      */
-    public String generateStudentNumber() {
+    public String generatePlayerNumber() {
         String yearSuffix = getYearSuffix();
         String randomDigits = generateRandomDigits(6);
-        return STUDENT_PREFIX + yearSuffix + randomDigits;
+        return PLAYER_PREFIX + yearSuffix + randomDigits;
     }
     
     /**
-     * 生成教师工号
-     * 格式：T + 年份后两位 + 随机5位数字
-     * 示例：T2312345
+     * 生成陪玩工号
+     * 格式：C + 年份后两位 + 随机5位数字
+     * 示例：C2312345
      */
-    public String generateTeacherNumber() {
+    public String generateCompanionNumber() {
         String yearSuffix = getYearSuffix();
         String randomDigits = generateRandomDigits(5);
-        return TEACHER_PREFIX + yearSuffix + randomDigits;
+        return COMPANION_PREFIX + yearSuffix + randomDigits;
     }
     
     /**
@@ -43,9 +43,9 @@ public class UserNumberGenerator {
      */
     public String generateUserNumberByRole(String role) {
         if ("SUPERVISOR".equalsIgnoreCase(role)) {
-            return generateTeacherNumber();
+            return generateCompanionNumber();
         } else {
-            return generateStudentNumber();
+            return generatePlayerNumber();
         }
     }
     
@@ -80,15 +80,15 @@ public class UserNumberGenerator {
         }
         
         // 根据前缀检查当前编号类型
-        boolean isStudentNumber = currentNumber.startsWith(STUDENT_PREFIX);
-        boolean isTeacherNumber = currentNumber.startsWith(TEACHER_PREFIX);
+        boolean isPlayerNumber = currentNumber.startsWith(PLAYER_PREFIX);
+        boolean isCompanionNumber = currentNumber.startsWith(COMPANION_PREFIX);
         
         // 角色与编号类型不匹配，需要更新
-        if (isStudentNumber && "SUPERVISOR".equalsIgnoreCase(role)) {
+        if (isPlayerNumber && "SUPERVISOR".equalsIgnoreCase(role)) {
             return true;
         }
         
-        if (isTeacherNumber && !"SUPERVISOR".equalsIgnoreCase(role)) {
+        if (isCompanionNumber && !"SUPERVISOR".equalsIgnoreCase(role)) {
             return true;
         }
         

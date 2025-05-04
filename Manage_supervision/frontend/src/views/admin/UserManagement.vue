@@ -77,7 +77,7 @@
               :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
               class="role-tag"
             >
-              {{ role === 'ADMIN' ? '管理员' : role === 'SUPERVISOR' ? '教师' : role === 'USER' ? '学生' : role }}
+              {{ role === 'ADMIN' ? '管理员' : role === 'SUPERVISOR' ? '陪玩' : role === 'USER' ? '玩家' : role }}
             </el-tag>
           </template>
         </el-table-column>

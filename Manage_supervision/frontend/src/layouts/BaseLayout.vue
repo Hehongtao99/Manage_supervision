@@ -60,11 +60,6 @@
                   <el-icon><Setting /></el-icon>管理控制台
                 </el-dropdown-item>
                 
-                <!-- 教师可以直接进入教师页面 -->
-                <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/students')">
-                  <el-icon><Monitor /></el-icon>学生管理
-                </el-dropdown-item>
-                
                 <el-dropdown-item divided @click="handleLogout">
                   <el-icon><SwitchButton /></el-icon>退出登录
                 </el-dropdown-item>
@@ -118,9 +113,9 @@ const roleName = computed(() => {
   if (userStore.isAdmin) {
     return '管理员'
   } else if (userStore.isSupervisor) {
-    return '教师'
+    return '陪玩'
   } else {
-    return '学生'
+    return '玩家'
   }
 })
 
@@ -140,7 +135,7 @@ const navigateToProfile = () => {
   if (userStore.isAdmin) {
     router.push('/profile')
   } else if (userStore.isSupervisor) {
-    router.push('/supervisor/profile')
+    router.push('/companion/profile')
   } else {
     router.push('/profile')
   }
@@ -149,7 +144,7 @@ const navigateToProfile = () => {
 // 根据角色导航到对应的聊天页面
 const navigateToChat = () => {
   if (userStore.isSupervisor) {
-    router.push('/supervisor/chat')
+    router.push('/companion/chat')
   } else {
     router.push('/chat')
   }

@@ -145,7 +145,7 @@
           :type="role === 'ADMIN' ? 'danger' : 'success'"
           class="role-tag"
         >
-          {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+          {{ role === 'USER' ? '玩家' : role === 'ADMIN' ? '管理员' : '陪玩' }}
         </el-tag>
       </div>
     </el-card>

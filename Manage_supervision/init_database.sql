@@ -2,7 +2,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 删除已有表（如果存在）
-DROP TABLE IF EXISTS teacher_student_relations;
+DROP TABLE IF EXISTS companion_player_relations;
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS conversations;
 DROP TABLE IF EXISTS task_evaluations;
@@ -81,16 +81,16 @@ CREATE TABLE chat_messages (
     CONSTRAINT FK_chat_messages_recipient FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 创建教师-学生关系表
-CREATE TABLE teacher_student_relations (
+-- 创建陪玩-玩家关系表
+CREATE TABLE companion_player_relations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id BIGINT NOT NULL,
-    student_id BIGINT NOT NULL,
+    companion_id BIGINT NOT NULL,
+    player_id BIGINT NOT NULL,
     assign_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'active',
-    CONSTRAINT FK_teacher_student_teacher FOREIGN KEY (teacher_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT FK_teacher_student_student FOREIGN KEY (student_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT UK_teacher_student UNIQUE (teacher_id, student_id)
+    CONSTRAINT FK_companion_player_companion FOREIGN KEY (companion_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT FK_companion_player_player FOREIGN KEY (player_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT UK_companion_player UNIQUE (companion_id, player_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 创建索引以提高查询性能
@@ -99,14 +99,14 @@ CREATE INDEX idx_conversations_user2_id ON conversations(user2_id);
 CREATE INDEX idx_chat_messages_conversation_id ON chat_messages(conversation_id);
 CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
 CREATE INDEX idx_chat_messages_recipient_id ON chat_messages(recipient_id);
-CREATE INDEX idx_teacher_student_teacher_id ON teacher_student_relations(teacher_id);
-CREATE INDEX idx_teacher_student_student_id ON teacher_student_relations(student_id);
+CREATE INDEX idx_companion_player_companion_id ON companion_player_relations(companion_id);
+CREATE INDEX idx_companion_player_player_id ON companion_player_relations(player_id);
 
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 
 ('ADMIN', '管理员角色，拥有最高权限', ',USER_VIEW,ROLE_VIEW,LOG_VIEW,USER_EDIT,ROLE_EDIT,SYSTEM_SETTINGS,USER_DELETE,ROLE_DELETE', NOW()),
-('USER', '学生角色，基本用户权限', '', NOW()),
-('SUPERVISOR', '督导员角色，可以管理学生', ',USER_VIEW,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW', NOW());
+('USER', '玩家角色，基本用户权限', '', NOW()),
+('SUPERVISOR', '陪玩角色，可以管理玩家', ',USER_VIEW,PLAYER_MANAGEMENT,PLAYER_PROGRESS_VIEW', NOW());
 
 -- 插入管理员用户 (username: admin, password: 123456)
 -- 密码使用BCrypt加密，这里是"123456"的BCrypt哈希值
@@ -120,5 +120,5 @@ INSERT INTO user_roles (user_id, role_id) SELECT
 
 -- 确保roles表中的权限字段包含正确的权限设置
 UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,USER_DELETE,ROLE_VIEW,ROLE_EDIT,ROLE_DELETE,LOG_VIEW,SYSTEM_SETTINGS' WHERE name = 'ADMIN';
-UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW' WHERE name = 'SUPERVISOR';
+UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,PLAYER_MANAGEMENT,PLAYER_PROGRESS_VIEW' WHERE name = 'SUPERVISOR';
 UPDATE roles SET permissions = 'USER_VIEW' WHERE name = 'USER'; 

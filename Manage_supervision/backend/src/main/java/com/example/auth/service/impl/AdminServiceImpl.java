@@ -139,8 +139,8 @@ public class AdminServiceImpl implements AdminService {
                 roleMapper.insert(userRole);
             }
             
-            // 生成学生编号
-            String userNumber = userNumberGenerator.generateStudentNumber();
+            // 生成玩家编号
+            String userNumber = userNumberGenerator.generatePlayerNumber();
             user.setUserNumber(userNumber);
             
             // 保存用户

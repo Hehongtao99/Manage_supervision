@@ -11,6 +11,7 @@ public interface UserService {
     User register(String username, String password);
     User findByUsername(String username);
     User findById(Long id);
+    User getUserById(Long id);
     boolean validatePassword(User user, String password);
     void changePassword(User user, String currentPassword, String newPassword);
     void updateAvatar(User user, String avatarUrl);

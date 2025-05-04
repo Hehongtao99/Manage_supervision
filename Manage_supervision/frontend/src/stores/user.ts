@@ -61,13 +61,13 @@ export const useUserStore = defineStore('user', {
       return false
     },
     isSupervisor: (state) => {
-      console.log('检查教师权限，当前角色:', state.user.roles)
+      console.log('检查陪玩权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
         role === 'SUPERVISOR' || role === 'supervisor'
       )
     },
-    isStudent: (state) => {
-      console.log('检查学生权限，当前角色:', state.user.roles)
+    isPlayer: (state) => {
+      console.log('检查玩家权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
         role === 'USER' || role === 'user'
       ) && !state.user.roles.some((role: string) => 
@@ -81,7 +81,7 @@ export const useUserStore = defineStore('user', {
       } else if (role === 'STAFF') {
         return 'STAFF'
       } else {
-        return 'STUDENT'
+        return 'PLAYER'
       }
     },
     userRole(): string | null {
@@ -244,11 +244,11 @@ export const useUserStore = defineStore('user', {
         console.log('用户是管理员，重定向到管理员仪表盘')
         router.push('/admin/dashboard')
       } else if (this.isSupervisor) {
-        console.log('用户是教师，重定向到教师控制台')
-        router.push('/supervisor/students')
+        console.log('用户是陪玩，重定向到陪玩控制台')
+        router.push('/companion/players')
       } else {
         console.log('用户是普通用户，重定向到普通仪表盘')
-        router.push('/dashboard')
+        router.push('/chat')
       }
     },
 

@@ -41,38 +41,74 @@
           <el-icon><UserFilled /></el-icon>
           <span>教师管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
-          <el-icon><Avatar /></el-icon>
-          <span>学生管理</span>
+        <el-menu-item index="/admin/players" @click="handleRoute('/admin/players')">
+          <el-icon><User /></el-icon>
+          <span>玩家管理</span>
+        </el-menu-item>
+      </el-sub-menu>
+      
+      <el-sub-menu index="companion-management">
+        <template #title>
+          <el-icon><Service /></el-icon>
+          <span>陪玩管理</span>
+        </template>
+        <el-menu-item index="/admin/companions" @click="handleRoute('/admin/companions')">
+          <el-icon><UserFilled /></el-icon>
+          <span>陪玩人员</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/companion-services" @click="handleRoute('/admin/companion-services')">
+          <el-icon><List /></el-icon>
+          <span>陪玩服务</span>
         </el-menu-item>
       </el-sub-menu>
     </template>
 
-    <!-- 督导员菜单 -->
+    <!-- 陪玩菜单 -->
     <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
+      <el-menu-item index="/companion/chat" @click="handleRoute('/companion/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
           <span>聊天</span>
         </template>
       </el-menu-item>
 
-      <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
+      <el-menu-item index="/companion/profile" @click="handleRoute('/companion/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
-          <span>教师信息</span>
+          <span>陪玩信息</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/companion/players" @click="handleRoute('/companion/players')">
+        <el-icon><User /></el-icon>
+        <template #title>
+          <span>玩家管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/companion/services" @click="handleRoute('/companion/services')">
+        <el-icon><Service /></el-icon>
+        <template #title>
+          <span>陪玩服务</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/companion/orders" @click="handleRoute('/companion/orders')">
+        <el-icon><List /></el-icon>
+        <template #title>
+          <span>订单管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/companion/reviews" @click="handleRoute('/companion/reviews')">
+        <el-icon><Star /></el-icon>
+        <template #title>
+          <span>评价管理</span>
         </template>
       </el-menu-item>
     </template>
 
-    <!-- 学生菜单 -->
+    <!-- 玩家菜单 -->
     <template v-else>
       <el-menu-item index="/chat" @click="handleRoute('/chat')">
         <el-icon><ChatDotRound /></el-icon>
@@ -85,6 +121,27 @@
         <el-icon><UserFilled /></el-icon>
         <template #title>
           <span>个人信息</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/companion-market" @click="handleRoute('/companion-market')">
+        <el-icon><Shop /></el-icon>
+        <template #title>
+          <span>陪玩大厅</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/orders" @click="handleRoute('/orders')">
+        <el-icon><Tickets /></el-icon>
+        <template #title>
+          <span>我的订单</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/reviews" @click="handleRoute('/reviews')">
+        <el-icon><Star /></el-icon>
+        <template #title>
+          <span>我的评价</span>
         </template>
       </el-menu-item>
     </template>
@@ -106,7 +163,11 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Service,
+  Shop,
+  Tickets,
+  Star
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

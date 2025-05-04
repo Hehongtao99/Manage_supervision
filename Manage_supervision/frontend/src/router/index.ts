@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
       if (userStore.isAdmin) {
         return '/admin/dashboard'
       } else if (userStore.isSupervisor) {
-        return '/supervisor/students'
+        return '/companion/players'
       } else {
         return '/chat'
       }
@@ -54,6 +54,33 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/chat/ChatPage.vue'),
         meta: {
           title: '聊天',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'companion-market',
+        name: 'CompanionMarket',
+        component: () => import('../views/player/CompanionMarket.vue'),
+        meta: {
+          title: '陪玩大厅',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'orders',
+        name: 'PlayerOrders',
+        component: () => import('../views/player/PlayerOrders.vue'),
+        meta: {
+          title: '我的订单',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'reviews',
+        name: 'PlayerReviews',
+        component: () => import('../views/player/PlayerReviews.vue'),
+        meta: {
+          title: '我的评价',
           requiresAuth: true
         }
       }
@@ -89,21 +116,31 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'teachers',
-        name: 'TeacherManagement',
-        component: () => import('../views/admin/TeacherManagement.vue'),
+        path: 'companions',
+        name: 'CompanionManagement',
+        component: () => import('../views/admin/CompanionManagement.vue'),
         meta: { 
-          title: '教师管理',
+          title: '陪玩管理',
           requiresAuth: true,
           requiresAdmin: true
         }
       },
       {
-        path: 'students',
-        name: 'AdminStudentManagement',
-        component: () => import('../views/admin/StudentManagement.vue'),
+        path: 'companion-services',
+        name: 'AdminCompanionServiceManagement',
+        component: () => import('../views/admin/CompanionServiceManagement.vue'),
         meta: { 
-          title: '学生管理',
+          title: '陪玩服务管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'players',
+        name: 'AdminPlayerManagement',
+        component: () => import('../views/admin/PlayerManagement.vue'),
+        meta: { 
+          title: '玩家管理',
           requiresAuth: true,
           requiresAdmin: true
         }
@@ -131,40 +168,70 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: '/supervisor',
+    path: '/companion',
     component: BaseLayout,
-    redirect: '/supervisor/students',
+    redirect: '/companion/profile',
     meta: { 
       requiresAuth: true,
       requiresSupervisor: true
     },
     children: [
       {
-        path: 'students',
-        name: 'StudentManagement',
-        component: () => import('../views/supervisor/StudentManagement.vue'),
-        meta: { 
-          title: '学生管理',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
-      {
         path: 'profile',
-        name: 'SupervisorProfile',
-        component: () => import('../views/supervisor/Profile.vue'),
+        name: 'CompanionProfile',
+        component: () => import('../views/companion/Profile.vue'),
         meta: { 
-          title: '教师信息',
+          title: '陪玩信息',
           requiresAuth: true,
           requiresSupervisor: true
         }
       },
       {
         path: 'chat',
-        name: 'SupervisorChat',
+        name: 'CompanionChat',
         component: () => import('../views/chat/ChatPage.vue'),
         meta: {
           title: '聊天',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'players',
+        name: 'CompanionPlayerManagement',
+        component: () => import('../views/companion/PlayerManagement.vue'),
+        meta: {
+          title: '玩家管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'services',
+        name: 'CompanionServiceManagement',
+        component: () => import('../views/companion/ServiceManagement.vue'),
+        meta: {
+          title: '陪玩服务',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'orders',
+        name: 'CompanionOrderManagement',
+        component: () => import('../views/companion/OrderManagement.vue'),
+        meta: {
+          title: '订单管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'reviews',
+        name: 'CompanionReviewManagement',
+        component: () => import('../views/companion/ReviewManagement.vue'),
+        meta: {
+          title: '评价管理',
           requiresAuth: true,
           requiresSupervisor: true
         }
@@ -211,7 +278,7 @@ router.beforeEach(async (to, from, next) => {
           console.log('需要管理员权限但当前不是管理员，尝试强制刷新')
           needsForceRefresh = true
         } else if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-          console.log('需要教师权限但当前不是教师，尝试强制刷新')
+          console.log('需要陪玩权限但当前不是陪玩，尝试强制刷新')
           needsForceRefresh = true
         }
         
@@ -230,9 +297,9 @@ router.beforeEach(async (to, from, next) => {
       return
     }
     
-    // 检查教师权限
+    // 检查陪玩权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-      console.log('需要教师权限，但用户不是教师，重定向到首页')
+      console.log('需要陪玩权限，但用户不是陪玩，重定向到首页')
       next('/chat')
       return
     }
@@ -243,18 +310,20 @@ router.beforeEach(async (to, from, next) => {
     if (userStore.isAdmin) {
       next('/admin/dashboard')
     } else if (userStore.isSupervisor) {
-      next('/supervisor/students')
+      next('/companion/profile')
     } else {
       next('/chat')
     }
     return
   }
   
-  // 设置页面标题
-  document.title = `${to.meta.title || '首页'} - 毕业设计督导系统`
+  // 更新页面标题
+  if (to.meta.title) {
+    document.title = `${to.meta.title} | 陪玩系统`
+  } else {
+    document.title = '陪玩系统'
+  }
   
-  // 放行路由
-  console.log('路由检查通过，允许导航到:', to.path)
   next()
 })
 

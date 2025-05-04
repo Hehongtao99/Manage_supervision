@@ -35,9 +35,9 @@ const statistics = ref({
 
 // 用户角色分布数据
 const userRoleDistribution = ref([
-  { value: 0, name: '管理员' },
-  { value: 0, name: '教师' },
-  { value: 0, name: '学生' },
+  { value: 8, name: '管理员' },
+  { value: 12, name: '陪玩' },
+  { value: 0, name: '玩家' },
   { value: 0, name: '普通用户' }
 ])
 
@@ -175,7 +175,7 @@ const mockDashboardData = () => {
   userRoleDistribution.value = [
     { value: 2, name: '管理员' },
     { value: 18, name: '教师' },
-    { value: 156, name: '学生' },
+    { value: 156, name: '玩家' },
     { value: 80, name: '普通用户' }
   ]
   

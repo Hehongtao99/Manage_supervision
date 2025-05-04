@@ -94,7 +94,7 @@
                   :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
                   style="margin-right: 5px"
                 >
-                  {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+                  {{ role === 'USER' ? '玩家' : role === 'ADMIN' ? '管理员' : '陪玩' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -104,7 +104,7 @@
       </el-col>
     </el-row>
 
-    <!-- 学生任务概览 - 只对学生显示 -->
+    <!-- 玩家任务概览 - 只对玩家显示 -->
     <el-row style="margin-top: 20px" v-if="userStore.isStudent">
       <el-col :span="24">
         <el-card class="task-card">
@@ -119,7 +119,7 @@
               <el-empty description="没有分配给您的任务" :image-size="80">
                 <template #description>
                   <p>暂无分配给您的任务</p>
-                  <p class="sub-text">任务将由教师分配，请耐心等待</p>
+                  <p class="sub-text">任务将由陪玩分配，请耐心等待</p>
                 </template>
               </el-empty>
             </div>
@@ -130,7 +130,7 @@
                   <el-tag :type="getStatusType(task.status)" size="small">{{ getChineseStatus(task.status) }}</el-tag>
                 </div>
                 <div class="task-info">
-                  <span class="task-supervisor">教师: {{ task.supervisorName || '未分配' }}</span>
+                  <span class="task-supervisor">陪玩: {{ task.supervisorName || '未分配' }}</span>
                   <span class="task-priority" v-if="task.category">
                     类别: 
                     <el-tag type="info" size="small">{{ task.category }}</el-tag>
@@ -217,7 +217,7 @@ const getDashboardTitle = computed(() => {
   } else if (userStore.isSupervisor) {
     return '督导工作台'
   } else {
-    return '学生首页'
+    return '玩家首页'
   }
 })
 
@@ -276,8 +276,8 @@ const chartOption = computed(() => ({
     orient: 'vertical',
     left: 'left',
     formatter: function(name) {
-      // 将USER角色显示为STUDENT
-      return name === 'USER' ? 'STUDENT' : name;
+      // 将USER角色显示为PLAYER
+      return name === 'USER' ? 'PLAYER' : name;
     }
   },
   series: [
@@ -285,8 +285,8 @@ const chartOption = computed(() => ({
       type: 'pie',
       radius: '50%',
       data: Object.entries(stats.value?.roleDistribution || {}).map(([name, value]) => ({
-        // 将USER角色显示为STUDENT
-        name: name === 'USER' ? 'STUDENT' : name,
+        // 将USER角色显示为PLAYER
+        name: name === 'USER' ? 'PLAYER' : name,
         value
       })),
       emphasis: {
