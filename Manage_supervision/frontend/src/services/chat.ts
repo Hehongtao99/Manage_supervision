@@ -590,10 +590,23 @@ class ChatService {
   // 标记会话为已读
   async markConversationAsRead(conversationId: number) {
     try {
+      // 发送请求标记会话为已读
       const response = await axios.post(`/api/chat/conversations/${conversationId}/read`);
-      return response.data.updatedCount as number;
+      return response.data;
     } catch (error) {
       console.error('标记会话为已读失败:', error);
+      throw error;
+    }
+  }
+  
+  // 标记单个消息为已读
+  async markMessageAsRead(messageId: number) {
+    try {
+      // 发送请求标记消息为已读
+      const response = await axios.post(`/api/chat/messages/${messageId}/read`);
+      return response.data;
+    } catch (error) {
+      console.error('标记消息为已读失败:', error);
       throw error;
     }
   }

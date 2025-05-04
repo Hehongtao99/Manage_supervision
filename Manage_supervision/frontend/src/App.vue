@@ -1,9 +1,23 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 import { useUserStore } from './stores/user'
+import { useChatStore } from './stores/chat'
+import ChatNotification from './components/chat/ChatNotification.vue'
 
 const userStore = useUserStore()
+const chatStore = useChatStore()
+const router = useRouter()
+
+// 处理通知点击，跳转到聊天页面
+const handleNotificationClick = (senderId: number) => {
+  // 根据用户角色决定跳转路径
+  if (userStore.isPlayer) {
+    router.push({ name: 'ChatInterface', params: { companionId: senderId } })
+  } else if (userStore.isCompanion) {
+    router.push({ name: 'CompanionChatList', query: { activeChat: senderId } })
+  }
+}
 
 onMounted(async () => {
   try {
@@ -11,6 +25,10 @@ onMounted(async () => {
     const success = await userStore.initializeAuth()
     if (success) {
       console.log('认证初始化完成，用户编号:', userStore.user.userNumber)
+      
+      // 用户认证成功后初始化聊天服务
+      await chatStore.initChat()
+      console.log('聊天服务初始化完成')
     } else {
       console.log('认证初始化失败或用户未登录')
     }
@@ -22,6 +40,7 @@ onMounted(async () => {
 
 <template>
   <RouterView />
+  <ChatNotification @click="handleNotificationClick" />
 </template>
 
 <style>
@@ -44,6 +63,39 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 确保element-plus的滚动条使用自定义样式 */
+.el-scrollbar__bar {
+  opacity: 0.3;
+}
+
+.el-scrollbar__bar.is-vertical {
+  width: 8px;
+}
+
+.el-scrollbar__bar.is-horizontal {
+  height: 8px;
 }
 
 /* 全局样式 */

@@ -24,6 +24,9 @@ public class ReviewDTO {
     // 评价人名称
     private String reviewerName;
     
+    // 评价人头像URL
+    private String reviewerAvatar;
+    
     // 被评价人ID（陪玩ID）
     private Long companionId;
     

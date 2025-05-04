@@ -161,17 +161,24 @@ export const getPendingReviews = async (page = 1, size = 10) => {
 }
 
 // 获取评价列表（可按状态筛选）
-export const getReviewsByStatus = async (page = 1, size = 10, status?: string) => {
+export const getReviewsByStatus = async (status?: string, page = 1, size = 10) => {
   try {
-    const params: any = { page, size }
+    const params: any = { 
+      page, 
+      size,
+      _t: new Date().getTime() // 添加时间戳避免缓存
+    }
     if (status) {
       params.status = status
     }
     
+    console.log('发送获取评价列表请求，参数:', params);
     const response = await axios.get('/api/admin/reviews', { params })
+    console.log('获取评价列表响应:', response);
+    
     return response.data
   } catch (error) {
-    console.error('获取评价列表失败:', error)
+    console.error('获取评价列表失败，详细错误:', error)
     throw error
   }
 }
@@ -203,6 +210,33 @@ export const reviewReview = async (
     return response.data
   } catch (error) {
     console.error('审核评价失败:', error)
+    throw error
+  }
+}
+
+// 审核评价通过
+export const approveReview = async (reviewId: number) => {
+  try {
+    const data = { approved: true }
+    const response = await axios.post(`/api/admin/reviews/${reviewId}/review`, data)
+    return response.data
+  } catch (error) {
+    console.error('审核通过评价失败:', error)
+    throw error
+  }
+}
+
+// 审核评价拒绝
+export const rejectReview = async (reviewId: number, reason: string) => {
+  try {
+    const data = { 
+      approved: false,
+      reason
+    }
+    const response = await axios.post(`/api/admin/reviews/${reviewId}/review`, data)
+    return response.data
+  } catch (error) {
+    console.error('审核拒绝评价失败:', error)
     throw error
   }
 } 

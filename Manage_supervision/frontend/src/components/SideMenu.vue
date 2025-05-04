@@ -32,21 +32,6 @@
         </el-menu-item>
       </el-sub-menu>
 
-      <el-sub-menu index="teacher-student-management">
-        <template #title>
-          <el-icon><User /></el-icon>
-          <span>教学管理</span>
-        </template>
-        <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
-          <el-icon><UserFilled /></el-icon>
-          <span>教师管理</span>
-        </el-menu-item>
-        <el-menu-item index="/admin/players" @click="handleRoute('/admin/players')">
-          <el-icon><User /></el-icon>
-          <span>玩家管理</span>
-        </el-menu-item>
-      </el-sub-menu>
-      
       <el-sub-menu index="companion-management">
         <template #title>
           <el-icon><Service /></el-icon>
@@ -56,6 +41,10 @@
           <el-icon><UserFilled /></el-icon>
           <span>陪玩人员</span>
         </el-menu-item>
+        <el-menu-item index="/admin/players" @click="handleRoute('/admin/players')">
+          <el-icon><User /></el-icon>
+          <span>玩家管理</span>
+        </el-menu-item>
         <el-menu-item index="/admin/companion-services" @click="handleRoute('/admin/companion-services')">
           <el-icon><List /></el-icon>
           <span>陪玩服务</span>
@@ -63,6 +52,10 @@
         <el-menu-item index="/admin/orders" @click="handleRoute('/admin/orders')">
           <el-icon><Tickets /></el-icon>
           <span>订单管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/reviews" @click="handleRoute('/admin/reviews')">
+          <el-icon><Star /></el-icon>
+          <span>评论审核</span>
         </el-menu-item>
       </el-sub-menu>
     </template>
@@ -80,13 +73,6 @@
         <el-icon><UserFilled /></el-icon>
         <template #title>
           <span>陪玩信息</span>
-        </template>
-      </el-menu-item>
-      
-      <el-menu-item index="/companion/players" @click="handleRoute('/companion/players')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>玩家管理</span>
         </template>
       </el-menu-item>
       

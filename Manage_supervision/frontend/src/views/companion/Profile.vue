@@ -123,10 +123,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { ElMessage, ElLoading } from 'element-plus';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { ElMessage, ElLoading, ElMessageBox } from 'element-plus';
 import { useUserStore } from '../../stores/user';
 import axios from '../../utils/axios';
+import { useRouter } from 'vue-router';
+import { useChatStore } from '../../stores/chat';
 
 // 陪玩仪表盘数据接口
 interface CompanionDashboardDTO {
@@ -142,6 +144,8 @@ const userStore = useUserStore();
 const activeTab = ref('basic'); // 默认选中基本信息标签页
 const statsLoading = ref(false); // 添加加载状态标志
 const fileInputRef = ref<HTMLInputElement | null>(null); // 文件输入引用
+const router = useRouter();
+const chatStore = useChatStore();
 
 // 用户统计数据
 const userStats = reactive({
@@ -248,6 +252,29 @@ onMounted(async () => {
     if (!(error as any).response || (error as any).response.status !== 401) {
       ElMessage.error('加载设置失败，请稍后重试')
     }
+  }
+  
+  // 监听新消息通知
+  chatStore.onMessage((message) => {
+    // 只处理发给当前用户且未读的消息
+    if (message.recipientId === userStore.userId && !message.isRead) {
+      // 显示通知
+      const notification = new Notification('新消息提醒', {
+        body: `${message.senderName}: ${message.content}`,
+        icon: message.senderAvatar || '/default-avatar.png'
+      });
+      
+      // 点击通知跳转到聊天页面
+      notification.onclick = () => {
+        router.push('/companion/chat');
+        window.focus();
+      };
+    }
+  });
+  
+  // 请求通知权限
+  if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+    await Notification.requestPermission();
   }
 })
 

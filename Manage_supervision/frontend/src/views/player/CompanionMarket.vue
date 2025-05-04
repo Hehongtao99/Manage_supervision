@@ -140,116 +140,140 @@
     <!-- 服务详情对话框 -->
     <el-dialog
       v-model="detailDialogVisible"
-      title="陪玩服务详情"
-      width="50%"
+      :title="selectedService?.title"
+      width="65%"
+      :before-close="closeDetailDialog"
+      class="service-detail-dialog"
     >
-      <div v-if="selectedService" class="service-detail">
-        <div class="detail-header">
-          <el-avatar 
-            :size="60" 
-            :src="selectedService.companionAvatar || '/default-avatar.png'"
-            class="detail-avatar"
-          >
-            {{ selectedService.companionName?.charAt(0) }}
-          </el-avatar>
-          <div class="detail-title-box">
-            <h2 class="detail-title">{{ selectedService.title }}</h2>
-            <div class="detail-companion">陪玩: {{ selectedService.companionName }}</div>
+      <div class="service-detail" v-if="selectedService">
+        <!-- 聊天弹窗 - 放在详情前面并直接显示 -->
+        <div v-if="chatActive" class="service-chat-container">
+          <div class="chat-container-header">
+            <h3>联系 {{ selectedService.companionName }}</h3>
+            <el-button type="text" @click="chatActive = false">
+              <el-icon><Close /></el-icon>
+            </el-button>
+          </div>
+          <div class="chat-container-body">
+            <chat-popup
+              :visible="true"
+              :recipient-id="selectedService.companionId"
+              :recipient-name="selectedService.companionName"
+              :recipient-avatar="selectedService.companionAvatar"
+              embedded
+              @message-sent="handleMessageSent"
+            />
           </div>
         </div>
-        
-        <el-divider />
-        
-        <div class="detail-info">
-          <div class="detail-section">
-            <h4 class="section-title">游戏类型</h4>
-            <div class="section-content game-tags">
-              <el-tag 
-                v-for="(game, index) in selectedService.gameTypes.split(',')" 
-                :key="index"
-                type="success"
-                class="game-tag"
-              >
-                {{ game }}
-              </el-tag>
+
+        <!-- 服务详情内容 -->
+        <div :class="{'service-detail-content': true, 'with-chat': chatActive}">
+          <div class="detail-header">
+            <el-avatar 
+              :size="60" 
+              :src="selectedService.companionAvatar || '/default-avatar.png'"
+              class="detail-avatar"
+            >
+              {{ selectedService.companionName?.charAt(0) }}
+            </el-avatar>
+            <div class="detail-title-box">
+              <h2 class="detail-title">{{ selectedService.title }}</h2>
+              <div class="detail-companion">陪玩: {{ selectedService.companionName }}</div>
             </div>
           </div>
           
-          <div class="detail-section">
-            <h4 class="section-title">服务价格</h4>
-            <div class="section-content detail-price">
-              <span class="price-value">¥{{ selectedService.price }}</span>/小时
-            </div>
-          </div>
+          <el-divider />
           
-          <div class="detail-section" v-if="selectedService.serviceStartTime && selectedService.serviceEndTime">
-            <h4 class="section-title">服务时间</h4>
-            <div class="section-content">
-              <el-icon><Clock /></el-icon>
-              {{ selectedService.serviceStartTime }} - {{ selectedService.serviceEndTime }}
-            </div>
-          </div>
-          
-          <div class="detail-section" v-if="selectedService.availability">
-            <h4 class="section-title">可用时间</h4>
-            <div class="section-content">{{ selectedService.availability }}</div>
-          </div>
-          
-          <div class="detail-section description-section">
-            <h4 class="section-title">服务介绍</h4>
-            <div class="section-content">{{ selectedService.description }}</div>
-          </div>
-          
-          <!-- 添加评价展示区域 -->
-          <div class="detail-section reviews-section">
-            <h4 class="section-title">用户评价</h4>
-            <div class="user-rating">
-              <span class="rating-label">综合评分：</span>
-              <el-rate
-                v-model="selectedService.rating"
-                disabled
-                :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
-              />
-              <span class="rating-score">{{ parseFloat(selectedService.rating || 0).toFixed(1) }} 分</span>
+          <div class="detail-info">
+            <div class="detail-section">
+              <h4 class="section-title">游戏类型</h4>
+              <div class="section-content game-tags">
+                <el-tag 
+                  v-for="(game, index) in selectedService.gameTypes.split(',')" 
+                  :key="index"
+                  type="success"
+                  class="game-tag"
+                >
+                  {{ game }}
+                </el-tag>
+              </div>
             </div>
             
-            <div class="reviews-list" v-loading="reviewsLoading">
-              <div v-if="!reviewsLoading && companionReviews.length === 0" class="no-reviews">
-                暂无评价记录
+            <div class="detail-section">
+              <h4 class="section-title">服务价格</h4>
+              <div class="section-content detail-price">
+                <span class="price-value">¥{{ selectedService.price }}</span>/小时
               </div>
-              <div v-else class="review-items">
-                <div v-for="review in companionReviews" :key="review.id" class="review-item">
-                  <div class="review-header">
-                    <span class="reviewer-name">{{ review.anonymous ? '匿名用户' : review.reviewerName }}</span>
-                    <el-rate
-                      :model-value="parseFloat(review.rating || 0)"
-                      disabled
-                      :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
-                    />
-                    <span class="review-date">{{ formatDate(review.createTime || '') }}</span>
-                  </div>
-                  <div class="review-content">
-                    {{ review.content || '该用户未留下评价内容' }}
-                  </div>
-                  <div class="review-reply" v-if="review.replied && review.reply">
-                    <span class="reply-label">陪玩回复：</span>
-                    <span class="reply-content">{{ review.reply }}</span>
+            </div>
+            
+            <div class="detail-section" v-if="selectedService.serviceStartTime && selectedService.serviceEndTime">
+              <h4 class="section-title">服务时间</h4>
+              <div class="section-content">
+                <el-icon><Clock /></el-icon>
+                {{ selectedService.serviceStartTime }} - {{ selectedService.serviceEndTime }}
+              </div>
+            </div>
+            
+            <div class="detail-section" v-if="selectedService.availability">
+              <h4 class="section-title">可用时间</h4>
+              <div class="section-content">{{ selectedService.availability }}</div>
+            </div>
+            
+            <div class="detail-section description-section">
+              <h4 class="section-title">服务介绍</h4>
+              <div class="section-content">{{ selectedService.description }}</div>
+            </div>
+            
+            <!-- 添加评价展示区域 -->
+            <div class="detail-section reviews-section">
+              <h4 class="section-title">用户评价</h4>
+              <div class="user-rating">
+                <span class="rating-label">综合评分：</span>
+                <el-rate
+                  v-model="selectedService.rating"
+                  disabled
+                  :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+                />
+                <span class="rating-score">{{ parseFloat(selectedService.rating || 0).toFixed(1) }} 分</span>
+              </div>
+              
+              <div class="reviews-list" v-loading="reviewsLoading">
+                <div v-if="!reviewsLoading && companionReviews.length === 0" class="no-reviews">
+                  暂无评价记录
+                </div>
+                <div v-else class="review-items">
+                  <div v-for="review in companionReviews" :key="review.id" class="review-item">
+                    <div class="review-header">
+                      <div class="reviewer-info">
+                        <el-avatar size="small" :src="review.reviewerAvatar" icon="el-icon-user"></el-avatar>
+                        <span class="reviewer-name">{{ review.anonymous ? '匿名用户' : review.reviewerName }}</span>
+                      </div>
+                      <el-rate
+                        :model-value="parseFloat(review.rating || 0)"
+                        disabled
+                        :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+                      />
+                      <span class="review-date">{{ formatDate(review.createTime || '') }}</span>
+                    </div>
+                    <div class="review-content">
+                      {{ review.content || '该用户未留下评价内容' }}
+                    </div>
+                    <div class="review-reply" v-if="review.replied && review.reply">
+                      <span class="reply-label">陪玩回复：</span>
+                      <span class="reply-content">{{ review.reply }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <el-divider />
-        
-        <div class="detail-actions">
-          <el-button type="primary" @click="orderService(selectedService)">
-            <el-icon><ShoppingCart /></el-icon> 下单
-          </el-button>
-          <el-button @click="contactCompanion(selectedService)">
-            <el-icon><ChatDotRound /></el-icon> 联系陪玩
-          </el-button>
+          
+          <el-divider />
+          
+          <div class="detail-actions">
+            <el-button type="primary" @click="placeOrder">下单</el-button>
+            <el-button type="info" @click="toggleChat">{{ chatActive ? '关闭聊天' : '联系陪玩' }}</el-button>
+          </div>
         </div>
       </div>
     </el-dialog>
@@ -294,13 +318,16 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getPublicCompanionServices, type CompanionService, getCompanionRating, getCompanionReviews } from '../../api/companion'
-import { Search, Clock, ChatDotRound, ShoppingCart, CircleCheck, Star } from '@element-plus/icons-vue'
+import { Search, Clock, ChatDotRound, ShoppingCart, CircleCheck, Star, Close } from '@element-plus/icons-vue'
 import OrderForm from '../../components/OrderForm.vue'
 import { formatDate } from '../../utils/date'
+import ChatPopup from '../../components/chat/ChatPopup.vue'
+import { useUserStore } from '../../stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 // 状态
 const loading = ref(false)
@@ -468,21 +495,62 @@ const handleFilter = () => {
   fetchServices()
 }
 
-// 联系陪玩
-const contactCompanion = (service: CompanionService) => {
-  if (!service.companionId) {
-    ElMessage.warning('无法获取陪玩信息')
+// 聊天相关
+const chatActive = ref(false)
+
+// 切换聊天显示状态
+const toggleChat = () => {
+  if (!userStore.isLoggedIn) {
+    ElMessageBox.confirm('请先登录才能联系陪玩', '提示', {
+      confirmButtonText: '去登录',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      router.push('/login')
+    })
     return
   }
   
-  // 关闭详情对话框
-  detailDialogVisible.value = false
+  // 切换聊天状态
+  chatActive.value = !chatActive.value
   
-  // 导航到聊天页面并传递陪玩ID
-  router.push({
-    path: '/chat',
-    query: { companionId: service.companionId.toString() }
+  // 如果是打开聊天，可以显示一个加载中的提示
+  if (chatActive.value) {
+    ElMessage({
+      message: '正在加载聊天记录...',
+      type: 'info',
+      duration: 1000
+    })
+  }
+}
+
+// 联系陪玩 - 修改函数以显示嵌入式聊天
+const contactCompanion = () => {
+  if (!userStore.isLoggedIn) {
+    ElMessageBox.confirm('请先登录才能联系陪玩', '提示', {
+      confirmButtonText: '去登录',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      router.push('/login')
+    })
+    return
+  }
+  
+  // 激活聊天窗口
+  chatActive.value = true
+  
+  // 显示加载提示
+  ElMessage({
+    message: '正在加载聊天记录...',
+    type: 'info',
+    duration: 1000
   })
+}
+
+// 处理消息发送
+const handleMessageSent = () => {
+  ElMessage.success('消息已发送')
 }
 
 // 分页处理
@@ -503,9 +571,8 @@ const truncateText = (text: string, maxLength: number) => {
 }
 
 // 下单服务
-const orderService = (service: CompanionService) => {
-  selectedService.value = service
-  orderDialogVisible.value = true
+const placeOrder = () => {
+  orderDialogVisible.value = true;
 }
 
 // 处理订单成功
@@ -522,6 +589,12 @@ const closeOrderDialog = () => {
 // 跳转到订单详情
 const goToOrderDetail = () => {
   router.push('/orders')
+}
+
+// 关闭详情弹窗时同时重置聊天状态
+const closeDetailDialog = () => {
+  detailDialogVisible.value = false
+  chatActive.value = false
 }
 
 // 初始化
@@ -660,8 +733,58 @@ onMounted(() => {
 }
 
 /* 详情对话框样式 */
+.service-detail-dialog :deep(.el-dialog__body) {
+  padding: 0;
+  overflow: hidden;
+}
+
 .service-detail {
-  padding: 10px;
+  display: flex;
+  height: 70vh;
+  max-height: 700px;
+}
+
+.service-chat-container {
+  width: 40%;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-container-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-container-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.service-detail-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.service-detail-content.with-chat {
+  width: 60%;
+}
+
+/* 内嵌聊天组件样式覆盖 */
+:deep(.chat-popup) {
+  position: static;
+  width: 100%;
+  height: 100%;
+  box-shadow: none;
+  border-radius: 0;
+  transform: none !important;
+  opacity: 1 !important;
 }
 
 .detail-header {
@@ -801,8 +924,14 @@ onMounted(() => {
   margin-bottom: 5px;
 }
 
-.reviewer-name {
+.reviewer-info {
+  display: flex;
+  align-items: center;
   margin-right: 10px;
+}
+
+.reviewer-name {
+  margin-left: 5px;
 }
 
 .review-date {

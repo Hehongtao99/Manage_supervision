@@ -351,6 +351,16 @@
         <div class="companion-name">陪玩: {{ selectedOrder.companionName }}</div>
       </div>
       
+      <div class="review-notice">
+        <el-alert
+          title="评价审核说明"
+          type="info"
+          description="您提交的评价需经过管理员审核后才能被陪玩看到，请耐心等待审核完成。"
+          show-icon
+          :closable="false"
+        />
+      </div>
+      
       <el-form :model="reviewForm" label-width="100px" class="review-form">
         <el-form-item label="评分">
           <el-rate
@@ -697,7 +707,7 @@ const submitReview = async () => {
       content: reviewForm.content,
       anonymous: reviewForm.anonymous
     })
-    ElMessage.success('评价成功')
+    ElMessage.success('评价提交成功，待管理员审核后显示')
     reviewDialogVisible.value = false
     fetchOrders()
   } catch (error: any) {
@@ -877,5 +887,9 @@ onMounted(() => {
 
 .review-form .el-rate {
   margin-top: 5px;
+}
+
+.review-notice {
+  margin-bottom: 20px;
 }
 </style> 

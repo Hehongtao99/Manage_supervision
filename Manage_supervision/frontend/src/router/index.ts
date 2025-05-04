@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
       if (userStore.isAdmin) {
         return '/admin/dashboard'
       } else if (userStore.isSupervisor) {
-        return '/companion/players'
+        return '/companion/profile'
       } else {
         return '/chat'
       }
@@ -174,6 +174,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'reviews',
+        name: 'AdminReviewManagement',
+        component: () => import('../views/admin/ReviewManagement.vue'),
+        meta: { 
+          title: '评论审核',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },
@@ -202,16 +212,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/chat/ChatPage.vue'),
         meta: {
           title: '聊天',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
-      {
-        path: 'players',
-        name: 'CompanionPlayerManagement',
-        component: () => import('../views/companion/PlayerManagement.vue'),
-        meta: {
-          title: '玩家管理',
           requiresAuth: true,
           requiresSupervisor: true
         }

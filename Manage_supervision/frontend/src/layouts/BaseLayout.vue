@@ -71,11 +71,13 @@
 
       <!-- 主要内容区 -->
       <div class="app-main">
-        <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <el-scrollbar>
+          <router-view v-slot="{ Component }">
+            <transition name="fade-transform" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </el-scrollbar>
       </div>
     </div>
   </div>
@@ -325,6 +327,16 @@ watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
 .app-main {
   padding: 16px;
   min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+.app-main .el-scrollbar {
+  height: 100%;
+}
+
+.app-main .el-scrollbar__wrap {
+  overflow-x: hidden;
 }
 
 /* 路由过渡动画 */

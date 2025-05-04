@@ -245,7 +245,7 @@ export const useUserStore = defineStore('user', {
         router.push('/admin/dashboard')
       } else if (this.isSupervisor) {
         console.log('用户是陪玩，重定向到陪玩控制台')
-        router.push('/companion/players')
+        router.push('/companion/profile')
       } else {
         console.log('用户是普通用户，重定向到普通仪表盘')
         router.push('/chat')

@@ -6,6 +6,7 @@ export interface Review {
   orderNumber?: string
   reviewerId?: number
   reviewerName?: string
+  reviewerAvatar?: string
   companionId?: number
   companionName?: string
   serviceId?: number

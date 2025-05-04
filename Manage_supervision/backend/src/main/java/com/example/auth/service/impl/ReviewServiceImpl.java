@@ -14,6 +14,8 @@ import com.example.auth.service.CompanionServiceService;
 import com.example.auth.service.OrderService;
 import com.example.auth.service.ReviewService;
 import com.example.auth.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,8 @@ import java.util.Objects;
  */
 @Service
 public class ReviewServiceImpl implements ReviewService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReviewServiceImpl.class);
 
     @Autowired
     private ReviewMapper reviewMapper;
@@ -120,7 +124,7 @@ public class ReviewServiceImpl implements ReviewService {
     
     @Override
     public Page<ReviewDTO> getCompanionReviews(Long companionId, int page, int size) {
-        // 只能查看已审核通过的评价
+        // 只显示已审核通过的评价
         LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Review::getCompanionId, companionId)
                    .eq(Review::getReviewStatus, "approved")
@@ -183,12 +187,15 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public boolean approveReview(Long reviewId, Long adminId) {
+        logger.info("开始审核通过评价，评价ID: {}, 管理员ID: {}", reviewId, adminId);
         Review review = reviewMapper.selectById(reviewId);
         if (review == null) {
+            logger.error("评价不存在，评价ID: {}", reviewId);
             throw new RuntimeException("评价不存在");
         }
         
         if (!"pending".equals(review.getReviewStatus())) {
+            logger.warn("评价已审核，不能重复审核，评价ID: {}, 当前状态: {}", reviewId, review.getReviewStatus());
             throw new RuntimeException("该评价已审核，不能重复审核");
         }
         
@@ -197,35 +204,42 @@ public class ReviewServiceImpl implements ReviewService {
         review.setReviewerAdminId(adminId);
         review.setUpdateTime(LocalDateTime.now());
         
-        return reviewMapper.updateById(review) > 0;
+        int result = reviewMapper.updateById(review);
+        logger.info("审核通过评价完成，评价ID: {}, 更新结果: {}", reviewId, result > 0 ? "成功" : "失败");
+        return result > 0;
     }
     
     @Override
     @Transactional
     public boolean rejectReview(Long reviewId, String comment, Long adminId) {
+        logger.info("开始拒绝评价，评价ID: {}, 管理员ID: {}, 拒绝理由: {}", reviewId, adminId, comment);
         Review review = reviewMapper.selectById(reviewId);
         if (review == null) {
+            logger.error("评价不存在，评价ID: {}", reviewId);
             throw new RuntimeException("评价不存在");
         }
         
         if (!"pending".equals(review.getReviewStatus())) {
+            logger.warn("评价已审核，不能重复审核，评价ID: {}, 当前状态: {}", reviewId, review.getReviewStatus());
             throw new RuntimeException("该评价已审核，不能重复审核");
         }
         
         review.setReviewStatus("rejected");
-        review.setReviewTime(LocalDateTime.now());
         review.setReviewComment(comment);
+        review.setReviewTime(LocalDateTime.now());
         review.setReviewerAdminId(adminId);
         review.setUpdateTime(LocalDateTime.now());
         
-        return reviewMapper.updateById(review) > 0;
+        int result = reviewMapper.updateById(review);
+        logger.info("拒绝评价完成，评价ID: {}, 更新结果: {}", reviewId, result > 0 ? "成功" : "失败");
+        return result > 0;
     }
     
     @Override
     public Page<ReviewDTO> getPendingReviews(int page, int size) {
         LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Review::getReviewStatus, "pending")
-                   .orderByAsc(Review::getCreateTime);
+                   .orderByDesc(Review::getCreateTime);
         
         Page<Review> reviewPage = new Page<>(page, size);
         reviewMapper.selectPage(reviewPage, queryWrapper);
@@ -236,8 +250,12 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Page<ReviewDTO> getReviewsByStatus(String status, int page, int size) {
         LambdaQueryWrapper<Review> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Review::getReviewStatus, status)
-                   .orderByDesc(Review::getCreateTime);
+        
+        if (status != null && !status.isEmpty()) {
+            queryWrapper.eq(Review::getReviewStatus, status);
+        }
+        
+        queryWrapper.orderByDesc(Review::getCreateTime);
         
         Page<Review> reviewPage = new Page<>(page, size);
         reviewMapper.selectPage(reviewPage, queryWrapper);
@@ -266,8 +284,10 @@ public class ReviewServiceImpl implements ReviewService {
             // 匿名评价不显示评价人信息
             if (review.getAnonymous()) {
                 dto.setReviewerName("匿名用户");
+                dto.setReviewerAvatar(null);
             } else {
                 dto.setReviewerName(reviewer.getRealName() != null ? reviewer.getRealName() : reviewer.getUsername());
+                dto.setReviewerAvatar(reviewer.getAvatar());
             }
         }
         

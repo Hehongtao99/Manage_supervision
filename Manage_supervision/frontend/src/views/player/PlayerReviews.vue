@@ -7,6 +7,16 @@
         </div>
       </template>
 
+      <div class="review-notice">
+        <el-alert
+          title="评价审核说明"
+          type="info"
+          description="您提交的评价需经过管理员审核后才能被陪玩看到。「审核中」的评价只有您和管理员可见，「已通过」的评价将会显示给陪玩。"
+          show-icon
+          :closable="false"
+        />
+      </div>
+
       <div v-loading="loading">
         <!-- 空状态 -->
         <el-empty
@@ -47,6 +57,21 @@
               <span v-if="review.anonymous">
                 <el-tag size="small" type="info">匿名评价</el-tag>
               </span>
+              <span>
+                <el-tag 
+                  size="small" 
+                  :type="getReviewStatusType(review.reviewStatus)"
+                >
+                  {{ getReviewStatusText(review.reviewStatus) }}
+                </el-tag>
+              </span>
+            </div>
+
+            <div class="review-rejected" v-if="review.reviewStatus === 'rejected' && review.reviewComment">
+              <div class="rejected-reason">
+                <span class="reason-label">拒绝原因:</span>
+                <p class="reason-content">{{ review.reviewComment }}</p>
+              </div>
             </div>
 
             <div class="review-reply" v-if="review.replied">
@@ -89,6 +114,30 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
+// 获取评价状态对应的标签类型
+const getReviewStatusType = (status?: string) => {
+  if (!status) return 'info'
+  
+  const types: Record<string, string> = {
+    pending: 'warning',
+    approved: 'success',
+    rejected: 'danger'
+  }
+  return types[status] || 'info'
+}
+
+// 获取评价状态对应的文本
+const getReviewStatusText = (status?: string) => {
+  if (!status) return '未知状态'
+  
+  const texts: Record<string, string> = {
+    pending: '审核中',
+    approved: '已通过',
+    rejected: '已拒绝'
+  }
+  return texts[status] || '未知状态'
+}
+
 // 加载评价列表
 const fetchReviews = async () => {
   loading.value = true
@@ -125,6 +174,10 @@ onMounted(() => {
 <style scoped>
 .player-reviews {
   padding: 20px;
+}
+
+.review-notice {
+  margin-bottom: 20px;
 }
 
 .card-header {
@@ -188,6 +241,25 @@ onMounted(() => {
   margin-bottom: 15px;
   color: #606266;
   font-size: 14px;
+}
+
+.review-rejected {
+  background-color: #fef0f0;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.rejected-reason {
+  color: #f56c6c;
+}
+
+.reason-label {
+  font-weight: 500;
+}
+
+.reason-content {
+  margin: 5px 0 0;
 }
 
 .review-reply {

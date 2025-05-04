@@ -8,6 +8,16 @@
         </div>
       </template>
 
+      <div class="review-notice">
+        <el-alert
+          title="评价审核说明"
+          type="info"
+          description="系统只显示已通过审核的评价。用户提交的评价需经过管理员审核后才能在此页面显示。"
+          show-icon
+          :closable="false"
+        />
+      </div>
+
       <div v-loading="loading">
         <!-- 空状态 -->
         <el-empty
@@ -25,7 +35,7 @@
           >
             <div class="review-header">
               <div class="review-user">
-                <el-avatar size="small" icon="el-icon-user" />
+                <el-avatar size="small" :src="review.reviewerAvatar" icon="el-icon-user" />
                 <span>{{ review.reviewerName }}</span>
               </div>
               <div class="review-rating">
@@ -46,6 +56,23 @@
               <span>订单号: {{ review.orderNumber }}</span>
               <span>服务: {{ review.serviceTitle }}</span>
               <span>游戏: {{ review.gameType }}</span>
+              <!-- 审核状态 -->
+              <span>
+                <el-tag 
+                  size="small" 
+                  :type="getReviewStatusType(review.reviewStatus)"
+                >
+                  {{ getReviewStatusText(review.reviewStatus) }}
+                </el-tag>
+              </span>
+            </div>
+
+            <!-- 显示审核拒绝原因 -->
+            <div class="review-rejected" v-if="review.reviewStatus === 'rejected' && review.reviewComment">
+              <div class="rejected-reason">
+                <span class="reason-label">审核拒绝原因:</span>
+                <p class="reason-content">{{ review.reviewComment }}</p>
+              </div>
             </div>
 
             <div class="review-reply" v-if="review.replied">
@@ -154,6 +181,30 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
+// 获取评价状态对应的标签类型
+const getReviewStatusType = (status?: string) => {
+  if (!status) return 'info'
+  
+  const types: Record<string, string> = {
+    pending: 'warning',
+    approved: 'success',
+    rejected: 'danger'
+  }
+  return types[status] || 'info'
+}
+
+// 获取评价状态对应的文本
+const getReviewStatusText = (status?: string) => {
+  if (!status) return '未知状态'
+  
+  const texts: Record<string, string> = {
+    pending: '审核中',
+    approved: '已通过',
+    rejected: '已拒绝'
+  }
+  return texts[status] || '未知状态'
+}
+
 // 对话框状态
 const replyDialogVisible = ref(false)
 const selectedReview = ref<Review | null>(null)
@@ -197,6 +248,12 @@ const handleSizeChange = (val: number) => {
 
 // 回复评价
 const handleReply = (review: Review) => {
+  // 只允许回复已审核通过的评价
+  if (review.reviewStatus !== 'approved') {
+    ElMessage.warning('只能回复已通过审核的评价')
+    return
+  }
+  
   selectedReview.value = review
   replyForm.reviewId = review.id!
   replyForm.reply = ''
@@ -240,6 +297,10 @@ onMounted(() => {
 <style scoped>
 .review-management {
   padding: 20px;
+}
+
+.review-notice {
+  margin-bottom: 20px;
 }
 
 .card-header {
@@ -290,14 +351,29 @@ onMounted(() => {
 
 .review-order-info {
   display: flex;
-  flex-wrap: wrap;
   gap: 15px;
-  font-size: 12px;
-  color: #606266;
   margin-bottom: 15px;
-  padding: 10px;
-  background-color: #f5f7fa;
+  color: #606266;
+  font-size: 14px;
+}
+
+.review-rejected {
+  background-color: #fef0f0;
+  padding: 10px 15px;
   border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.rejected-reason {
+  color: #f56c6c;
+}
+
+.reason-label {
+  font-weight: 500;
+}
+
+.reason-content {
+  margin: 5px 0 0;
 }
 
 .review-reply {
