@@ -4,7 +4,7 @@
     <div class="sidebar-container" :class="{ 'is-collapsed': isCollapsed }">
       <div class="logo-container">
         <img src="../assets/logo.png" alt="Logo" class="logo-image" />
-        <span class="logo-text" v-show="!isCollapsed">管理系统</span>
+        <span class="logo-text" v-show="!isCollapsed">入侵检测统计分析系统</span>
       </div>
       
       <el-scrollbar>

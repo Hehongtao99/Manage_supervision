@@ -3,7 +3,7 @@
     <el-header class="header">
       <div class="logo">
         <img src="@/assets/logo.svg" alt="Logo" class="logo-image" />
-        <span class="logo-text">管理系统</span>
+        <span class="logo-text">入侵检测统计分析系统</span>
       </div>
       <el-menu
         mode="horizontal"

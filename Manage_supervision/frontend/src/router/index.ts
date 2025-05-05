@@ -272,7 +272,7 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // 设置页面标题
-  document.title = `${to.meta.title || '首页'} - 毕业设计督导系统`
+  document.title = `${to.meta.title || '首页'} - 入侵检测统计分析系统`
   
   // 放行路由
   console.log('路由检查通过，允许导航到:', to.path)
