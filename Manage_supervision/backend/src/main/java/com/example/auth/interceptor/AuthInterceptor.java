@@ -36,7 +36,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         // 记录请求路径和所需角色
-        System.out.println("请求拦截: " + request.getRequestURI() + ", 需要角色: " + requireRole.value());
+        System.out.println("请求拦截: " + request.getRequestURI() + ", 需要角色: " + String.join(", ", requireRole.value()));
 
         // 获取token
         String token = request.getHeader("Authorization");
@@ -72,42 +72,51 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 简化角色验证逻辑：直接字符串比较
-        String requiredRole = requireRole.value();
+        // 获取所需角色列表
+        String[] requiredRoles = requireRole.value();
         boolean hasRole = false;
 
         System.out.println("用户: " + username + ", 角色: " + user.getRoles());
-
-        // 直接使用简单字符串比对
+        
+        // 检查用户是否拥有所需角色中的任意一个
         for (var role : user.getRoles()) {
             String roleName = role.getName();
-            System.out.println("比对角色: " + roleName + " vs 需要: " + requiredRole);
             
-            // 不区分大小写比较
-            if (roleName.equalsIgnoreCase(requiredRole)) {
+            // 管理员拥有所有权限
+            if (roleName.equalsIgnoreCase("ADMIN")) {
                 hasRole = true;
                 break;
             }
             
-            // 实现角色层级：ADMIN具有所有权限，SUPERVISOR具有USER权限
-            if (roleName.equalsIgnoreCase("ADMIN")) {
-                // 管理员拥有所有权限
-                hasRole = true;
-                break;
-            } else if (roleName.equalsIgnoreCase("SUPERVISOR") && requiredRole.equalsIgnoreCase("USER")) {
-                // 督导员拥有用户权限
-                hasRole = true;
+            // 检查用户角色是否匹配所需角色中的任何一个
+            for (String requiredRole : requiredRoles) {
+                System.out.println("比对角色: " + roleName + " vs 需要: " + requiredRole);
+                
+                // 不区分大小写比较
+                if (roleName.equalsIgnoreCase(requiredRole)) {
+                    hasRole = true;
+                    break;
+                }
+                
+                // 实现角色层级：SUPERVISOR具有USER权限
+                if (roleName.equalsIgnoreCase("SUPERVISOR") && requiredRole.equalsIgnoreCase("USER")) {
+                    hasRole = true;
+                    break;
+                }
+            }
+            
+            if (hasRole) {
                 break;
             }
         }
 
         if (!hasRole) {
-            System.out.println("认证失败: 权限不足，没有所需角色 - " + requiredRole);
+            System.out.println("认证失败: 权限不足，没有所需角色");
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
 
-        System.out.println("认证成功: 用户 " + username + " 拥有所需角色 " + requiredRole);
+        System.out.println("认证成功: 用户 " + username + " 拥有所需角色");
         return true;
     }
 } 

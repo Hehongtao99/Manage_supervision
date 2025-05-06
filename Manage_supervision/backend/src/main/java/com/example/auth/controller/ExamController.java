@@ -67,7 +67,7 @@ public class ExamController {
      * 创建考试
      */
     @PostMapping("/supervisor/exams")
-    @RequireRole("SUPERVISOR")
+    @RequireRole({"SUPERVISOR"})
     public ResponseEntity<?> createExam(
             @RequestBody ExamDTO examDTO,
             @RequestHeader("Authorization") String auth) {

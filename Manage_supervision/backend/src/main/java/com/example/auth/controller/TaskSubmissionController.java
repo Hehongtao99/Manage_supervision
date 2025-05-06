@@ -62,7 +62,7 @@ public class TaskSubmissionController {
      * 学生提交任务文件
      */
     @PostMapping("/user/tasks/{taskId}/submit")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> submitTaskFile(
             @PathVariable Long taskId,
             @RequestParam("file") MultipartFile file,
@@ -132,6 +132,7 @@ public class TaskSubmissionController {
      * 获取任务提交记录
      */
     @GetMapping("/tasks/{taskId}/submissions")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getTaskSubmissions(
             @PathVariable Long taskId,
             @RequestHeader("Authorization") String auth) {
@@ -160,6 +161,7 @@ public class TaskSubmissionController {
      * 获取提交详情
      */
     @GetMapping("/submissions/{submissionId}")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getSubmissionDetail(
             @PathVariable Long submissionId,
             @RequestHeader("Authorization") String auth) {
@@ -197,7 +199,7 @@ public class TaskSubmissionController {
      * 删除提交记录
      */
     @DeleteMapping("/user/submissions/{submissionId}")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> deleteSubmission(
             @PathVariable Long submissionId,
             @RequestHeader("Authorization") String auth) {
@@ -238,7 +240,7 @@ public class TaskSubmissionController {
      * 更新提交评论
      */
     @PutMapping("/user/submissions/{submissionId}/comment")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> updateSubmissionComment(
             @PathVariable Long submissionId,
             @RequestBody Map<String, String> commentData,
@@ -278,7 +280,7 @@ public class TaskSubmissionController {
      * 查看用户的所有提交记录
      */
     @GetMapping("/user/submissions")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getUserSubmissions(@RequestHeader("Authorization") String auth) {
         try {
             // 获取当前用户
@@ -347,7 +349,7 @@ public class TaskSubmissionController {
      * 督导下载提交文件
      */
     @GetMapping("/supervisor/submissions/{submissionId}/download")
-    @RequireRole("SUPERVISOR")
+    @RequireRole({"SUPERVISOR"})
     public ResponseEntity<?> downloadSubmissionFile(
             @PathVariable Long submissionId,
             @RequestHeader("Authorization") String auth) {
@@ -397,7 +399,7 @@ public class TaskSubmissionController {
      * 学生下载提交文件
      */
     @GetMapping("/user/submissions/{submissionId}/download")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> downloadUserSubmissionFile(
             @PathVariable Long submissionId,
             @RequestHeader("Authorization") String auth) {
@@ -444,7 +446,7 @@ public class TaskSubmissionController {
      * 学生获取任务评价
      */
     @GetMapping("/user/tasks/{taskId}/evaluation")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getTaskEvaluationForStudent(
             @PathVariable Long taskId,
             @RequestHeader("Authorization") String auth) {
@@ -493,7 +495,7 @@ public class TaskSubmissionController {
      * 学生获取课题评价
      */
     @GetMapping("/user/projects/{projectId}/evaluation")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getProjectEvaluationForStudent(
             @PathVariable Long projectId,
             @RequestHeader("Authorization") String auth) {

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,9 @@ import java.util.Optional;
 @Service
 public class FaceRecognitionServiceImpl implements FaceRecognitionService {
     private static final Logger logger = LoggerFactory.getLogger(FaceRecognitionServiceImpl.class);
+    
+    // 添加人脸匹配阈值常量
+    private static final double FACE_MATCH_THRESHOLD = 0.80; // 80%的匹配度
     
     @Autowired
     private UserFaceFeatureRepository userFaceFeatureRepository;
@@ -161,6 +165,49 @@ public class FaceRecognitionServiceImpl implements FaceRecognitionService {
         } catch (Exception e) {
             logger.error("人脸验证失败: {}", e.getMessage(), e);
             return null;
+        }
+    }
+    
+    @Override
+    public List<Long> findMatchingUsersByFaceWithBase64(String base64Image) {
+        try {
+            // 提取人脸特征
+            byte[] faceFeatures = faceRecognitionUtil.extractFaceFeaturesFromBase64(base64Image);
+            if (faceFeatures == null) {
+                logger.error("提取人脸特征失败，未检测到人脸或检测到多个人脸");
+                return new ArrayList<>();
+            }
+            
+            // 获取所有用户的人脸特征
+            List<UserFaceFeature> allUserFaces = userFaceFeatureRepository.findAll();
+            
+            logger.info("开始人脸比对，已注册用户数量: {}", allUserFaces.size());
+            
+            // 存储匹配的用户ID
+            List<Long> matchingUserIds = new ArrayList<>();
+            
+            // 循环比对，寻找所有匹配的用户
+            for (UserFaceFeature userFace : allUserFaces) {
+                byte[] storedFeatures = userFace.getFaceFeature();
+                if (storedFeatures != null) {
+                    double similarity = faceRecognitionUtil.calculateSimilarity(storedFeatures, faceFeatures);
+                    if (similarity >= FACE_MATCH_THRESHOLD) {
+                        logger.info("人脸匹配成功，用户ID: {}, 相似度: {}", userFace.getUserId(), similarity);
+                        matchingUserIds.add(userFace.getUserId());
+                    }
+                }
+            }
+            
+            if (matchingUserIds.isEmpty()) {
+                logger.warn("未找到匹配的人脸");
+            } else {
+                logger.info("找到 {} 个匹配的用户", matchingUserIds.size());
+            }
+            
+            return matchingUserIds;
+        } catch (Exception e) {
+            logger.error("人脸验证失败: {}", e.getMessage(), e);
+            return new ArrayList<>();
         }
     }
     

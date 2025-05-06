@@ -1,6 +1,6 @@
 <template>
   <div class="face-login-container">
-    <h2 class="face-login-title">人脸识别登录</h2>
+    <h2 class="face-login-title">教师人脸识别登录</h2>
     <p class="face-login-description">
       请保持光线充足，面部清晰。确保画面中仅有您的脸部。
       <span v-if="autoDetectEnabled" class="auto-mode-hint">已开启自动识别模式</span>
@@ -50,8 +50,7 @@
       </div>
     </div>
     
-    <!-- 照片预览 -->
-    <div class="preview-container" v-else-if="imageCapture && !showUserSelection">
+    <div class="preview-container" v-else>
       <img :src="imageCapture" alt="人脸照片" class="preview-image" />
       <div class="preview-controls">
         <el-button 
@@ -62,35 +61,6 @@
           人脸登录
         </el-button>
         <el-button @click="retakePhoto">重新拍照</el-button>
-      </div>
-    </div>
-    
-    <!-- 多用户选择界面 -->
-    <div class="user-selection-container" v-else-if="showUserSelection">
-      <h3 class="selection-title">请选择要登录的账号</h3>
-      <p class="selection-description">系统检测到多个匹配的账号，请选择一个进行登录</p>
-      
-      <div class="user-list">
-        <div 
-          v-for="user in matchingUsers" 
-          :key="user.id" 
-          class="user-card"
-          @click="selectUser(user.id)"
-        >
-          <div class="user-avatar">
-            <img v-if="user.avatar" :src="user.avatar" alt="用户头像" />
-            <el-avatar v-else :size="64" :icon="UserFilled" />
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ user.realName || user.username }}</div>
-            <div class="user-role">{{ getUserRoleText(user.roles) }}</div>
-            <div class="user-number" v-if="user.userNumber">{{ user.userNumber }}</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="selection-controls">
-        <el-button @click="cancelUserSelection">取消选择</el-button>
       </div>
     </div>
     
@@ -114,7 +84,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { VideoCameraFilled, Camera, UserFilled } from '@element-plus/icons-vue'
+import { VideoCameraFilled, Camera } from '@element-plus/icons-vue'
 import { useUserStore } from '../../stores/user'
 import { useRouter } from 'vue-router'
 
@@ -131,12 +101,9 @@ const hasDetectedFace = ref(false)
 const errorMessage = ref('')
 const faceDetectionInterval = ref<number | null>(null)
 const modelsLoaded = ref(false)
-const faceDetectionTimer = ref<number | null>(null)
 const faceDetectionStartTime = ref<number | null>(null)
 const autoDetectEnabled = ref(true)
 const detectionProgress = ref(0)
-const showUserSelection = ref(false)
-const matchingUsers = ref<any[]>([])
 
 // 加载人脸检测模型
 const loadFaceDetectionModels = async () => {
@@ -207,7 +174,7 @@ const startFaceDetection = () => {
   canvasElement.value.width = videoElement.value.clientWidth
   canvasElement.value.height = videoElement.value.clientHeight
   
-  // 使用简单的检测方法，不依赖face-api.js的复杂模型
+  // 使用简单的检测方法
   faceDetectionInterval.value = window.setInterval(async () => {
     if (!isCameraStarted.value || !videoElement.value || !canvasElement.value) {
       if (faceDetectionInterval.value !== null) {
@@ -320,7 +287,7 @@ const startFaceDetection = () => {
     } catch (error) {
       console.error('检测错误:', error);
     }
-  }, 100); // 提高到100ms更新一次，使动画更流畅
+  }, 100); // 更新频率100ms，使动画更流畅
 }
 
 // 拍照
@@ -361,17 +328,9 @@ const loginWithFace = async () => {
   isLoading.value = true
   
   try {
-    const result = await userStore.loginWithFaceBase64(imageCapture.value)
+    const success = await userStore.loginWithFaceBase64(imageCapture.value)
     
-    // 检查是否返回多个匹配用户
-    if (result && result.multipleUsers && result.users) {
-      matchingUsers.value = result.users
-      showUserSelection.value = true
-      isLoading.value = false
-      return
-    }
-    
-    if (result === true) {
+    if (success) {
       ElMessage.success('人脸识别成功，登录成功')
       closeCamera()
     } else {
@@ -382,49 +341,6 @@ const loginWithFace = async () => {
     errorMessage.value = '人脸登录失败，请稍后重试'
   } finally {
     isLoading.value = false
-  }
-}
-
-// 选择用户登录
-const selectUser = async (userId: number) => {
-  errorMessage.value = ''
-  isLoading.value = true
-  
-  try {
-    const success = await userStore.loginWithSelectedUser(userId)
-    
-    if (success) {
-      ElMessage.success('登录成功')
-      closeCamera()
-    } else {
-      errorMessage.value = userStore.error || '登录失败，请重试'
-      showUserSelection.value = false
-    }
-  } catch (error: any) {
-    console.error('选择用户登录失败:', error)
-    errorMessage.value = '登录失败，请稍后重试'
-    showUserSelection.value = false
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// 取消用户选择
-const cancelUserSelection = () => {
-  showUserSelection.value = false
-  matchingUsers.value = []
-}
-
-// 获取用户角色文本
-const getUserRoleText = (roles: string[]) => {
-  if (!roles || roles.length === 0) return '用户'
-  
-  if (roles.includes('ADMIN') || roles.includes('admin')) {
-    return '管理员'
-  } else if (roles.includes('SUPERVISOR') || roles.includes('supervisor')) {
-    return '教师'
-  } else {
-    return '学生'
   }
 }
 
@@ -602,101 +518,13 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.progress-text {
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 4px;
-}
-
-.auto-detect-switch {
-  margin-top: 8px;
-}
-
 .auto-mode-hint {
-  display: block;
-  color: #409EFF;
-  font-weight: bold;
-  margin-top: 5px;
-  font-size: 14px;
-}
-
-/* 用户选择样式 */
-.user-selection-container {
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.selection-title {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #409EFF;
-  text-align: center;
-}
-
-.selection-description {
-  margin-bottom: 1.5rem;
-  color: #606266;
-  text-align: center;
-}
-
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 1.5rem;
-}
-
-.user-card {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f5f7fa;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.user-card:hover {
+  display: inline-block;
   background-color: #ecf5ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.user-avatar {
-  margin-right: 15px;
-}
-
-.user-avatar img {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.user-role {
-  color: #909399;
-  font-size: 0.9rem;
-  margin-bottom: 2px;
-}
-
-.user-number {
-  color: #606266;
-  font-size: 0.9rem;
-}
-
-.selection-controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  color: #409EFF;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
 }
 </style> 

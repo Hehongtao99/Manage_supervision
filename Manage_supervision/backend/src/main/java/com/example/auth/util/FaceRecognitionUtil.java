@@ -586,4 +586,36 @@ public class FaceRecognitionUtil {
         
         return imageBytes;
     }
+
+    /**
+     * 计算两个人脸特征向量的相似度
+     * @param features1 第一个特征向量
+     * @param features2 第二个特征向量
+     * @return 相似度（0-1之间的值，1表示完全匹配）
+     */
+    public double calculateSimilarity(byte[] features1, byte[] features2) {
+        if (features1 == null || features2 == null || features1.length != features2.length) {
+            return 0.0;
+        }
+
+        // 计算余弦相似度
+        double dotProduct = 0.0;
+        double norm1 = 0.0;
+        double norm2 = 0.0;
+
+        for (int i = 0; i < features1.length; i++) {
+            double val1 = features1[i] & 0xFF; // 转换为无符号值
+            double val2 = features2[i] & 0xFF;
+            dotProduct += val1 * val2;
+            norm1 += val1 * val1;
+            norm2 += val2 * val2;
+        }
+
+        if (norm1 == 0.0 || norm2 == 0.0) {
+            return 0.0;
+        }
+
+        return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+    }
+
 } 

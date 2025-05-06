@@ -434,7 +434,7 @@ router.beforeEach(async (to, from, next) => {
     if (to.params.id && to.params.id.toString() === currentExamId) {
       console.log('考试ID匹配，直接放行到考试页面')
       // 设置页面标题
-      document.title = `${to.meta.title || '考试'} - 毕业设计督导系统`
+      document.title = `${to.meta.title || '考试'} - 考试系统`
       next()
       return
     }
@@ -507,7 +507,7 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // 设置页面标题
-  document.title = `${to.meta.title || '首页'} - 毕业设计督导系统`
+  document.title = `${to.meta.title || '首页'} - 考试系统`
   
   // 放行路由
   console.log('路由检查通过，允许导航到:', to.path)

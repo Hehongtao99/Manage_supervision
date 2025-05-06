@@ -36,7 +36,7 @@ public class NotificationController {
      * 创建新通知
      */
     @PostMapping
-    @RequireRole("SUPERVISOR")
+    @RequireRole({"SUPERVISOR"})
     public ResponseEntity<?> createNotification(@RequestBody NotificationRequest request) {
         User currentUser = userContext.getCurrentUser();
         if (currentUser == null) {
@@ -58,7 +58,7 @@ public class NotificationController {
      * 获取学生列表，供教师选择通知接收者
      */
     @GetMapping("/students")
-    @RequireRole("SUPERVISOR")
+    @RequireRole({"SUPERVISOR"})
     public ResponseEntity<?> getStudents() {
         User currentUser = userContext.getCurrentUser();
         if (currentUser == null) {
@@ -86,7 +86,7 @@ public class NotificationController {
      * 获取我发送的所有通知
      */
     @GetMapping("/sent")
-    @RequireRole("SUPERVISOR")
+    @RequireRole({"SUPERVISOR"})
     public ResponseEntity<?> getSentNotifications() {
         User currentUser = userContext.getCurrentUser();
         if (currentUser == null) {
@@ -113,5 +113,26 @@ public class NotificationController {
         }
         
         return ResponseEntity.ok(notification);
+    }
+
+    @GetMapping("/supervisor/notifications")
+    @RequireRole({"SUPERVISOR"})
+    public ResponseEntity<?> getSupervisorNotifications(@RequestHeader("Authorization") String auth) {
+        // Implementation of getSupervisorNotifications method
+        return null; // Placeholder return, actual implementation needed
+    }
+
+    @GetMapping("/supervisor/notifications/unread")
+    @RequireRole({"SUPERVISOR"})
+    public ResponseEntity<?> getUnreadSupervisorNotifications(@RequestHeader("Authorization") String auth) {
+        // Implementation of getUnreadSupervisorNotifications method
+        return null; // Placeholder return, actual implementation needed
+    }
+
+    @PutMapping("/supervisor/notifications/{id}/read")
+    @RequireRole({"SUPERVISOR"})
+    public ResponseEntity<?> markNotificationAsRead(@PathVariable Long id) {
+        // Implementation of markNotificationAsRead method
+        return null; // Placeholder return, actual implementation needed
     }
 } 

@@ -2,6 +2,8 @@ package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.dto.ChangePasswordRequest;
+import com.example.auth.dto.RefreshTokenRequest;
+import com.example.auth.dto.UserRegistrationRequest;
 import com.example.auth.entity.User;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
@@ -130,7 +132,7 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> changePassword(
         @RequestHeader("Authorization") String auth,
         @RequestBody ChangePasswordRequest request
@@ -153,10 +155,24 @@ public class AuthController {
     }
 
     @GetMapping("/admin")
-    @RequireRole("ADMIN")
+    @RequireRole({"ADMIN"})
     public ResponseEntity<?> adminOnly() {
         return ResponseEntity.ok(Map.of(
             "message", "只有管理员才能看到这个信息"
         ));
+    }
+
+    @PostMapping("/user/refresh-token")
+    @RequireRole({"USER"})
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        // Implementation of refreshToken method
+        return null; // Placeholder return, actual implementation needed
+    }
+
+    @PostMapping("/admin/users")
+    @RequireRole({"ADMIN"})
+    public ResponseEntity<?> createUser(@RequestBody UserRegistrationRequest request) {
+        // Implementation of createUser method
+        return null; // Placeholder return, actual implementation needed
     }
 } 

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from '../utils/axios'
 import router from '../router'
 import type { UpdateProfileRequest, UpdatePasswordRequest } from '../types/user'
-import { loginWithFace, loginWithFaceBase64 } from '../api/face'
+import { loginWithFace, loginWithFaceBase64, loginSelectedUser } from '../api/face'
 
 export interface UserInfo {
   id: number;
@@ -32,6 +32,7 @@ interface UserState {
   error: string | null
   userInfo: UserInfo | null
   permissions: string[]
+  matchingUsers: any[] // 匹配的多个用户列表
 }
 
 export const useUserStore = defineStore('user', {
@@ -48,7 +49,8 @@ export const useUserStore = defineStore('user', {
     initialized: false,
     error: null,
     userInfo: null,
-    permissions: []
+    permissions: [],
+    matchingUsers: []
   }),
 
   getters: {
@@ -330,6 +332,13 @@ export const useUserStore = defineStore('user', {
         
         console.log('人脸登录响应数据:', JSON.stringify(response))
         
+        // 如果返回多个匹配的用户
+        if (response.multipleUsers && response.users) {
+          console.log('检测到多个匹配的用户:', response.users.length)
+          this.matchingUsers = response.users
+          return { multipleUsers: true, users: response.users }
+        }
+        
         // 添加数据验证
         if (!response) {
           throw new Error('服务器返回数据格式错误')
@@ -397,6 +406,91 @@ export const useUserStore = defineStore('user', {
           this.error = `人脸登录失败: ${error.message}`
         } else {
           this.error = '人脸登录失败，请稍后重试'
+        }
+        
+        return false
+      }
+    },
+
+    async loginWithSelectedUser(userId: number) {
+      try {
+        this.error = null
+        console.log('开始选择用户登录请求, 用户ID:', userId)
+        
+        const response = await loginSelectedUser(userId)
+        
+        console.log('选择用户登录响应数据:', JSON.stringify(response))
+        
+        // 添加数据验证
+        if (!response) {
+          throw new Error('服务器返回数据格式错误')
+        }
+        
+        if (!response.token) {
+          throw new Error('服务器返回数据缺少token')
+        }
+        
+        this.token = response.token
+        
+        // 验证用户数据
+        if (!response.user) {
+          throw new Error('服务器返回数据缺少用户信息')
+        }
+        
+        this.user = {
+          id: response.user.id || null,
+          name: response.user.realName || response.user.username || '',
+          username: response.user.username || '',
+          email: response.user.email || '',
+          roles: Array.isArray(response.user.roles) ? response.user.roles : [],
+          realName: response.user.realName,
+          nickname: response.user.nickname,
+          phone: response.user.phone,
+          bio: response.user.bio,
+          avatar: response.user.avatar || '',
+          userNumber: response.user.userNumber || ''
+        }
+        
+        // 同时更新userInfo
+        this.userInfo = {
+          id: response.user.id || 0,
+          username: response.user.username || '',
+          name: response.user.realName || response.user.username || '',
+          role: Array.isArray(response.user.roles) && response.user.roles.length > 0 
+            ? response.user.roles[0] 
+            : 'USER',
+          avatar: response.user.avatar || '',
+          email: response.user.email || ''
+        }
+        
+        localStorage.setItem('token', response.token)
+        // 保存用户角色到localStorage
+        localStorage.setItem('userRoles', JSON.stringify(this.user.roles))
+        this.setAxiosAuthHeader()
+        
+        console.log('选择用户登录成功，用户角色:', this.user.roles)
+        
+        // 清空匹配用户列表
+        this.matchingUsers = []
+        
+        this.redirectBasedOnRole()
+
+        return true
+      } catch (error: any) {
+        console.error('选择用户登录失败:', error)
+        console.error('Error details:', error.stack)
+        
+        if (error.response) {
+          console.error('Response status:', error.response.status)
+          console.error('Response data:', JSON.stringify(error.response.data))
+        }
+        
+        if (error.response?.data?.message) {
+          this.error = error.response.data.message
+        } else if (error.message) {
+          this.error = `选择用户登录失败: ${error.message}`
+        } else {
+          this.error = '选择用户登录失败，请稍后重试'
         }
         
         return false

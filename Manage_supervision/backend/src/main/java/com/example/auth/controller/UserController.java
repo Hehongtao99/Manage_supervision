@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,7 @@ public class UserController {
      * 获取分配给当前用户的所有任务
      */
     @GetMapping("/tasks")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getMyTasks(@RequestHeader("Authorization") String auth) {
         try {
             // 获取当前用户
@@ -165,7 +166,7 @@ public class UserController {
      * 获取分配给当前用户的指定状态的任务
      */
     @GetMapping("/tasks/status/{status}")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getMyTasksByStatus(
             @PathVariable String status,
             @RequestHeader("Authorization") String auth) {
@@ -194,7 +195,7 @@ public class UserController {
      * 获取任务详情
      */
     @GetMapping("/tasks/{id}")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getTaskDetail(
             @PathVariable Long id,
             @RequestHeader("Authorization") String auth) {
@@ -257,7 +258,7 @@ public class UserController {
      * 更新任务状态
      */
     @PutMapping("/tasks/{id}/status")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> updateTaskStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> statusData,
@@ -299,7 +300,7 @@ public class UserController {
      * 获取分配给当前用户的所有课题
      */
     @GetMapping("/projects")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getMyProjects(@RequestHeader("Authorization") String auth) {
         try {
             // 获取当前用户
@@ -326,7 +327,7 @@ public class UserController {
      * 获取分配给当前用户的指定状态的课题
      */
     @GetMapping("/projects/status/{status}")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getMyProjectsByStatus(
             @PathVariable String status,
             @RequestHeader("Authorization") String auth) {
@@ -355,7 +356,7 @@ public class UserController {
      * 获取课题详情
      */
     @GetMapping("/projects/{id}")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getProjectDetail(
             @PathVariable Long id,
             @RequestHeader("Authorization") String auth) {
@@ -390,7 +391,7 @@ public class UserController {
      * 更新课题状态
      */
     @PutMapping("/projects/{id}/status")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> updateProjectStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> statusData,
@@ -430,7 +431,7 @@ public class UserController {
      * 学生申请课题
      */
     @PostMapping("/projects/apply")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> applyForProject(
             @RequestBody ProjectDTO projectDTO,
             @RequestHeader("Authorization") String auth) {
@@ -475,7 +476,7 @@ public class UserController {
      * 获取课题下的所有任务
      */
     @GetMapping("/projects/{id}/tasks")
-    @RequireRole("USER")
+    @RequireRole({"USER"})
     public ResponseEntity<?> getProjectTasks(
             @PathVariable Long id,
             @RequestHeader("Authorization") String auth) {

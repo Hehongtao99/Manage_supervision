@@ -79,6 +79,23 @@ export const loginWithFaceBase64 = async (base64Image: string): Promise<any> => 
 }
 
 /**
+ * 选择特定用户登录（人脸识别匹配多个用户时使用）
+ * @param userId 选择的用户ID
+ */
+export const loginSelectedUser = async (userId: number): Promise<any> => {
+  try {
+    const response = await axios.post('/api/face/login/select-user', {
+      userId: userId
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('选择用户登录失败:', error)
+    throw error
+  }
+}
+
+/**
  * 删除用户人脸信息
  */
 export const deleteFace = async (): Promise<boolean> => {

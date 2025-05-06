@@ -1,9 +1,9 @@
 <template>
-  <div class="face-login-container">
-    <h2 class="face-login-title">人脸识别登录</h2>
-    <p class="face-login-description">
-      请保持光线充足，面部清晰。确保画面中仅有您的脸部。
-      <span v-if="autoDetectEnabled" class="auto-mode-hint">已开启自动识别模式</span>
+  <div class="face-register-container">
+    <h2 class="face-register-title">教师人脸录入</h2>
+    <p class="face-register-description">
+      请保持光线充足，面部清晰，并确保画面中只有您的脸部。
+      <span v-if="autoDetectEnabled" class="auto-mode-hint">已开启自动录入模式</span>
     </p>
     
     <div class="camera-container" v-if="!imageCapture">
@@ -20,7 +20,7 @@
       <div class="face-guide" :class="{ 'has-face': hasDetectedFace }">
         <div class="face-outline"></div>
         <div v-if="hasDetectedFace && detectionProgress > 0" class="auto-detect-hint">
-          系统正在自动识别
+          系统正在自动采集
           <div class="progress-text">{{ Math.round(detectionProgress) }}%</div>
         </div>
       </div>
@@ -50,95 +50,59 @@
       </div>
     </div>
     
-    <!-- 照片预览 -->
-    <div class="preview-container" v-else-if="imageCapture && !showUserSelection">
+    <div class="preview-container" v-else>
       <img :src="imageCapture" alt="人脸照片" class="preview-image" />
       <div class="preview-controls">
-        <el-button 
-          type="primary" 
-          @click="loginWithFace" 
-          :loading="isLoading"
-        >
-          人脸登录
-        </el-button>
+        <el-button type="primary" @click="registerFace" :loading="isLoading">确认注册</el-button>
         <el-button @click="retakePhoto">重新拍照</el-button>
       </div>
     </div>
     
-    <!-- 多用户选择界面 -->
-    <div class="user-selection-container" v-else-if="showUserSelection">
-      <h3 class="selection-title">请选择要登录的账号</h3>
-      <p class="selection-description">系统检测到多个匹配的账号，请选择一个进行登录</p>
-      
-      <div class="user-list">
-        <div 
-          v-for="user in matchingUsers" 
-          :key="user.id" 
-          class="user-card"
-          @click="selectUser(user.id)"
-        >
-          <div class="user-avatar">
-            <img v-if="user.avatar" :src="user.avatar" alt="用户头像" />
-            <el-avatar v-else :size="64" :icon="UserFilled" />
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ user.realName || user.username }}</div>
-            <div class="user-role">{{ getUserRoleText(user.roles) }}</div>
-            <div class="user-number" v-if="user.userNumber">{{ user.userNumber }}</div>
-          </div>
-        </div>
+    <div class="registered-container" v-if="isRegistered">
+      <div class="success-status">
+        <el-icon class="success-icon"><CircleCheckFilled /></el-icon>
+        <span>您已成功注册人脸</span>
       </div>
-      
-      <div class="selection-controls">
-        <el-button @click="cancelUserSelection">取消选择</el-button>
-      </div>
+      <el-button type="danger" @click="handleDeleteFace" :loading="isDeleteLoading">删除人脸信息</el-button>
     </div>
-    
-    <div class="login-options">
-      <el-divider>或者</el-divider>
-      <el-button @click="backToPasswordLogin" plain>使用密码登录</el-button>
-    </div>
-    
-    <el-alert
-      v-if="errorMessage"
-      :title="errorMessage"
-      type="error"
-      show-icon
-      :closable="true"
-      @close="errorMessage = ''"
-      style="margin-top: 15px; width: 100%;"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
-import { VideoCameraFilled, Camera, UserFilled } from '@element-plus/icons-vue'
-import { useUserStore } from '../../stores/user'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-const userStore = useUserStore()
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  VideoCameraFilled, 
+  Camera, 
+  CircleCheckFilled 
+} from '@element-plus/icons-vue'
+import { registerFaceWithBase64, deleteFace, checkFaceStatus } from '../../api/face'
 
 const videoElement = ref<HTMLVideoElement | null>(null)
 const canvasElement = ref<HTMLCanvasElement | null>(null)
 const stream = ref<MediaStream | null>(null)
 const imageCapture = ref<string | null>(null)
 const isLoading = ref(false)
+const isDeleteLoading = ref(false)
 const isCameraStarted = ref(false)
 const hasDetectedFace = ref(false)
-const errorMessage = ref('')
+const isRegistered = ref(false)
 const faceDetectionInterval = ref<number | null>(null)
 const modelsLoaded = ref(false)
-const faceDetectionTimer = ref<number | null>(null)
 const faceDetectionStartTime = ref<number | null>(null)
 const autoDetectEnabled = ref(true)
 const detectionProgress = ref(0)
-const showUserSelection = ref(false)
-const matchingUsers = ref<any[]>([])
 
-// 加载人脸检测模型
+// 检查是否已注册人脸
+const checkRegistrationStatus = async () => {
+  try {
+    isRegistered.value = await checkFaceStatus()
+  } catch (error) {
+    console.error('检查人脸注册状态失败:', error)
+  }
+}
+
+// 加载人脸检测模型 - 使用简单检测
 const loadFaceDetectionModels = async () => {
   try {
     // 使用更简单的方法，不依赖TensorFlow模型
@@ -146,7 +110,6 @@ const loadFaceDetectionModels = async () => {
     console.log('准备就绪');
   } catch (error) {
     console.error('初始化失败:', error);
-    errorMessage.value = '初始化失败，请刷新页面重试';
   }
 }
 
@@ -180,7 +143,6 @@ const startCamera = async () => {
         // 确保视频播放
         videoElement.value?.play().catch(err => {
           console.error('视频播放失败:', err)
-          errorMessage.value = '视频播放失败，请刷新页面重试'
         })
         
         isCameraStarted.value = true
@@ -195,11 +157,9 @@ const startCamera = async () => {
     console.error('无法访问摄像头:', error)
     isCameraStarted.value = false
     stream.value = null
-    errorMessage.value = '无法访问摄像头，请确保允许浏览器使用摄像头，并确保没有其他应用程序正在使用摄像头'
   }
 }
 
-// 启动人脸检测
 const startFaceDetection = () => {
   if (!videoElement.value || !canvasElement.value) return
   
@@ -207,7 +167,7 @@ const startFaceDetection = () => {
   canvasElement.value.width = videoElement.value.clientWidth
   canvasElement.value.height = videoElement.value.clientHeight
   
-  // 使用简单的检测方法，不依赖face-api.js的复杂模型
+  // 使用简单的检测方法
   faceDetectionInterval.value = window.setInterval(async () => {
     if (!isCameraStarted.value || !videoElement.value || !canvasElement.value) {
       if (faceDetectionInterval.value !== null) {
@@ -269,13 +229,16 @@ const startFaceDetection = () => {
             // 更新进度，最大为100%
             detectionProgress.value = Math.min((detectionDuration / 2000) * 100, 100);
             
-            // 如果检测到人脸超过2秒，自动捕获并登录
+            // 如果检测到人脸超过2秒，自动捕获
             if (detectionDuration >= 2000 && !imageCapture.value) {
               captureImage();
-              // 延迟200ms后自动登录，给用户时间看到捕获的图像
-              setTimeout(() => {
-                loginWithFace();
-              }, 200);
+              
+              // 如果自动检测启用，在捕获照片后延迟500ms自动注册
+              if (autoDetectEnabled.value) {
+                setTimeout(() => {
+                  registerFace();
+                }, 500);
+              }
             }
           }
         } else {
@@ -339,92 +302,61 @@ const captureImage = () => {
 }
 
 // 重新拍照
-const retakePhoto = async () => {
+const retakePhoto = () => {
   imageCapture.value = null
-  errorMessage.value = ''
-  
-  // 确保先关闭现有摄像头再重新启动
-  closeCamera()
-  
-  // 延迟一小段时间，确保摄像头资源被正确释放
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  // 重新启动摄像头
-  startCamera()
 }
 
-// 人脸登录
-const loginWithFace = async () => {
+// 注册人脸
+const registerFace = async () => {
   if (!imageCapture.value) return
   
-  errorMessage.value = ''
   isLoading.value = true
-  
   try {
-    const result = await userStore.loginWithFaceBase64(imageCapture.value)
-    
-    // 检查是否返回多个匹配用户
-    if (result && result.multipleUsers && result.users) {
-      matchingUsers.value = result.users
-      showUserSelection.value = true
-      isLoading.value = false
-      return
-    }
-    
-    if (result === true) {
-      ElMessage.success('人脸识别成功，登录成功')
-      closeCamera()
-    } else {
-      errorMessage.value = userStore.error || '人脸识别失败，请重试'
-    }
-  } catch (error: any) {
-    console.error('人脸登录失败:', error)
-    errorMessage.value = '人脸登录失败，请稍后重试'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// 选择用户登录
-const selectUser = async (userId: number) => {
-  errorMessage.value = ''
-  isLoading.value = true
-  
-  try {
-    const success = await userStore.loginWithSelectedUser(userId)
+    const success = await registerFaceWithBase64(imageCapture.value)
     
     if (success) {
-      ElMessage.success('登录成功')
+      ElMessage.success('教师人脸注册成功')
+      isRegistered.value = true
       closeCamera()
     } else {
-      errorMessage.value = userStore.error || '登录失败，请重试'
-      showUserSelection.value = false
+      ElMessage.error('教师人脸注册失败')
     }
   } catch (error: any) {
-    console.error('选择用户登录失败:', error)
-    errorMessage.value = '登录失败，请稍后重试'
-    showUserSelection.value = false
+    ElMessage.error(error.response?.data?.message || '教师人脸注册失败')
   } finally {
     isLoading.value = false
   }
 }
 
-// 取消用户选择
-const cancelUserSelection = () => {
-  showUserSelection.value = false
-  matchingUsers.value = []
-}
-
-// 获取用户角色文本
-const getUserRoleText = (roles: string[]) => {
-  if (!roles || roles.length === 0) return '用户'
-  
-  if (roles.includes('ADMIN') || roles.includes('admin')) {
-    return '管理员'
-  } else if (roles.includes('SUPERVISOR') || roles.includes('supervisor')) {
-    return '教师'
-  } else {
-    return '学生'
+// 删除人脸信息
+const handleDeleteFace = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除您的人脸信息吗？删除后将无法使用人脸登录。',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    isDeleteLoading.value = true
+    const success = await deleteFace()
+    
+    if (success) {
+      ElMessage.success('人脸信息删除成功')
+      isRegistered.value = false
+      imageCapture.value = null
+    } else {
+      ElMessage.error('人脸信息删除失败')
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || '删除人脸信息失败')
+    }
+  } finally {
+    isDeleteLoading.value = false
   }
 }
 
@@ -441,53 +373,44 @@ const closeCamera = () => {
 
   if (stream.value) {
     stream.value.getTracks().forEach(track => track.stop())
-    
-    // 确保视频元素的 srcObject 被清除
-    if (videoElement.value) {
-      videoElement.value.srcObject = null
-    }
-    
     stream.value = null
     isCameraStarted.value = false
     hasDetectedFace.value = false
   }
 }
 
-// 返回密码登录
-const backToPasswordLogin = () => {
-  closeCamera()
-  emit('switch-mode', 'password')
-}
-
-// 定义事件
-const emit = defineEmits(['switch-mode'])
-
+// 初始化
 onMounted(async () => {
   await loadFaceDetectionModels()
-  await nextTick()
-  startCamera()
+  await checkRegistrationStatus()
+  
+  if (!isRegistered.value) {
+    await nextTick()
+    startCamera()
+  }
 })
 
+// 清理
 onUnmounted(() => {
   closeCamera()
 })
 </script>
 
 <style scoped>
-.face-login-container {
+.face-register-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
 }
 
-.face-login-title {
+.face-register-title {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
   color: #409EFF;
 }
 
-.face-login-description {
+.face-register-description {
   margin-bottom: 1.5rem;
   color: #606266;
   text-align: center;
@@ -566,16 +489,28 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
-.login-options {
+.registered-container {
   width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f0f9eb;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 1rem;
+  gap: 1rem;
 }
 
-.login-options .el-divider {
-  width: 100%;
+.success-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #67C23A;
+  font-weight: 500;
+}
+
+.success-icon {
+  font-size: 1.5rem;
 }
 
 .detection-canvas {
@@ -602,101 +537,13 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-.progress-text {
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 4px;
-}
-
-.auto-detect-switch {
-  margin-top: 8px;
-}
-
 .auto-mode-hint {
-  display: block;
-  color: #409EFF;
-  font-weight: bold;
-  margin-top: 5px;
-  font-size: 14px;
-}
-
-/* 用户选择样式 */
-.user-selection-container {
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.selection-title {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #409EFF;
-  text-align: center;
-}
-
-.selection-description {
-  margin-bottom: 1.5rem;
-  color: #606266;
-  text-align: center;
-}
-
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 1.5rem;
-}
-
-.user-card {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f5f7fa;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.user-card:hover {
+  display: inline-block;
   background-color: #ecf5ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.user-avatar {
-  margin-right: 15px;
-}
-
-.user-avatar img {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.user-role {
-  color: #909399;
-  font-size: 0.9rem;
-  margin-bottom: 2px;
-}
-
-.user-number {
-  color: #606266;
-  font-size: 0.9rem;
-}
-
-.selection-controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  color: #409EFF;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
 }
 </style> 

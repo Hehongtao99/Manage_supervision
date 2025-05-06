@@ -372,10 +372,12 @@ public class SupervisorController {
      * Get supervisor created projects
      */
     @GetMapping("/projects")
-    @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getProjectsBySupervisor(@RequestParam Long supervisorId) {
-        logger.info("Supervisor requested to get all projects created by themselves, Supervisor ID: {}", supervisorId);
+    @RequireRole({"SUPERVISOR"})
+    public ResponseEntity<?> getSupervisorProjects(@RequestHeader("Authorization") String auth) {
+        logger.info("Supervisor requested to get all projects created by themselves");
         try {
+            String token = auth.replace("Bearer ", "");
+            Long supervisorId = jwtUtil.getUserIdFromToken(token);
             List<ProjectDTO> projects = projectService.getProjectsBySupervisor(supervisorId);
             return ResponseEntity.ok(projects);
         } catch (Exception e) {
@@ -388,12 +390,14 @@ public class SupervisorController {
      * Get supervisor created projects by status
      */
     @GetMapping("/projects/status/{status}")
-    @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getProjectsBySupervisorAndStatus(
-            @RequestParam Long supervisorId,
-            @PathVariable String status) {
-        logger.info("Supervisor requested to get all projects created by themselves by specified status, Supervisor ID: {}, status: {}", supervisorId, status);
+    @RequireRole({"SUPERVISOR"})
+    public ResponseEntity<?> getSupervisorProjectsByStatus(
+            @PathVariable String status,
+            @RequestHeader("Authorization") String auth) {
+        logger.info("Supervisor requested to get all projects created by themselves by specified status, Supervisor ID: {}, status: {}", auth, status);
         try {
+            String token = auth.replace("Bearer ", "");
+            Long supervisorId = jwtUtil.getUserIdFromToken(token);
             List<ProjectDTO> projects = projectService.getProjectsBySupervisorAndStatus(supervisorId, status);
             return ResponseEntity.ok(projects);
         } catch (Exception e) {
@@ -421,11 +425,13 @@ public class SupervisorController {
     /**
      * Get pending project application review
      */
-    @GetMapping("/projects/pending-review")
-    @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getPendingReviewProjects(@RequestParam Long supervisorId) {
-        logger.info("Supervisor requested to get pending project application review, Supervisor ID: {}", supervisorId);
+    @GetMapping("/pending-projects")
+    @RequireRole({"SUPERVISOR"})
+    public ResponseEntity<?> getPendingReviewProjects(@RequestHeader("Authorization") String auth) {
+        logger.info("Supervisor requested to get pending project application review");
         try {
+            String token = auth.replace("Bearer ", "");
+            Long supervisorId = jwtUtil.getUserIdFromToken(token);
             List<ProjectDTO> projects = projectService.getPendingReviewProjects(supervisorId);
             return ResponseEntity.ok(projects);
         } catch (Exception e) {

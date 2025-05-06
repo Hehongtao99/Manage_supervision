@@ -64,20 +64,22 @@
                 <div class="or-divider">
                   <span>或者</span>
                 </div>
-                <el-button 
-                  @click="loginMode = 'face'"
-                  type="success" 
-                  class="face-login-btn"
-                  :size="'large'"
-                  :icon="VideoCameraFilled"
-                >
-                  人脸识别登录
-                </el-button>
+                <div class="face-login-buttons">
+                  <el-button 
+                    @click="loginMode = 'face'"
+                    type="success" 
+                    class="face-login-btn"
+                    :size="'large'"
+                    :icon="VideoCameraFilled"
+                  >
+                    人脸识别
+                  </el-button>
+                </div>
               </div>
             </el-form>
           </el-tab-pane>
           
-          <el-tab-pane label="人脸登录" name="face">
+          <el-tab-pane label="人脸识别" name="face">
             <face-login @switch-mode="loginMode = $event" />
           </el-tab-pane>
         </el-tabs>
@@ -239,154 +241,118 @@ const handleLogin = async () => {
 }
 
 .login-form {
-  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.custom-input :deep(.el-input__wrapper) {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 12px;
+  transition: all 0.3s ease;
+}
+
+.custom-input :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.custom-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
 }
 
 .form-options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0.5rem 0 1.5rem;
-}
-
-.submit-btn {
-  width: 100%;
-  height: 48px;
-  font-size: 1.1rem;
-  border-radius: 12px;
-  margin: 0;
-  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
-  border: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(79, 172, 254, 0.3);
-}
-
-.submit-btn:active {
-  transform: translateY(0);
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 2rem;
-  color: #666;
-  font-size: 0.95rem;
-}
-
-.signup-link {
-  font-weight: 500;
-  margin-left: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-.signup-link:hover {
-  color: #4facfe;
+  margin-bottom: 10px;
 }
 
 .forgot-link {
   font-size: 0.9rem;
-  transition: color 0.3s ease;
 }
 
-.forgot-link:hover {
-  color: #4facfe;
-}
-
-:deep(.el-input__wrapper) {
+.submit-btn {
+  width: 100%;
   border-radius: 12px;
-  height: 48px;
-  background: #f8fafc;
-  box-shadow: none;
-  border: 2px solid transparent;
+  height: 50px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   transition: all 0.3s ease;
 }
 
-:deep(.el-input__wrapper:hover) {
-  background: #fff;
-  border-color: #e2e8f0;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  background: #fff;
-  border-color: #4facfe;
-  box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.el-input__inner) {
-  font-size: 1rem;
-  color: #334155;
-}
-
-:deep(.el-input__inner::placeholder) {
-  color: #94a3b8;
-}
-
-:deep(.el-checkbox__label) {
-  font-size: 0.9rem;
-  color: #64748b;
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(24, 144, 255, 0.2);
 }
 
 .alternative-login {
   margin-top: 20px;
+  text-align: center;
 }
 
 .or-divider {
-  text-align: center;
   position: relative;
-  margin: 15px 0;
-}
-
-.or-divider::before,
-.or-divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: calc(50% - 30px);
-  height: 1px;
-  background-color: #e0e0e0;
+  margin: 20px 0;
+  text-align: center;
 }
 
 .or-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
   left: 0;
-}
-
-.or-divider::after {
-  right: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #e8e8e8;
+  z-index: 1;
 }
 
 .or-divider span {
-  display: inline-block;
-  padding: 0 15px;
-  background-color: #fff;
   position: relative;
+  padding: 0 15px;
+  background: rgba(255, 255, 255, 0.95);
   color: #909399;
-  font-size: 14px;
+  z-index: 2;
+}
+
+.face-login-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .face-login-btn {
   width: 100%;
-  margin-top: 10px;
-  background: linear-gradient(to right, #2ecc71, #16a085);
-  border: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  max-width: 200px;
+  border-radius: 12px;
+  height: 50px;
+  transition: all 0.3s ease;
 }
 
 .face-login-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-.face-login-btn:active {
-  transform: translateY(0);
+.register-link {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #606266;
 }
 
+.signup-link {
+  font-weight: 500;
+  margin-left: 5px;
+}
+
+/* 响应式调整 */
 @media (max-width: 768px) {
   .login-card {
-    margin: 0 20px;
-    padding: 30px;
+    padding: 30px 20px;
   }
   
   .brand-title {
@@ -395,19 +361,6 @@ const handleLogin = async () => {
   
   .brand-subtitle {
     font-size: 1rem;
-  }
-
-  .submit-btn {
-    height: 44px;
-  }
-
-  :deep(.el-input__wrapper) {
-    height: 44px;
-  }
-  
-  .or-divider::before,
-  .or-divider::after {
-    width: calc(50% - 20px);
   }
 }
 </style>
