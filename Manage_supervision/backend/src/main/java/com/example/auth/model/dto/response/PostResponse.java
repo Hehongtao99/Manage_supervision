@@ -56,6 +56,11 @@ public class PostResponse {
     private Integer commentCount;
     
     /**
+     * 转发数量
+     */
+    private Integer forwardCount;
+    
+    /**
      * 当前用户是否点赞
      */
     private Boolean liked;
@@ -64,6 +69,26 @@ public class PostResponse {
      * 可见范围：0-全部可见，1-仅好友可见
      */
     private Integer visibility;
+    
+    /**
+     * 是否是转发的帖子
+     */
+    private Boolean isForward;
+    
+    /**
+     * 原始帖子ID
+     */
+    private Long originalPostId;
+    
+    /**
+     * 转发评论内容
+     */
+    private String forwardComment;
+    
+    /**
+     * 原始帖子详情(仅当是转发帖子时才有)
+     */
+    private PostResponse originalPost;
     
     /**
      * 关联的跑步记录

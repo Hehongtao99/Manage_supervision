@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosResponse } from 'axios'
 import { getAuthHeader } from '@/utils/auth'
-import type { PostCreateRequest, CommentCreateRequest } from '@/types/social'
+import type { PostCreateRequest, CommentCreateRequest, PostForwardRequest } from '@/types/social'
 
 // 基础API路径
 const API_URL = '/api/social'
@@ -119,4 +119,20 @@ export const updatePost = async (postData: {
  */
 export const getRunningRecordsList = async (): Promise<AxiosResponse> => {
   return axios.get('/api/student/running/records', { headers: getAuthHeader() })
+}
+
+/**
+ * 转发朋友圈帖子
+ * @param forwardData 转发数据
+ */
+export const forwardPost = async (forwardData: PostForwardRequest): Promise<AxiosResponse> => {
+  return axios.post(`${API_URL}/post/forward`, forwardData, { headers: getAuthHeader() })
+}
+
+/**
+ * 获取原始帖子信息
+ * @param originalId 原始帖子ID
+ */
+export const getOriginalPost = async (originalId: number): Promise<AxiosResponse> => {
+  return axios.get(`${API_URL}/post/original/${originalId}`, { headers: getAuthHeader() })
 } 

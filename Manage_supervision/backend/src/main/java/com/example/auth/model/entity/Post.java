@@ -55,6 +55,24 @@ public class Post {
     private Integer commentCount;
     
     /**
+     * 转发数量
+     */
+    @TableField("forward_count")
+    private Integer forwardCount;
+    
+    /**
+     * 是否是转发的帖子，0-原创，1-转发
+     */
+    @TableField("is_forward")
+    private Integer isForward;
+    
+    /**
+     * 原始帖子ID，如果是原创则为0
+     */
+    @TableField("original_post_id")
+    private Long originalPostId;
+    
+    /**
      * 创建时间
      */
     @TableField("create_time")

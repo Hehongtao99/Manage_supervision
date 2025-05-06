@@ -58,6 +58,24 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'chat/:conversationId',
+        name: 'chat',
+        component: () => import('../views/chat/ChatPage.vue'),
+        meta: {
+          title: '聊天',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'friends',
+        name: 'friends',
+        component: () => import('../views/friend/FriendList.vue'),
+        meta: {
+          title: '好友管理',
+          requiresAuth: true
+        }
+      },
+      {
         path: 'running-record',
         name: 'RunningRecord',
         component: () => import('../views/running/RunningRecordForm.vue'),

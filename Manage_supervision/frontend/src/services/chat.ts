@@ -3,7 +3,7 @@ import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import axios from '../utils/axios';
 import { useUserStore } from '../stores/user';
-import { chatEvents } from '../stores/chat';
+import chatEvents from '../services/eventBus';
 
 export interface ChatMessage {
   id: number;
@@ -276,23 +276,40 @@ class ChatService {
   // 接收消息回调
   private onMessageReceived(message: IMessage) {
     try {
-      const chatMessage = JSON.parse(message.body) as ChatMessage;
-      console.log('收到新消息:', chatMessage);
-      console.log(`消息详情 - ID: ${chatMessage.id}, 发送者: ${chatMessage.senderId}, 会话ID: ${chatMessage.conversationId}`);
+      const data = JSON.parse(message.body);
       
-      // 立即触发消息接收事件，优先处理UI更新
-      chatEvents.emit('messageReceived', chatMessage);
-      
-      // 调用所有的消息回调
-      const callbacks = this.messageCallbacks.get('message') || [];
-      console.log(`触发${callbacks.length}个全局消息回调`);
-      callbacks.forEach(callback => callback(chatMessage));
-      
-      // 调用特定会话的回调
-      if (chatMessage.conversationId) {
-        const conversationCallbacks = this.messageCallbacks.get(`conversation:${chatMessage.conversationId}`) || [];
-        console.log(`触发${conversationCallbacks.length}个会话(ID: ${chatMessage.conversationId})特定回调`);
-        conversationCallbacks.forEach(callback => callback(chatMessage));
+      // 判断是否是聊天消息
+      if (data.id !== undefined && data.conversationId !== undefined) {
+        // 聊天消息处理
+        const chatMessage = data as ChatMessage;
+        console.log('收到新消息:', chatMessage);
+        console.log(`消息详情 - ID: ${chatMessage.id}, 发送者: ${chatMessage.senderId}, 会话ID: ${chatMessage.conversationId}`);
+        
+        // 立即触发消息接收事件，优先处理UI更新
+        chatEvents.emit('messageReceived', chatMessage);
+        
+        // 调用所有的消息回调
+        const callbacks = this.messageCallbacks.get('message') || [];
+        console.log(`触发${callbacks.length}个全局消息回调`);
+        callbacks.forEach(callback => callback(chatMessage));
+        
+        // 调用特定会话的回调
+        if (chatMessage.conversationId) {
+          const conversationCallbacks = this.messageCallbacks.get(`conversation:${chatMessage.conversationId}`) || [];
+          console.log(`触发${conversationCallbacks.length}个会话(ID: ${chatMessage.conversationId})特定回调`);
+          conversationCallbacks.forEach(callback => callback(chatMessage));
+        }
+      } 
+      // 判断是否是好友请求通知
+      else if (data.type === 'NEW_REQUEST' || data.type === 'REQUEST_UPDATED') {
+        console.log('收到好友请求通知:', data);
+        
+        // 触发好友请求事件
+        chatEvents.emit('friendRequest', data);
+      }
+      // 其他类型的消息
+      else {
+        console.log('收到其他类型的消息:', data);
       }
     } catch (error) {
       console.error('处理收到的消息失败:', error);
@@ -302,12 +319,24 @@ class ChatService {
   // 接收错误通知回调
   private onErrorReceived(message: IMessage) {
     try {
-      const errorInfo = JSON.parse(message.body);
-      console.error('收到错误通知:', errorInfo);
+      const data = JSON.parse(message.body);
+      console.log('收到通知:', data);
+      
+      // 判断是否是好友请求通知
+      if (data.type === 'NEW_REQUEST' || data.type === 'REQUEST_UPDATED') {
+        console.log('收到好友请求通知:', data);
+        
+        // 触发好友请求事件
+        chatEvents.emit('friendRequest', data);
+        return;
+      }
+      
+      // 错误通知处理
+      console.error('收到错误通知:', data);
       
       // 这里可以添加错误处理逻辑，比如显示通知给用户
     } catch (error) {
-      console.error('处理错误通知失败:', error);
+      console.error('处理通知失败:', error);
     }
   }
   

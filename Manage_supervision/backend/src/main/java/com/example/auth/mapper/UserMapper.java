@@ -57,4 +57,13 @@ public interface UserMapper extends BaseMapper<User> {
             "JOIN roles r ON ur.role_id = r.id " +
             "WHERE r.id = #{roleId}")
     Long countByRoleId(@Param("roleId") Long roleId);
+    
+    /**
+     * 根据关键词模糊搜索用户
+     * 搜索范围包括用户名、真实姓名和昵称
+     */
+    @Select("SELECT * FROM users WHERE username LIKE #{keyword} " +
+            "OR real_name LIKE #{keyword} " +
+            "OR nickname LIKE #{keyword}")
+    List<User> searchUsers(@Param("keyword") String keyword);
 } 

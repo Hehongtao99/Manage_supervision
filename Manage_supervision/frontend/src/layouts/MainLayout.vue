@@ -18,6 +18,7 @@
         </el-menu-item>
       </el-menu>
       <div class="user-info">
+        <FriendNotifications />
         <span>{{ userStore.user?.username }}</span>
         <el-button type="text" @click="handleLogout">退出</el-button>
       </div>
@@ -32,6 +33,7 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
+import FriendNotifications from '../components/friends/FriendNotifications.vue'
 
 const userStore = useUserStore()
 const router = useRouter()

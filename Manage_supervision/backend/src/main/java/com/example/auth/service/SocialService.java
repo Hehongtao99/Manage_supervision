@@ -3,6 +3,7 @@ package com.example.auth.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.model.dto.request.CommentCreateRequest;
 import com.example.auth.model.dto.request.PostCreateRequest;
+import com.example.auth.model.dto.request.PostForwardRequest;
 import com.example.auth.model.dto.request.PostUpdateRequest;
 import com.example.auth.model.dto.response.CommentResponse;
 import com.example.auth.model.dto.response.PostResponse;
@@ -115,4 +116,22 @@ public interface SocialService {
      * @return 帖子响应
      */
     PostResponse updatePost(Long userId, PostUpdateRequest request);
+    
+    /**
+     * 转发朋友圈帖子
+     *
+     * @param userId 用户ID
+     * @param request 转发请求
+     * @return 转发后的帖子响应
+     */
+    PostResponse forwardPost(Long userId, PostForwardRequest request);
+    
+    /**
+     * 获取原始帖子信息
+     *
+     * @param userId 当前用户ID
+     * @param originalPostId 原始帖子ID
+     * @return 原始帖子响应
+     */
+    PostResponse getOriginalPost(Long userId, Long originalPostId);
 } 

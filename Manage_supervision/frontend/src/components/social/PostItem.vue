@@ -29,6 +29,39 @@
       <!-- 帖子内容 -->
       <div class="post-content">{{ post.content }}</div>
 
+      <!-- 添加转发内容预览 -->
+      <div v-if="post.isForward && post.originalPost" class="forward-content">
+        <div class="forward-comment" v-if="post.forwardComment">{{ post.forwardComment }}</div>
+        <div class="original-post-card">
+          <div class="original-post-header">
+            <el-avatar :src="post.originalPost.avatar" class="original-post-avatar" />
+            <div class="original-post-info">
+              <div class="original-post-username">{{ post.originalPost.username }}</div>
+              <div class="original-post-time">{{ formatTime(post.originalPost.createTime) }}</div>
+            </div>
+          </div>
+          <div class="original-post-content">{{ post.originalPost.content }}</div>
+          <div class="original-post-images" v-if="post.originalPost.imageUrls && post.originalPost.imageUrls.length > 0">
+            <div :class="originalImageGridClass">
+              <div
+                v-for="(url, index) in post.originalPost.imageUrls.slice(0, 4)"
+                :key="index"
+                class="image-item"
+                @click="viewOriginalPost"
+              >
+                <el-image :src="url" fit="cover" loading="lazy" />
+                <div class="more-images" v-if="index === 3 && post.originalPost.imageUrls.length > 4">
+                  +{{ post.originalPost.imageUrls.length - 4 }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="view-original" @click="viewOriginalPost">
+            <el-link type="primary" :underline="false">查看原帖 <el-icon><ArrowRight /></el-icon></el-link>
+          </div>
+        </div>
+      </div>
+
       <!-- 跑步记录信息 -->
       <div v-if="hasRunningRecord" class="running-record-card">
         <div class="running-record-header">
@@ -81,6 +114,7 @@
         <div class="post-stats">
           <span class="post-likes">{{ post.likeCount }} 点赞</span>
           <span class="post-comments">{{ post.commentCount }} 评论</span>
+          <span class="post-forwards">{{ post.forwardCount || 0 }} 转发</span>
         </div>
         <div class="post-actions">
           <el-button 
@@ -99,6 +133,14 @@
             <el-icon><ChatDotRound /></el-icon>
             评论
           </el-button>
+          <el-button 
+            type="text" 
+            class="post-forward-btn"
+            @click="handleForward"
+          >
+            <el-icon><Share /></el-icon>
+            转发
+          </el-button>
         </div>
       </div>
     </el-card>
@@ -109,6 +151,13 @@
       :post="post"
       @success="handleEditSuccess"
     />
+
+    <!-- 添加转发对话框 -->
+    <post-forward-dialog
+      v-model="forwardDialogVisible"
+      :postId="post.id"
+      @success="handleForwardSuccess"
+    />
   </div>
 </template>
 
@@ -117,8 +166,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ThumbUp, ChatDotRound, MoreFilled } from '@element-plus/icons-vue'
+import { ThumbUp, ChatDotRound, MoreFilled, Star, StarFilled, Share, ArrowRight } from '@element-plus/icons-vue'
 import PostEditDialog from '@/components/social/PostEditDialog.vue'
+import PostForwardDialog from '@/components/social/PostForwardDialog.vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -145,6 +195,9 @@ const viewerIndex = ref(0)
 // 编辑对话框状态
 const editDialogVisible = ref(false)
 
+// 转发对话框状态
+const forwardDialogVisible = ref(false)
+
 // 根据图片数量确定网格布局类
 const imageGridClass = computed(() => {
   const count = props.post.imageUrls?.length || 0
@@ -153,6 +206,16 @@ const imageGridClass = computed(() => {
   if (count === 3) return 'image-grid-three'
   if (count === 4) return 'image-grid-four'
   if (count >= 5) return 'image-grid-multi'
+  return ''
+})
+
+// 根据原始帖子图片数量确定网格布局类
+const originalImageGridClass = computed(() => {
+  const count = props.post.originalPost?.imageUrls?.length || 0
+  if (count === 1) return 'image-grid-single'
+  if (count === 2) return 'image-grid-two'
+  if (count === 3) return 'image-grid-three'
+  if (count === 4 || count > 4) return 'image-grid-four'
   return ''
 })
 
@@ -244,6 +307,24 @@ const handleCommand = (command: string) => {
 // 编辑成功后的处理
 const handleEditSuccess = () => {
   emit('refresh')
+}
+
+// 打开转发对话框
+const handleForward = () => {
+  forwardDialogVisible.value = true
+}
+
+// 转发成功后的处理
+const handleForwardSuccess = () => {
+  emit('refresh')
+  ElMessage.success('转发成功')
+}
+
+// 查看原始帖子
+const viewOriginalPost = () => {
+  if (props.post.originalPost?.id) {
+    router.push(`/social/post/${props.post.originalPost.id}`)
+  }
 }
 </script>
 
@@ -388,7 +469,8 @@ const handleEditSuccess = () => {
 }
 
 .post-like-btn,
-.post-comment-btn {
+.post-comment-btn,
+.post-forward-btn {
   display: flex;
   align-items: center;
   justify-content: center;

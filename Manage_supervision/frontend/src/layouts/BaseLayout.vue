@@ -120,7 +120,7 @@ const roleName = computed(() => {
   } else if (userStore.isSupervisor) {
     return '教师'
   } else {
-    return '学生'
+    return '普通用户'
   }
 })
 

@@ -389,7 +389,7 @@ onMounted(() => {
   const unsubscribe = chatService.onMessage(handleNewMessage);
   
   // 监听消息添加事件
-  const unsubscribeMessageAdded = chatEvents.on('messageAdded', (data: any) => {
+  const msgAddedUnsub = chatEvents.on('messageAdded', (data: any) => {
     if (data.conversationId === props.conversationId) {
       nextTick(() => {
         scrollToBottom();
@@ -398,7 +398,7 @@ onMounted(() => {
   });
   
   // 监听消息更新事件
-  const unsubscribeMessageUpdated = chatEvents.on('messageUpdated', (data: any) => {
+  const msgUpdatedUnsub = chatEvents.on('messageUpdated', (data: any) => {
     if (data.conversationId === props.conversationId) {
       nextTick(() => {
         scrollToBottom();
@@ -407,7 +407,7 @@ onMounted(() => {
   });
   
   // 监听直接接收到的消息事件(WebSocket)
-  const unsubscribeMessageReceived = chatEvents.on('messageReceived', (message: ChatMessageType) => {
+  const msgReceivedUnsub = chatEvents.on('messageReceived', (message: ChatMessageType) => {
     if (message.conversationId === props.conversationId) {
       console.log('直接接收到新消息，准备滚动到底部', message);
       nextTick(() => {
@@ -417,8 +417,9 @@ onMounted(() => {
   });
   
   // 创建一个MutationObserver来监听内容区域的DOM变化
+  let observer: MutationObserver | null = null;
   if (chatContent.value) {
-    const observer = new MutationObserver((mutations) => {
+    observer = new MutationObserver((mutations) => {
       // 当有子节点添加时，很可能是新消息
       if (mutations.some(mutation => mutation.type === 'childList' && mutation.addedNodes.length > 0)) {
         scrollToBottom();
@@ -432,19 +433,15 @@ onMounted(() => {
       attributes: false,  // 不观察属性变化
       characterData: false // 不观察文本内容变化
     });
-    
-    // 组件卸载时停止观察
-    onUnmounted(() => {
-      observer.disconnect();
-    });
   }
   
   // 组件卸载时取消监听
   onUnmounted(() => {
     if (unsubscribe) unsubscribe();
-    unsubscribeMessageAdded();
-    unsubscribeMessageUpdated();
-    unsubscribeMessageReceived();
+    if (msgAddedUnsub) msgAddedUnsub();
+    if (msgUpdatedUnsub) msgUpdatedUnsub();
+    if (msgReceivedUnsub) msgReceivedUnsub();
+    if (observer) observer.disconnect();
   });
   
   // 如果有会话ID，加载会话并滚动到底部

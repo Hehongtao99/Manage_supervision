@@ -15,6 +15,20 @@ export interface PostCreateRequest {
 }
 
 /**
+ * 帖子转发请求
+ */
+export interface PostForwardRequest {
+  /** 原始帖子ID */
+  originalPostId: number;
+  /** 转发评论内容 */
+  forwardComment: string;
+  /** 位置信息 */
+  location?: string;
+  /** 可见范围：0-全部可见，1-仅好友可见 */
+  visibility?: number;
+}
+
+/**
  * 评论创建请求
  */
 export interface CommentCreateRequest {
@@ -66,10 +80,20 @@ export interface PostResponse {
   likeCount: number;
   /** 评论数 */
   commentCount: number;
+  /** 转发数 */
+  forwardCount?: number;
   /** 当前用户是否点赞 */
   liked: boolean;
   /** 可见范围：0-全部可见，1-仅好友可见 */
   visibility: number;
+  /** 是否为转发帖子 */
+  isForward?: boolean;
+  /** 原始帖子ID */
+  originalPostId?: number;
+  /** 转发评论内容 */
+  forwardComment?: string;
+  /** 原始帖子信息 */
+  originalPost?: PostResponse;
   /** 关联的跑步记录 */
   runningRecord?: RunningRecord;
   /** 创建时间 */

@@ -43,6 +43,8 @@ public class SocialServiceImpl implements SocialService {
     private final UserMapper userMapper;
     private final PostRunningRecordMapper postRunningRecordMapper;
     private final RunningRecordMapper runningRecordMapper;
+    private final FriendshipMapper friendshipMapper;
+    private final PostForwardMapper postForwardMapper;
     
     // 图片上传目录
     private static final String UPLOAD_DIR = "uploads/social/";
@@ -200,10 +202,18 @@ public class SocialServiceImpl implements SocialService {
 
     @Override
     public Page<PostResponse> getPostList(Long userId, Integer page, Integer size) {
-        // 分页查询所有帖子
+        // 获取当前用户的好友列表
+        List<Long> friendUserIds = friendshipMapper.findFriendUserIdsByUserId(userId);
+        
+        // 分页查询自己和好友的帖子
         Page<Post> postPage = new Page<>(page, size);
         LambdaQueryWrapper<Post> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Post::getIsDeleted, 0)
+                .and(wrapper -> wrapper
+                        .eq(Post::getUserId, userId)  // 自己的帖子
+                        .or()
+                        .in(friendUserIds != null && !friendUserIds.isEmpty(), Post::getUserId, friendUserIds)  // 好友的帖子
+                )
                 .orderByDesc(Post::getCreateTime);
         Page<Post> resultPage = postMapper.selectPage(postPage, queryWrapper);
         
@@ -809,5 +819,151 @@ public class SocialServiceImpl implements SocialService {
         
         // 返回帖子详情
         return getPostDetail(userId, post.getId());
+    }
+
+    /**
+     * 转发朋友圈帖子
+     *
+     * @param userId 用户ID
+     * @param request 转发请求
+     * @return 转发后的帖子响应
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public PostResponse forwardPost(Long userId, PostForwardRequest request) {
+        // 1. 验证原始帖子是否存在
+        Long originalPostId = request.getOriginalPostId();
+        Post originalPost = postMapper.selectById(originalPostId);
+        if (originalPost == null || originalPost.getIsDeleted() == 1) {
+            throw new RuntimeException("原始帖子不存在或已删除");
+        }
+        
+        // 2. 检查用户是否有权限查看原帖子(好友可见的帖子只有好友才能转发)
+        if (originalPost.getVisibility() == 1) {
+            // 检查是否是好友关系
+            LambdaQueryWrapper<Friendship> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Friendship::getUserId, userId)
+                    .eq(Friendship::getFriendId, originalPost.getUserId())
+                    .eq(Friendship::getStatus, 1)
+                    .eq(Friendship::getIsDeleted, 0);
+            Friendship friendship = friendshipMapper.selectOne(queryWrapper);
+            if (friendship == null) {
+                throw new RuntimeException("无权限查看或转发该帖子");
+            }
+        }
+        
+        // 3. 创建新帖子
+        Post newPost = new Post();
+        newPost.setUserId(userId);
+        newPost.setContent(request.getForwardComment());
+        newPost.setVisibility(request.getVisibility());
+        newPost.setLocation(request.getLocation());
+        newPost.setLikeCount(0);
+        newPost.setCommentCount(0);
+        newPost.setForwardCount(0);
+        newPost.setIsForward(1); // 标记为转发帖子
+        newPost.setOriginalPostId(originalPostId);
+        newPost.setCreateTime(LocalDateTime.now());
+        newPost.setUpdateTime(LocalDateTime.now());
+        newPost.setIsDeleted(0);
+        
+        postMapper.insert(newPost);
+        
+        // 4. 记录转发关系
+        PostForward postForward = new PostForward();
+        postForward.setUserId(userId);
+        postForward.setOriginalPostId(originalPostId);
+        postForward.setNewPostId(newPost.getId());
+        postForward.setForwardComment(request.getForwardComment());
+        postForward.setCreateTime(LocalDateTime.now());
+        postForward.setUpdateTime(LocalDateTime.now());
+        postForward.setIsDeleted(0);
+        
+        postForwardMapper.insert(postForward);
+        
+        // 5. 更新原帖子的转发计数
+        originalPost.setForwardCount(originalPost.getForwardCount() + 1);
+        postMapper.updateById(originalPost);
+        
+        // 6. 构建返回结果
+        return getPostDetail(userId, newPost.getId());
+    }
+
+    /**
+     * 获取原始帖子信息
+     *
+     * @param userId 当前用户ID
+     * @param originalPostId 原始帖子ID
+     * @return 原始帖子响应
+     */
+    @Override
+    public PostResponse getOriginalPost(Long userId, Long originalPostId) {
+        Post post = postMapper.selectById(originalPostId);
+        if (post == null || post.getIsDeleted() == 1) {
+            throw new RuntimeException("原始帖子不存在或已删除");
+        }
+        
+        // 检查权限
+        if (post.getVisibility() == 1 && !userId.equals(post.getUserId())) {
+            // 如果是仅好友可见，需要检查是否是好友关系
+            LambdaQueryWrapper<Friendship> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Friendship::getUserId, userId)
+                    .eq(Friendship::getFriendId, post.getUserId())
+                    .eq(Friendship::getStatus, 1)
+                    .eq(Friendship::getIsDeleted, 0);
+            Friendship friendship = friendshipMapper.selectOne(queryWrapper);
+            if (friendship == null) {
+                throw new RuntimeException("无权限查看该帖子");
+            }
+        }
+        
+        return buildPostResponse(post, userId);
+    }
+
+    // 修改buildPostResponse方法，添加对转发帖子的处理
+    private PostResponse buildPostResponse(Post post, Long currentUserId) {
+        PostResponse postResponse = new PostResponse();
+        postResponse.setId(post.getId());
+        postResponse.setUserId(post.getUserId());
+        postResponse.setUsername(post.getUsername());
+        postResponse.setAvatar(post.getAvatar());
+        postResponse.setContent(post.getContent());
+        postResponse.setImageUrls(post.getImageUrls());
+        postResponse.setLocation(post.getLocation());
+        postResponse.setLikeCount(post.getLikeCount());
+        postResponse.setCommentCount(post.getCommentCount());
+        postResponse.setVisibility(post.getVisibility());
+        postResponse.setCreateTime(post.getCreateTime());
+        postResponse.setForwardCount(post.getForwardCount());
+        postResponse.setIsForward(post.getIsForward() == 1);
+        postResponse.setOriginalPostId(post.getOriginalPostId());
+        
+        // 如果是转发的帖子，获取原始帖子信息
+        if (post.getIsForward() == 1 && post.getOriginalPostId() > 0) {
+            Post originalPost = postMapper.selectById(post.getOriginalPostId());
+            
+            // 如果原始帖子存在且未删除
+            if (originalPost != null && originalPost.getIsDeleted() == 0) {
+                postResponse.setOriginalPost(buildPostResponse(originalPost, currentUserId));
+                
+                // 获取转发评论
+                LambdaQueryWrapper<PostForward> forwardWrapper = new LambdaQueryWrapper<>();
+                forwardWrapper.eq(PostForward::getNewPostId, post.getId())
+                        .eq(PostForward::getOriginalPostId, post.getOriginalPostId())
+                        .eq(PostForward::getIsDeleted, 0);
+                PostForward postForward = postForwardMapper.selectOne(forwardWrapper);
+                if (postForward != null) {
+                    postResponse.setForwardComment(postForward.getForwardComment());
+                }
+            } else {
+                // 如果原始帖子已删除，创建一个占位显示
+                PostResponse deletedPost = new PostResponse();
+                deletedPost.setId(post.getOriginalPostId());
+                deletedPost.setContent("该帖子已被删除");
+                postResponse.setOriginalPost(deletedPost);
+            }
+        }
+        
+        return postResponse;
     }
 } 

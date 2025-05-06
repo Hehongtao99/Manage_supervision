@@ -101,6 +101,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/friends" @click="handleRoute('/friends')">
+        <el-icon><User /></el-icon>
+        <template #title>
+          <span>好友管理</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>

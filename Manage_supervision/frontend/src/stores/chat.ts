@@ -2,36 +2,10 @@ import { defineStore } from 'pinia';
 import chatService from '../services/chat';
 import type { ChatMessage, Conversation } from '../services/chat';
 import { useUserStore } from './user';
+import chatEvents from '../services/eventBus';
 
-// 创建一个事件总线用于消息通知
-export const chatEvents = {
-  listeners: new Map<string, Function[]>(),
-  
-  // 添加事件监听器
-  on(event: string, callback: Function) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, []);
-    }
-    this.listeners.get(event)!.push(callback);
-    
-    // 返回取消监听函数
-    return () => {
-      const callbacks = this.listeners.get(event);
-      if (callbacks) {
-        const index = callbacks.indexOf(callback);
-        if (index !== -1) {
-          callbacks.splice(index, 1);
-        }
-      }
-    };
-  },
-  
-  // 发布事件
-  emit(event: string, data?: any) {
-    const callbacks = this.listeners.get(event) || [];
-    callbacks.forEach(callback => callback(data));
-  }
-};
+// 导出chatEvents供其他模块使用
+export { chatEvents };
 
 interface ChatState {
   conversations: Conversation[];

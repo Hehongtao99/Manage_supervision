@@ -4,23 +4,15 @@
       <div class="chat-sidebar">
         <div class="sidebar-header">
           <h2>消息</h2>
-          <el-dropdown v-if="isSupervisor" @command="handleCommand">
+          <el-dropdown @command="handleCommand">
             <el-button type="primary" size="small">
               新建聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="showStudentList">选择学生</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-dropdown v-else @command="handleCommand">
-            <el-button type="primary" size="small">
-              新建聊天 <el-icon><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="showSupervisorList">选择导师</el-dropdown-item>
+                <el-dropdown-item v-if="isSupervisor" command="showStudentList">选择学生</el-dropdown-item>
+                <el-dropdown-item command="showFriendList">选择好友</el-dropdown-item>
+                <el-dropdown-item command="goToFriendsPage">管理好友</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -69,31 +61,31 @@
         </el-table-column>
       </el-table>
     </el-dialog>
-
-    <!-- 教师选择对话框 -->
+    
+    <!-- 好友选择对话框 -->
     <el-dialog
-      v-model="showSupervisorDialog"
-      title="选择导师"
+      v-model="showFriendDialog"
+      title="选择好友"
       width="500px"
     >
       <el-input
-        v-model="supervisorSearchKeyword"
-        placeholder="搜索导师"
+        v-model="friendSearchKeyword"
+        placeholder="搜索好友"
         prefix-icon="Search"
         clearable
-        @input="handleSupervisorSearch"
+        @input="handleFriendSearch"
       />
       
       <el-table
-        :data="filteredSupervisors"
+        :data="filteredFriends"
         style="width: 100%; margin-top: 16px;"
         height="350px"
-        v-loading="loadingSupervisors"
+        v-loading="loadingFriends"
       >
         <el-table-column prop="name" label="姓名" width="180" />
         <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
-            <el-button link type="primary" @click="startChatWithSupervisor(scope.row)">
+            <el-button link type="primary" @click="startChatWithFriend(scope.row)">
               开始聊天
             </el-button>
           </template>
@@ -105,14 +97,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/user';
 import { useChatStore } from '../../stores/chat';
 import ChatList from '../../components/chat/ChatList.vue';
 import ChatWindow from '../../components/chat/ChatWindow.vue';
 import { ArrowDown, Search } from '@element-plus/icons-vue';
 import axios from '../../utils/axios';
-import { getSupervisors } from '../../api/supervisor';
 
+const router = useRouter();
 const userStore = useUserStore();
 const chatStore = useChatStore();
 
@@ -127,24 +120,28 @@ const students = ref<any[]>([]);
 const filteredStudents = ref<any[]>([]);
 const loadingStudents = ref(false);
 
-// 教师选择对话框
-const showSupervisorDialog = ref(false);
-const supervisorSearchKeyword = ref('');
-const supervisors = ref<any[]>([]);
-const filteredSupervisors = ref<any[]>([]);
-const loadingSupervisors = ref(false);
+// 好友选择对话框
+const showFriendDialog = ref(false);
+const friendSearchKeyword = ref('');
+const friends = ref<any[]>([]);
+const filteredFriends = ref<any[]>([]);
+const loadingFriends = ref(false);
 
 // 检查当前用户是否是教师
 const isSupervisor = computed(() => userStore.isSupervisor);
+// 检查当前用户是否是管理员
+const isAdmin = computed(() => userStore.isAdmin);
 
 // 下拉菜单命令处理
 const handleCommand = (command: string) => {
   if (command === 'showStudentList') {
     showStudentDialog.value = true;
     loadStudents();
-  } else if (command === 'showSupervisorList') {
-    showSupervisorDialog.value = true;
-    loadSupervisors();
+  } else if (command === 'showFriendList') {
+    showFriendDialog.value = true;
+    loadFriends();
+  } else if (command === 'goToFriendsPage') {
+    router.push('/friends');
   }
 };
 
@@ -177,32 +174,27 @@ const loadStudents = async () => {
   }
 };
 
-// 加载教师列表
-const loadSupervisors = async () => {
-  loadingSupervisors.value = true;
+// 加载好友列表
+const loadFriends = async () => {
+  loadingFriends.value = true;
   
   try {
-    const supervisorList = await getSupervisors();
+    const response = await axios.get('/api/friends');
     
-    // 添加数据验证
-    if (Array.isArray(supervisorList)) {
-      supervisors.value = supervisorList.map(supervisor => ({
-        ...supervisor,
-        name: supervisor.name || supervisor.username || 'Unknown Name',
-        department: supervisor.department || 'Unknown Department'
-      }));
-      filteredSupervisors.value = supervisors.value;
+    if (Array.isArray(response.data)) {
+      friends.value = response.data;
+      filteredFriends.value = response.data;
     } else {
-      console.error('Supervisor data format error:', supervisorList);
-      supervisors.value = [];
-      filteredSupervisors.value = [];
+      console.error('Friend data format error:', response.data);
+      friends.value = [];
+      filteredFriends.value = [];
     }
   } catch (error) {
-    console.error('Failed to load supervisor list:', error);
-    supervisors.value = [];
-    filteredSupervisors.value = [];
+    console.error('Failed to load friend list:', error);
+    friends.value = [];
+    filteredFriends.value = [];
   } finally {
-    loadingSupervisors.value = false;
+    loadingFriends.value = false;
   }
 };
 
@@ -221,17 +213,18 @@ const handleSearch = () => {
   );
 };
 
-// 搜索教师
-const handleSupervisorSearch = () => {
-  const keyword = supervisorSearchKeyword.value.toLowerCase();
+// 搜索好友
+const handleFriendSearch = () => {
+  const keyword = friendSearchKeyword.value.toLowerCase();
   
   if (!keyword) {
-    filteredSupervisors.value = supervisors.value;
+    filteredFriends.value = friends.value;
     return;
   }
   
-  filteredSupervisors.value = supervisors.value.filter(supervisor => 
-    (supervisor.name && supervisor.name.toLowerCase().includes(keyword))
+  filteredFriends.value = friends.value.filter(friend => 
+    (friend.name && friend.name.toLowerCase().includes(keyword)) ||
+    (friend.username && friend.username.toLowerCase().includes(keyword))
   );
 };
 
@@ -251,17 +244,17 @@ const startChatWithStudent = async (student: any) => {
   }
 };
 
-// 开始与教师聊天
-const startChatWithSupervisor = async (supervisor: any) => {
-  if (!supervisor || !supervisor.id) {
-    console.error('Supervisor data incomplete, cannot start chat:', supervisor);
+// 开始与好友聊天
+const startChatWithFriend = async (friend: any) => {
+  if (!friend || !friend.id) {
+    console.error('Friend data incomplete, cannot start chat:', friend);
     return;
   }
   
   try {
-    const conversation = await chatStore.getOrCreateConversationWithUser(supervisor.id);
+    const conversation = await chatStore.getOrCreateConversationWithUser(friend.id);
     activeConversationId.value = conversation.id;
-    showSupervisorDialog.value = false;
+    showFriendDialog.value = false;
   } catch (error) {
     console.error('Failed to start chat:', error);
   }

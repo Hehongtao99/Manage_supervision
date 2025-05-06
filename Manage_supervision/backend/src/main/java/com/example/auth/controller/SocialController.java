@@ -3,6 +3,7 @@ package com.example.auth.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.model.dto.request.CommentCreateRequest;
 import com.example.auth.model.dto.request.PostCreateRequest;
+import com.example.auth.model.dto.request.PostForwardRequest;
 import com.example.auth.model.dto.request.PostUpdateRequest;
 import com.example.auth.model.dto.response.CommentResponse;
 import com.example.auth.model.dto.response.PostResponse;
@@ -109,6 +110,22 @@ public class SocialController {
         PostResponse post = socialService.getPostDetail(userId, id);
         return ResponseVO.success("获取成功", post);
     }
+    
+    /**
+     * 获取原始帖子信息
+     * 
+     * @param token 用户令牌
+     * @param originalId 原始帖子ID
+     * @return 原始帖子信息
+     */
+    @GetMapping("/post/original/{originalId}")
+    public ResponseVO<PostResponse> getOriginalPost(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long originalId) {
+        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+        PostResponse post = socialService.getOriginalPost(userId, originalId);
+        return ResponseVO.success("获取成功", post);
+    }
 
     /**
      * 点赞或取消点赞
@@ -204,5 +221,21 @@ public class SocialController {
         Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
         PostResponse post = socialService.updatePost(userId, request);
         return ResponseVO.success("更新成功", post);
+    }
+    
+    /**
+     * 转发朋友圈帖子
+     *
+     * @param token 用户令牌
+     * @param request 转发请求
+     * @return 转发后的帖子响应
+     */
+    @PostMapping("/post/forward")
+    public ResponseVO<PostResponse> forwardPost(
+            @RequestHeader("Authorization") String token,
+            @RequestBody PostForwardRequest request) {
+        Long userId = jwtUtil.getUserIdFromToken(token.replace("Bearer ", ""));
+        PostResponse post = socialService.forwardPost(userId, request);
+        return ResponseVO.success("转发成功", post);
     }
 } 
