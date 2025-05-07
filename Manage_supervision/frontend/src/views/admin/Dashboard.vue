@@ -103,19 +103,64 @@ const lineChartOption = computed(() => ({
   },
   xAxis: {
     type: 'category',
-    data: userActivityData.value.dates
+    data: userActivityData.value.dates,
+    axisLine: {
+      lineStyle: {
+        color: '#999'
+      }
+    },
+    axisLabel: {
+      color: '#666'
+    }
   },
   yAxis: {
-    type: 'value'
+    type: 'value',
+    splitLine: {
+      lineStyle: {
+        type: 'dashed',
+        color: '#DDD'
+      }
+    },
+    axisLabel: {
+      color: '#666'
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    top: '15%',
+    containLabel: true
   },
   series: [
     {
       name: '活跃用户',
       type: 'line',
-      smooth: true,
-      data: userActivityData.value.counts,
+      smooth: false,
+      symbol: 'circle',
+      symbolSize: 8,
+      lineStyle: {
+        width: 3,
+        color: '#F56C6C'
+      },
       itemStyle: {
-        color: '#409EFF'
+        color: '#F56C6C',
+        borderWidth: 2,
+        borderColor: '#FFF',
+        shadowColor: 'rgba(0, 0, 0, 0.3)',
+        shadowBlur: 5
+      },
+      data: userActivityData.value.counts,
+      markPoint: {
+        data: [
+          { type: 'max', name: '最大值' },
+          { type: 'min', name: '最小值' }
+        ]
+      },
+      markLine: {
+        data: [
+          { type: 'average', name: '平均值' }
+        ]
       },
       areaStyle: {
         color: {
@@ -125,8 +170,8 @@ const lineChartOption = computed(() => ({
           x2: 0,
           y2: 1,
           colorStops: [
-            { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
-            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
+            { offset: 0, color: 'rgba(245, 108, 108, 0.6)' },
+            { offset: 1, color: 'rgba(245, 108, 108, 0.1)' }
           ]
         }
       }

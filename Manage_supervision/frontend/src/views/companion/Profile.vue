@@ -367,24 +367,23 @@ const handleSubmit = async () => {
     });
     
     try {
-      // 使用API更新用户信息
-      // 注意：这里应该调用真实的API，现在只是更新本地存储
-      // await userStore.updateUserInfo(formModel.value);
-      
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 更新本地存储
-      userStore.setUserInfo({
-        ...userStore.user,
+      // 构建个人信息数据对象
+      const profileData = {
         realName: formModel.value.realName,
         nickname: formModel.value.nickname,
         email: formModel.value.email,
         phone: formModel.value.phone,
         bio: formModel.value.bio
-      });
+      };
       
-      ElMessage.success('个人信息已更新');
+      // 调用API更新用户信息
+      const success = await userStore.updateProfile(profileData);
+      
+      if (success) {
+        ElMessage.success('个人信息已更新');
+      } else {
+        ElMessage.error(userStore.error || '更新个人信息失败');
+      }
     } finally {
       loading.close();
     }
@@ -409,10 +408,10 @@ const handlePasswordChange = async () => {
     
     try {
       // 使用API更新密码
-      // await userStore.changePassword(passwordForm.value);
-      
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await userStore.changePassword({
+        currentPassword: passwordForm.value.currentPassword,
+        newPassword: passwordForm.value.newPassword
+      });
       
       // 清空密码表单
       passwordForm.value.currentPassword = '';
@@ -420,6 +419,9 @@ const handlePasswordChange = async () => {
       passwordForm.value.confirmPassword = '';
       
       ElMessage.success('密码已更新，下次登录时生效');
+    } catch (error: any) {
+      console.error('更新密码失败:', error);
+      ElMessage.error(error.response?.data?.message || '密码更新失败，请检查当前密码是否正确');
     } finally {
       loading.close();
     }

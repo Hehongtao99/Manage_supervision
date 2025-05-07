@@ -46,6 +46,8 @@ mybatis-plus:
       logic-delete-value: 1
       # 逻辑未删除值（默认为0）
       logic-not-delete-value: 0
+      # 更新策略，忽略 null 值字段
+      update-strategy: not_null
 
 jwt:
   secret: your_jwt_secret_key_here_please_change_in_production
