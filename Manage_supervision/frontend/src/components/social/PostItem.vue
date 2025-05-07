@@ -3,7 +3,9 @@
     <el-card class="post-card" shadow="hover">
       <!-- 帖子头部 -->
       <div class="post-header">
-        <el-avatar :src="post.avatar" class="post-avatar" />
+        <user-info-popover :user-id="post.userId">
+          <el-avatar :src="post.avatar" class="post-avatar" />
+        </user-info-popover>
         <div class="post-user-info">
           <div class="post-username">
             {{ post.username }}
@@ -27,14 +29,16 @@
       </div>
 
       <!-- 帖子内容 -->
-      <div class="post-content">{{ post.content }}</div>
+      <div class="post-content" v-if="!post.isForward">{{ post.content }}</div>
 
       <!-- 添加转发内容预览 -->
       <div v-if="post.isForward && post.originalPost" class="forward-content">
         <div class="forward-comment" v-if="post.forwardComment">{{ post.forwardComment }}</div>
         <div class="original-post-card">
           <div class="original-post-header">
-            <el-avatar :src="post.originalPost.avatar" class="original-post-avatar" />
+            <user-info-popover :user-id="post.originalPost.userId">
+              <el-avatar :src="post.originalPost.avatar" class="original-post-avatar" size="small" />
+            </user-info-popover>
             <div class="original-post-info">
               <div class="original-post-username">{{ post.originalPost.username }}</div>
               <div class="original-post-time">{{ formatTime(post.originalPost.createTime) }}</div>
@@ -137,6 +141,7 @@
             type="text" 
             class="post-forward-btn"
             @click="handleForward"
+            v-if="post.userId !== currentUserId && !post.isForward"
           >
             <el-icon><Share /></el-icon>
             转发
@@ -169,6 +174,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { ThumbUp, ChatDotRound, MoreFilled, Star, StarFilled, Share, ArrowRight } from '@element-plus/icons-vue'
 import PostEditDialog from '@/components/social/PostEditDialog.vue'
 import PostForwardDialog from '@/components/social/PostForwardDialog.vue'
+import UserInfoPopover from '@/components/social/UserInfoPopover.vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -334,7 +340,15 @@ const viewOriginalPost = () => {
 }
 
 .post-card {
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
 }
 
 .post-header {
@@ -345,6 +359,7 @@ const viewOriginalPost = () => {
 
 .post-avatar {
   margin-right: 12px;
+  border: 2px solid #f0f2f5;
 }
 
 .post-user-info {
@@ -363,6 +378,9 @@ const viewOriginalPost = () => {
   margin-left: 8px;
   font-size: 10px;
   font-weight: normal;
+  padding: 0 5px;
+  height: 18px;
+  line-height: 18px;
 }
 
 .post-time {
@@ -372,31 +390,39 @@ const viewOriginalPost = () => {
 }
 
 .post-content {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   white-space: pre-wrap;
   word-break: break-all;
   text-align: left;
   line-height: 1.6;
+  font-size: 15px;
 }
 
 .running-record-card {
-  background-color: #f8f9ff;
-  border-radius: 8px;
+  background-color: #f0f7ff;
+  border-radius: 10px;
   border-left: 4px solid #409eff;
-  padding: 12px;
-  margin-bottom: 16px;
+  padding: 15px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 10px rgba(64, 158, 255, 0.1);
+  transition: transform 0.2s;
+}
+
+.running-record-card:hover {
+  transform: translateY(-2px);
 }
 
 .running-record-header {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: #409eff;
   font-weight: bold;
 }
 
 .running-icon {
-  margin-right: 6px;
+  margin-right: 8px;
+  font-size: 18px;
 }
 
 .running-record-content {
@@ -406,18 +432,31 @@ const viewOriginalPost = () => {
 .running-record-stats {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .stat-item {
   text-align: center;
   flex: 1;
+  padding: 0 10px;
+  position: relative;
+}
+
+.stat-item:not(:last-child):after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background-color: #e0e0e0;
 }
 
 .stat-value {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: bold;
   color: #303133;
+  margin-bottom: 4px;
 }
 
 .stat-label {
@@ -429,6 +468,8 @@ const viewOriginalPost = () => {
   text-align: right;
   font-size: 12px;
   color: #909399;
+  margin-top: 5px;
+  font-style: italic;
 }
 
 .post-images {
@@ -451,21 +492,24 @@ const viewOriginalPost = () => {
   flex-direction: column;
   border-top: 1px solid #f0f0f0;
   padding-top: 12px;
+  margin-top: 5px;
 }
 
 .post-stats {
   display: flex;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 12px;
-  color: #999;
+  color: #606266;
 }
 
-.post-likes {
-  margin-right: 12px;
+.post-likes, .post-comments {
+  margin-right: 15px;
 }
 
 .post-actions {
   display: flex;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 8px;
 }
 
 .post-like-btn,
@@ -475,10 +519,27 @@ const viewOriginalPost = () => {
   align-items: center;
   justify-content: center;
   flex: 1;
+  padding: 8px 0;
+  transition: all 0.3s;
+  border-radius: 4px;
+  color: #606266;
+}
+
+.post-like-btn:hover,
+.post-comment-btn:hover,
+.post-forward-btn:hover {
+  background-color: #f5f7fa;
 }
 
 .post-like-btn.liked {
   color: #ff6a00;
+}
+
+.post-like-btn .el-icon,
+.post-comment-btn .el-icon,
+.post-forward-btn .el-icon {
+  margin-right: 4px;
+  font-size: 16px;
 }
 
 .el-dropdown-link {
@@ -489,62 +550,161 @@ const viewOriginalPost = () => {
 .image-grid-single {
   height: 250px;
   width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .image-grid-single .image-item {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 .image-grid-two {
   display: flex;
   height: 180px;
-  gap: 3px;
+  gap: 4px;
 }
 
 .image-grid-two .image-item {
   width: 50%;
   height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
 }
 
 .image-grid-three {
   display: flex;
   height: 150px;
-  gap: 3px;
+  gap: 4px;
 }
 
 .image-grid-three .image-item {
   width: 33.33%;
   height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
 }
 
 .image-grid-four {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 150px);
-  gap: 3px;
+  gap: 4px;
 }
 
 .image-grid-multi {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 120px);
-  gap: 3px;
+  gap: 4px;
 }
 
 .image-item {
   overflow: hidden;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .image-item .el-image {
   width: 100%;
   height: 100%;
-  transition: transform 0.3s;
+  transition: transform 0.3s ease;
 }
 
 .image-item:hover .el-image {
   transform: scale(1.05);
+}
+
+.more-images {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 转发样式优化 */
+.forward-content {
+  margin-bottom: 16px;
+}
+
+.forward-comment {
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 15px;
+}
+
+.original-post-card {
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  padding: 12px;
+  border-left: 3px solid #dcdfe6;
+  position: relative;
+}
+
+.original-post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.original-post-avatar {
+  margin-right: 8px;
+}
+
+.original-post-info {
+  flex: 1;
+}
+
+.original-post-username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.original-post-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.original-post-content {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #666;
+  line-height: 1.5;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.original-post-images {
+  margin-bottom: 10px;
+}
+
+.original-post-images .image-grid-single {
+  height: 180px;
+}
+
+.original-post-images .image-grid-two,
+.original-post-images .image-grid-three,
+.original-post-images .image-grid-four {
+  height: 120px;
+}
+
+.view-original {
+  margin-top: 8px;
+  text-align: right;
+  font-size: 13px;
 }
 </style> 

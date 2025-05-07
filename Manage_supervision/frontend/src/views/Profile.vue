@@ -5,7 +5,7 @@
       <template #header>
         <div class="card-header">
           <h3>个人信息</h3>
-          <el-button type="primary" @click="handleSave" :loading="loading">保存更改</el-button>
+          <el-button v-if="isCurrentUser" type="primary" @click="handleSave" :loading="loading">保存更改</el-button>
         </div>
       </template>
 
@@ -13,6 +13,7 @@
         <!-- 头像上传 -->
         <div class="avatar-container">
           <el-upload
+            v-if="isCurrentUser"
             class="avatar-uploader"
             action="/api/user/avatar"
             :show-file-list="false"
@@ -23,45 +24,53 @@
           >
             <el-avatar
               :size="100"
-              :src="form.avatar || userStore.user.avatar"
+              :src="form.avatar"
               class="avatar"
             >
-              {{ userStore.user.username?.charAt(0).toUpperCase() }}
+              {{ form.realName?.charAt(0) || form.nickname?.charAt(0) || '?' }}
             </el-avatar>
             <div class="avatar-upload-tip">点击更换头像</div>
           </el-upload>
+          <el-avatar
+            v-else
+            :size="100"
+            :src="form.avatar"
+            class="avatar"
+          >
+            {{ form.realName?.charAt(0) || form.nickname?.charAt(0) || '?' }}
+          </el-avatar>
         </div>
 
         <!-- 个人信息表单 -->
         <el-form
           ref="formRef"
           :model="form"
-          :rules="rules"
+          :rules="isCurrentUser ? rules : {}"
           label-width="100px"
           class="profile-form"
         >
-          <el-form-item label="用户名">
-            <el-input v-model="userStore.user.username" disabled />
+          <el-form-item v-if="form.username" label="用户名">
+            <el-input v-model="form.username" disabled />
           </el-form-item>
 
-          <el-form-item label="用户编号">
-            <el-input v-model="userStore.user.userNumber" disabled />
+          <el-form-item v-if="form.userNumber" label="用户编号">
+            <el-input v-model="form.userNumber" disabled />
           </el-form-item>
 
           <el-form-item label="真实姓名" prop="realName">
-            <el-input v-model="form.realName" placeholder="请输入真实姓名" />
+            <el-input v-model="form.realName" placeholder="请输入真实姓名" :disabled="!isCurrentUser" />
           </el-form-item>
 
           <el-form-item label="昵称" prop="nickname">
-            <el-input v-model="form.nickname" placeholder="请输入昵称" />
+            <el-input v-model="form.nickname" placeholder="请输入昵称" :disabled="!isCurrentUser" />
           </el-form-item>
 
           <el-form-item label="邮箱" prop="email">
-            <el-input v-model="form.email" placeholder="请输入邮箱" />
+            <el-input v-model="form.email" placeholder="请输入邮箱" :disabled="!isCurrentUser" />
           </el-form-item>
 
           <el-form-item label="电话" prop="phone">
-            <el-input v-model="form.phone" placeholder="请输入电话号码" />
+            <el-input v-model="form.phone" placeholder="请输入电话号码" :disabled="!isCurrentUser" />
           </el-form-item>
 
           <el-form-item label="个人简介" prop="bio">
@@ -70,6 +79,7 @@
               type="textarea"
               :rows="4"
               placeholder="请输入个人简介"
+              :disabled="!isCurrentUser"
             />
           </el-form-item>
         </el-form>
@@ -77,7 +87,7 @@
     </el-card>
 
     <!-- 修改密码卡片 -->
-    <el-card class="profile-card" style="margin-top: 20px">
+    <el-card v-if="isCurrentUser" class="profile-card" style="margin-top: 20px">
       <template #header>
         <div class="card-header">
           <h3>修改密码</h3>
@@ -138,7 +148,7 @@
         </div>
       </template>
 
-      <AchievementCard />
+      <AchievementCard :user-id="userId" />
     </el-card>
 
     <!-- 跑步偏好卡片 -->
@@ -146,7 +156,7 @@
       <template #header>
         <div class="card-header">
           <h3>跑步偏好</h3>
-          <el-button type="primary" @click="handleSaveRunningPreference" :loading="runningLoading">保存偏好</el-button>
+          <el-button v-if="isCurrentUser" type="primary" @click="handleSaveRunningPreference" :loading="runningLoading">保存偏好</el-button>
         </div>
       </template>
 
@@ -157,7 +167,7 @@
         class="running-form"
       >
         <el-form-item label="跑步频率">
-          <el-select v-model="runningForm.frequency" placeholder="请选择跑步频率" style="width: 100%">
+          <el-select v-model="runningForm.frequency" placeholder="请选择跑步频率" style="width: 100%" :disabled="!isCurrentUser">
             <el-option label="每天" value="每天"></el-option>
             <el-option label="每周3-5次" value="每周3-5次"></el-option>
             <el-option label="每周1-2次" value="每周1-2次"></el-option>
@@ -166,7 +176,7 @@
         </el-form-item>
 
         <el-form-item label="偏好距离">
-          <el-select v-model="runningForm.preferredDistance" placeholder="请选择偏好距离" style="width: 100%">
+          <el-select v-model="runningForm.preferredDistance" placeholder="请选择偏好距离" style="width: 100%" :disabled="!isCurrentUser">
             <el-option label="5公里以内" value="5公里以内"></el-option>
             <el-option label="5-10公里" value="5-10公里"></el-option>
             <el-option label="半程马拉松" value="半程马拉松"></el-option>
@@ -175,7 +185,7 @@
         </el-form-item>
 
         <el-form-item label="跑步配速">
-          <el-select v-model="runningForm.pace" placeholder="请选择跑步配速" style="width: 100%">
+          <el-select v-model="runningForm.pace" placeholder="请选择跑步配速" style="width: 100%" :disabled="!isCurrentUser">
             <el-option label="5分钟/公里以内" value="5分钟/公里以内"></el-option>
             <el-option label="5-6分钟/公里" value="5-6分钟/公里"></el-option>
             <el-option label="6-7分钟/公里" value="6-7分钟/公里"></el-option>
@@ -184,7 +194,7 @@
         </el-form-item>
 
         <el-form-item label="跑步环境">
-          <el-select v-model="runningForm.environment" placeholder="请选择跑步环境" style="width: 100%">
+          <el-select v-model="runningForm.environment" placeholder="请选择跑步环境" style="width: 100%" :disabled="!isCurrentUser">
             <el-option label="公园" value="公园"></el-option>
             <el-option label="城市道路" value="城市道路"></el-option>
             <el-option label="跑步机" value="跑步机"></el-option>
@@ -200,7 +210,7 @@
       <template #header>
         <div class="card-header">
           <h3>社交资料</h3>
-          <el-button type="primary" @click="handleSaveMotto" :loading="mottoLoading">保存宣言</el-button>
+          <el-button v-if="isCurrentUser" type="primary" @click="handleSaveMotto" :loading="mottoLoading">保存宣言</el-button>
         </div>
       </template>
 
@@ -218,6 +228,7 @@
             placeholder="请输入您的跑步宣言，分享您的跑步理念和目标"
             maxlength="200"
             show-word-limit
+            :disabled="!isCurrentUser"
           />
         </el-form-item>
       </el-form>
@@ -248,26 +259,42 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useUserStore } from '../stores/user'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, UploadProps } from 'element-plus'
 import type { UpdateProfileRequest, UpdatePasswordRequest } from '../types/user'
 import { getRunningPreference, saveRunningPreference, saveMotto } from '../api/running'
+import { getUserInfo, getUserStats } from '../api/user'
 import AchievementCard from '../components/AchievementCard.vue'
 
 const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
 const formRef = ref<FormInstance>()
 const passwordFormRef = ref<FormInstance>()
 const loading = ref(false)
 const passwordLoading = ref(false)
 
+// 判断是否查看其他用户的个人主页
+const userId = computed(() => {
+  return route.params.id ? Number(route.params.id) : userStore.userId
+})
+
+// 判断是否是当前登录用户
+const isCurrentUser = computed(() => {
+  return userId.value === userStore.userId
+})
+
 // 个人信息表单
-const form = reactive<UpdateProfileRequest & { avatar?: string }>({
+const form = reactive<UpdateProfileRequest & { avatar?: string, username?: string, userNumber?: string }>({
   realName: userStore.user.realName || '',
   nickname: userStore.user.nickname || '',
   email: userStore.user.email || '',
   phone: userStore.user.phone || '',
   bio: userStore.user.bio || '',
-  avatar: userStore.user.avatar || ''
+  avatar: userStore.user.avatar || '',
+  username: userStore.user.username || '',
+  userNumber: userStore.user.userNumber || ''
 })
 
 // 修改密码表单
@@ -350,25 +377,32 @@ const mottoForm = reactive({
 // 页面加载时确保用户信息已更新
 onMounted(async () => {
   try {
-    // 强制刷新用户信息
-    const success = await userStore.fetchUserInfo(true)
-    
-    if (success) {
-      console.log('用户信息已更新，学号:', userStore.user.userNumber)
+    if (isCurrentUser.value) {
+      // 如果是当前用户，使用store中的用户信息
+      const success = await userStore.fetchUserInfo(true)
       
-      // 更新表单数据
-      form.realName = userStore.user.realName || ''
-      form.nickname = userStore.user.nickname || ''
-      form.email = userStore.user.email || ''
-      form.phone = userStore.user.phone || ''
-      form.bio = userStore.user.bio || ''
-      form.avatar = userStore.user.avatar || ''
-      
-      // 获取用户跑步偏好信息
-      await fetchRunningPreference()
+      if (success) {
+        console.log('用户信息已更新，学号:', userStore.user.userNumber)
+        
+        // 更新表单数据
+        form.realName = userStore.user.realName || ''
+        form.nickname = userStore.user.nickname || ''
+        form.email = userStore.user.email || ''
+        form.phone = userStore.user.phone || ''
+        form.bio = userStore.user.bio || ''
+        form.avatar = userStore.user.avatar || ''
+        form.username = userStore.user.username || ''
+        form.userNumber = userStore.user.userNumber || ''
+        
+        // 获取用户跑步偏好信息
+        await fetchRunningPreference()
+      } else {
+        // 不要显示错误消息，避免多次显示
+        console.warn('获取用户信息未成功，可能需要重新登录')
+      }
     } else {
-      // 不要显示错误消息，避免多次显示
-      console.warn('获取用户信息未成功，可能需要重新登录')
+      // 如果查看其他用户，从API获取用户信息
+      await fetchUserInfo()
     }
   } catch (error) {
     console.error('获取用户信息失败:', error)
@@ -378,6 +412,47 @@ onMounted(async () => {
     }
   }
 })
+
+// 获取其他用户信息
+const fetchUserInfo = async () => {
+  try {
+    const response = await getUserInfo(userId.value)
+    if (response && response.data) {
+      const userData = response.data
+      
+      // 更新表单数据显示用户信息
+      form.realName = userData.realName || ''
+      form.nickname = userData.nickname || ''
+      form.email = userData.email || ''
+      form.phone = userData.phone || ''
+      form.bio = userData.bio || ''
+      form.avatar = userData.avatar || ''
+      form.username = userData.username || ''
+      form.userNumber = userData.userNumber || ''
+      
+      // 获取用户统计信息
+      await fetchUserStats()
+    } else {
+      ElMessage.error('获取用户信息失败')
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+    ElMessage.error('获取用户信息失败')
+  }
+}
+
+// 获取用户统计信息
+const fetchUserStats = async () => {
+  try {
+    const response = await getUserStats(userId.value)
+    if (response && response.data) {
+      // 可以在这里设置用户的统计信息到UI上
+      console.log('用户统计信息:', response.data)
+    }
+  } catch (error) {
+    console.error('获取用户统计信息失败:', error)
+  }
+}
 
 // 获取用户跑步偏好
 const fetchRunningPreference = async () => {
@@ -464,6 +539,8 @@ const handleSave = async () => {
           form.phone = userStore.user.phone || ''
           form.bio = userStore.user.bio || ''
           form.avatar = userStore.user.avatar || ''
+          form.username = userStore.user.username || ''
+          form.userNumber = userStore.user.userNumber || ''
         } else {
           ElMessage.error(userStore.error || '更新个人信息失败')
         }

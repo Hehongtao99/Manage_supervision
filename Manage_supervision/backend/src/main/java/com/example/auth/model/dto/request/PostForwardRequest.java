@@ -23,9 +23,4 @@ public class PostForwardRequest {
      * 可见范围：0-全部可见，1-仅好友可见
      */
     private Integer visibility = 0;
-    
-    /**
-     * 位置信息
-     */
-    private String location;
 } 

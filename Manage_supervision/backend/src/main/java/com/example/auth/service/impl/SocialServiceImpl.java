@@ -6,6 +6,7 @@ import com.example.auth.common.exception.BusinessException;
 import com.example.auth.mapper.*;
 import com.example.auth.model.dto.request.CommentCreateRequest;
 import com.example.auth.model.dto.request.PostCreateRequest;
+import com.example.auth.model.dto.request.PostForwardRequest;
 import com.example.auth.model.dto.request.PostUpdateRequest;
 import com.example.auth.model.dto.response.CommentResponse;
 import com.example.auth.model.dto.response.PostResponse;
@@ -630,6 +631,58 @@ public class SocialServiceImpl implements SocialService {
             response.setVisibility(post.getVisibility());
             response.setCreateTime(post.getCreateTime());
             
+            // 添加转发相关字段
+            response.setForwardCount(post.getForwardCount());
+            response.setIsForward(post.getIsForward() == 1);
+            response.setOriginalPostId(post.getOriginalPostId());
+            
+            // 如果是转发的帖子，获取原始帖子信息
+            if (post.getIsForward() == 1 && post.getOriginalPostId() > 0) {
+                Post originalPost = postMapper.selectById(post.getOriginalPostId());
+                if (originalPost != null && originalPost.getIsDeleted() == 0) {
+                    // 构建原帖信息
+                    PostResponse originalResponse = new PostResponse();
+                    originalResponse.setId(originalPost.getId());
+                    originalResponse.setUserId(originalPost.getUserId());
+                    
+                    // 获取原帖用户信息
+                    User originalUser = userMap.get(originalPost.getUserId());
+                    if (originalUser == null) {
+                        originalUser = userMapper.selectById(originalPost.getUserId());
+                        if (originalUser != null) {
+                            userMap.put(originalUser.getId(), originalUser);
+                        }
+                    }
+                    
+                    if (originalUser != null) {
+                        originalResponse.setUsername(originalUser.getUsername());
+                        originalResponse.setAvatar(originalUser.getAvatar());
+                    }
+                    
+                    originalResponse.setContent(originalPost.getContent());
+                    originalResponse.setImageUrls(postImageMap.getOrDefault(originalPost.getId(), new ArrayList<>()));
+                    originalResponse.setCreateTime(originalPost.getCreateTime());
+                    
+                    response.setOriginalPost(originalResponse);
+                    
+                    // 获取转发评论
+                    LambdaQueryWrapper<PostForward> forwardWrapper = new LambdaQueryWrapper<>();
+                    forwardWrapper.eq(PostForward::getNewPostId, post.getId())
+                            .eq(PostForward::getOriginalPostId, post.getOriginalPostId())
+                            .eq(PostForward::getIsDeleted, 0);
+                    PostForward postForward = postForwardMapper.selectOne(forwardWrapper);
+                    if (postForward != null) {
+                        response.setForwardComment(postForward.getForwardComment());
+                    }
+                } else {
+                    // 原帖已删除
+                    PostResponse deletedPost = new PostResponse();
+                    deletedPost.setId(post.getOriginalPostId());
+                    deletedPost.setContent("该帖子已被删除");
+                    response.setOriginalPost(deletedPost);
+                }
+            }
+            
             // 设置跑步记录
             Long runningRecordId = postRunningRecordMap.get(post.getId());
             if (runningRecordId != null) {
@@ -841,13 +894,9 @@ public class SocialServiceImpl implements SocialService {
         // 2. 检查用户是否有权限查看原帖子(好友可见的帖子只有好友才能转发)
         if (originalPost.getVisibility() == 1) {
             // 检查是否是好友关系
-            LambdaQueryWrapper<Friendship> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(Friendship::getUserId, userId)
-                    .eq(Friendship::getFriendId, originalPost.getUserId())
-                    .eq(Friendship::getStatus, 1)
-                    .eq(Friendship::getIsDeleted, 0);
-            Friendship friendship = friendshipMapper.selectOne(queryWrapper);
-            if (friendship == null) {
+            // 使用原生SQL查询
+            int count = friendshipMapper.checkFriendship(userId, originalPost.getUserId());
+            if (count == 0) {
                 throw new RuntimeException("无权限查看或转发该帖子");
             }
         }
@@ -857,7 +906,8 @@ public class SocialServiceImpl implements SocialService {
         newPost.setUserId(userId);
         newPost.setContent(request.getForwardComment());
         newPost.setVisibility(request.getVisibility());
-        newPost.setLocation(request.getLocation());
+        // 转发不需要添加位置信息
+        newPost.setLocation(null);
         newPost.setLikeCount(0);
         newPost.setCommentCount(0);
         newPost.setForwardCount(0);
@@ -906,13 +956,9 @@ public class SocialServiceImpl implements SocialService {
         // 检查权限
         if (post.getVisibility() == 1 && !userId.equals(post.getUserId())) {
             // 如果是仅好友可见，需要检查是否是好友关系
-            LambdaQueryWrapper<Friendship> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(Friendship::getUserId, userId)
-                    .eq(Friendship::getFriendId, post.getUserId())
-                    .eq(Friendship::getStatus, 1)
-                    .eq(Friendship::getIsDeleted, 0);
-            Friendship friendship = friendshipMapper.selectOne(queryWrapper);
-            if (friendship == null) {
+            // 使用原生SQL查询
+            int count = friendshipMapper.checkFriendship(userId, post.getUserId());
+            if (count == 0) {
                 throw new RuntimeException("无权限查看该帖子");
             }
         }
@@ -925,10 +971,24 @@ public class SocialServiceImpl implements SocialService {
         PostResponse postResponse = new PostResponse();
         postResponse.setId(post.getId());
         postResponse.setUserId(post.getUserId());
-        postResponse.setUsername(post.getUsername());
-        postResponse.setAvatar(post.getAvatar());
+        
+        // 获取用户信息
+        User user = userMapper.selectById(post.getUserId());
+        postResponse.setUsername(user.getUsername());
+        postResponse.setAvatar(user.getAvatar());
+        
         postResponse.setContent(post.getContent());
-        postResponse.setImageUrls(post.getImageUrls());
+        
+        // 获取图片
+        LambdaQueryWrapper<PostImage> imageQueryWrapper = new LambdaQueryWrapper<>();
+        imageQueryWrapper.eq(PostImage::getPostId, post.getId())
+                .orderByAsc(PostImage::getSortOrder);
+        List<PostImage> images = postImageMapper.selectList(imageQueryWrapper);
+        List<String> imageUrls = images.stream()
+                .map(PostImage::getImageUrl)
+                .collect(Collectors.toList());
+        postResponse.setImageUrls(imageUrls);
+        
         postResponse.setLocation(post.getLocation());
         postResponse.setLikeCount(post.getLikeCount());
         postResponse.setCommentCount(post.getCommentCount());

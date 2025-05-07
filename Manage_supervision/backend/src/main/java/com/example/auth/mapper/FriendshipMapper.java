@@ -17,20 +17,21 @@ public interface FriendshipMapper extends BaseMapper<Friendship> {
      */
     @Select("SELECT u.* FROM users u " +
             "JOIN user_friendships f ON u.id = f.friend_id " +
-            "WHERE f.user_id = #{userId}")
+            "WHERE f.user_id = #{userId} AND f.status = 1 AND f.is_deleted = 0")
     List<User> findFriendsByUserId(@Param("userId") Long userId);
     
     /**
      * 查询用户的所有好友ID
      */
-    @Select("SELECT friend_id FROM user_friendships WHERE user_id = #{userId}")
+    @Select("SELECT friend_id FROM user_friendships WHERE user_id = #{userId} AND status = 1 AND is_deleted = 0")
     List<Long> findFriendUserIdsByUserId(@Param("userId") Long userId);
     
     /**
      * 检查两个用户是否是好友关系
      */
     @Select("SELECT COUNT(*) FROM user_friendships " +
-            "WHERE (user_id = #{userId1} AND friend_id = #{userId2}) " +
-            "OR (user_id = #{userId2} AND friend_id = #{userId1})")
+            "WHERE ((user_id = #{userId1} AND friend_id = #{userId2}) " +
+            "OR (user_id = #{userId2} AND friend_id = #{userId1})) " +
+            "AND status = 1 AND is_deleted = 0")
     int checkFriendship(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 } 

@@ -75,20 +75,37 @@ const fetchPosts = async (reset = true) => {
     
     const { records, total: totalCount, pages } = response.data.data
     
-    // 更详细地记录获取到的帖子数据
+    // 记录获取到的帖子数据
     console.log('获取到的帖子列表数据:', records)
     
-    // 检查每个帖子的跑步记录
+    // 检查每个帖子的关键信息
     records.forEach((post, index) => {
-      console.log(`[帖子${index+1}, ID=${post.id}] 帖子内容:`, post.content)
-      console.log(`[帖子${index+1}, ID=${post.id}] 是否有跑步记录:`, !!post.runningRecord)
+      console.log(`[帖子${index+1}, ID=${post.id}] 内容:`, post.content)
       
+      // 检查是否是转发的帖子
+      if (post.isForward) {
+        console.log(`[帖子${index+1}, ID=${post.id}] 是转发帖子, 原帖ID:`, post.originalPostId)
+        console.log(`[帖子${index+1}, ID=${post.id}] 转发评论:`, post.forwardComment)
+        console.log(`[帖子${index+1}, ID=${post.id}] 转发数:`, post.forwardCount)
+        
+        if (post.originalPost) {
+          console.log(`[帖子${index+1}, ID=${post.id}] 原帖信息:`, {
+            id: post.originalPost.id,
+            username: post.originalPost.username,
+            content: post.originalPost.content,
+            hasRunningRecord: !!post.originalPost.runningRecord
+          })
+        }
+      }
+      
+      // 检查跑步记录
       if (post.runningRecord) {
-        console.log(`[帖子${index+1}, ID=${post.id}] 跑步记录详情:`, JSON.stringify(post.runningRecord))
-        console.log(`[帖子${index+1}, ID=${post.id}] 跑步记录ID:`, post.runningRecord.id)
-        console.log(`[帖子${index+1}, ID=${post.id}] 跑步距离:`, post.runningRecord.distance)
-        console.log(`[帖子${index+1}, ID=${post.id}] 跑步时长:`, post.runningRecord.duration)
-        console.log(`[帖子${index+1}, ID=${post.id}] 跑步配速:`, post.runningRecord.pace)
+        console.log(`[帖子${index+1}, ID=${post.id}] 跑步记录:`, {
+          id: post.runningRecord.id,
+          distance: post.runningRecord.distance,
+          duration: post.runningRecord.duration,
+          pace: post.runningRecord.pace
+        })
       }
     })
     

@@ -22,8 +22,6 @@ export interface PostForwardRequest {
   originalPostId: number;
   /** 转发评论内容 */
   forwardComment: string;
-  /** 位置信息 */
-  location?: string;
   /** 可见范围：0-全部可见，1-仅好友可见 */
   visibility?: number;
 }

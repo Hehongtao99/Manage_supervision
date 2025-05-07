@@ -27,4 +27,18 @@ public interface UserService {
 
     // 添加获取教师学生的方法
     List<UserDTO> getStudentsByTeacher(Long teacherId);
+
+    /**
+     * 获取用户发布的帖子数量
+     * @param userId 用户ID
+     * @return 帖子数量
+     */
+    int getUserPostCount(Long userId);
+    
+    /**
+     * 获取用户的跑步记录数量
+     * @param userId 用户ID
+     * @return 跑步记录数量
+     */
+    int getUserRunningRecordCount(Long userId);
 } 

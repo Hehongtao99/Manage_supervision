@@ -36,6 +36,18 @@ public class Friendship {
     @TableField("create_time")
     private LocalDateTime createTime;
     
+    /**
+     * 好友关系状态：0-待接受，1-已接受
+     */
+    @TableField("status")
+    private Integer status;
+    
+    /**
+     * 是否删除：0-未删除，1-已删除
+     */
+    @TableField("is_deleted")
+    private Integer isDeleted;
+    
     // 非数据库字段
     @TableField(exist = false)
     private User friend;

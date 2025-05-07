@@ -157,4 +157,58 @@ public class UserController {
                 .body(Map.of("message", "获取督导员列表失败: " + e.getMessage()));
         }
     }
+
+    /**
+     * 获取指定用户的详细信息
+     */
+    @GetMapping("/{id}/info")
+    public ResponseEntity<?> getUserInfo(@PathVariable("id") Long userId) {
+        try {
+            User user = userService.findById(userId);
+            
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            }
+            
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("username", user.getUsername());
+            userData.put("avatar", user.getAvatar());
+            userData.put("roles", user.getRoles().stream().map(role -> role.getName()).toList());
+            userData.put("realName", user.getRealName());
+            userData.put("nickname", user.getNickname());
+            userData.put("email", user.getEmail());
+            userData.put("phone", user.getPhone());
+            userData.put("bio", user.getBio());
+            userData.put("userNumber", user.getUserNumber());
+            
+            return ResponseEntity.ok(userData);
+        } catch (Exception e) {
+            logger.error("获取用户信息失败", e);
+            return ResponseEntity.status(500).body(Map.of("message", "获取用户信息失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取用户统计信息
+     */
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<?> getUserStats(@PathVariable("id") Long userId) {
+        try {
+            // 获取用户发布的帖子数量
+            int postCount = userService.getUserPostCount(userId);
+            
+            // 获取用户的跑步记录数量
+            int runningCount = userService.getUserRunningRecordCount(userId);
+            
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("postCount", postCount);
+            stats.put("runningCount", runningCount);
+            
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            logger.error("获取用户统计信息失败", e);
+            return ResponseEntity.status(500).body(Map.of("message", "获取用户统计信息失败: " + e.getMessage()));
+        }
+    }
 }

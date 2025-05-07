@@ -135,4 +135,12 @@ export const forwardPost = async (forwardData: PostForwardRequest): Promise<Axio
  */
 export const getOriginalPost = async (originalId: number): Promise<AxiosResponse> => {
   return axios.get(`${API_URL}/post/original/${originalId}`, { headers: getAuthHeader() })
+}
+
+/**
+ * 检查是否有权限转发帖子
+ * @param postId 帖子ID
+ */
+export const checkForwardPermission = async (postId: number): Promise<AxiosResponse> => {
+  return axios.get(`${API_URL}/post/${postId}/check-forward-permission`, { headers: getAuthHeader() })
 } 

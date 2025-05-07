@@ -18,7 +18,7 @@
         show-word-limit
       />
 
-      <!-- 原贴内容预览区 -->
+      <!-- 原贴内容预览区 - 使用更清晰的卡片样式 -->
       <div class="original-post-preview" v-if="originalPost">
         <div class="preview-header">
           <span class="preview-icon">
@@ -27,7 +27,19 @@
           <span class="preview-title">原帖来自: {{ originalPost.username }}</span>
         </div>
         <div class="preview-content">
-          {{ truncateText(originalPost.content, 50) }}
+          {{ truncateText(originalPost.content, 100) }}
+        </div>
+        <!-- 显示原帖跑步记录预览 -->
+        <div class="preview-running-record" v-if="hasOriginalRunningRecord">
+          <div class="record-heading">
+            <el-icon><Timer /></el-icon>
+            <span>跑步记录</span>
+          </div>
+          <div class="record-stats">
+            <span>{{ originalPost.runningRecord.distance }}公里</span>
+            <span>{{ originalPost.runningRecord.duration }}分钟</span>
+            <span>配速{{ originalPost.runningRecord.pace }}</span>
+          </div>
         </div>
         <div class="preview-images" v-if="originalPost.imageUrls && originalPost.imageUrls.length > 0">
           <el-image 
@@ -39,19 +51,6 @@
             +{{ originalPost.imageUrls.length - 1 }}
           </div>
         </div>
-      </div>
-
-      <!-- 地点选择器 -->
-      <div class="location-selector">
-        <el-input
-          v-model="forwardForm.location"
-          placeholder="添加所在位置"
-          clearable
-        >
-          <template #prefix>
-            <el-icon><Location /></el-icon>
-          </template>
-        </el-input>
       </div>
 
       <!-- 可见范围选择 -->
@@ -75,7 +74,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Document, Location } from '@element-plus/icons-vue'
+import { Document, Timer } from '@element-plus/icons-vue'
 import { forwardPost, getOriginalPost } from '@/api/social'
 import type { PostResponse, PostForwardRequest } from '@/types/social'
 
@@ -99,12 +98,20 @@ const originalPost = ref<PostResponse | null>(null)
 const forwardForm = ref<PostForwardRequest>({
   originalPostId: props.postId,
   forwardComment: '',
-  location: '',
   visibility: 1 // 默认仅好友可见
 })
 
 // 加载状态
 const loading = ref(false)
+
+// 检查原始帖子是否有跑步记录
+const hasOriginalRunningRecord = computed(() => {
+  return !!originalPost.value?.runningRecord && 
+         (typeof originalPost.value.runningRecord.id !== 'undefined') && 
+         (originalPost.value.runningRecord.distance || 
+          originalPost.value.runningRecord.duration || 
+          originalPost.value.runningRecord.pace)
+})
 
 // 监听对话框打开，获取原始帖子数据
 watch(
@@ -115,9 +122,27 @@ watch(
         loading.value = true
         const response = await getOriginalPost(props.postId)
         originalPost.value = response.data.data
+        
+        // 打印原始帖子数据以便调试
+        console.log('获取到的原始帖子数据:', originalPost.value)
+        
+        if (originalPost.value?.runningRecord) {
+          console.log('原始帖子跑步记录:', originalPost.value.runningRecord)
+        }
       } catch (error) {
         console.error('获取原始帖子数据失败', error)
-        ElMessage.error('获取原始帖子数据失败')
+        
+        // 处理特定错误类型
+        if (error?.response?.data?.message && error.response.data.message.includes('无权限')) {
+          ElMessage.error('您没有权限转发该帖子')
+        } else if (error?.response?.data?.message) {
+          // 显示来自后端的具体错误信息
+          ElMessage.error(error.response.data.message)
+        } else {
+          // 默认错误信息
+          ElMessage.error('获取原始帖子数据失败')
+        }
+        
         dialogVisible.value = false
       } finally {
         loading.value = false
@@ -143,6 +168,7 @@ const truncateText = (text: string, length: number) => {
 
 // 提交转发
 const handleSubmit = async () => {
+  // 基本验证
   if (!forwardForm.value.forwardComment.trim()) {
     ElMessage.warning('请输入转发评论')
     return
@@ -150,13 +176,31 @@ const handleSubmit = async () => {
 
   try {
     loading.value = true
-    await forwardPost(forwardForm.value)
-    ElMessage.success('转发成功')
+    const response = await forwardPost(forwardForm.value)
+    
+    // 记录API响应，以便调试
+    console.log('转发API响应:', response)
+    
+    // 转发成功后立即关闭对话框
     dialogVisible.value = false
+    
+    // 通知父组件刷新列表，以便更新转发计数
     emit('success')
+    
+    ElMessage.success('转发成功')
   } catch (error) {
     console.error('转发失败', error)
-    ElMessage.error('转发失败，请重试')
+    
+    // 处理特定错误类型
+    if (error?.response?.data?.message && error.response.data.message.includes('无权限')) {
+      ElMessage.error('您没有权限转发该帖子')
+    } else if (error?.response?.data?.message) {
+      // 显示来自后端的具体错误信息
+      ElMessage.error(error.response.data.message)
+    } else {
+      // 默认错误信息
+      ElMessage.error('转发失败，请重试')
+    }
   } finally {
     loading.value = false
   }
@@ -167,7 +211,6 @@ const handleClose = () => {
   forwardForm.value = {
     originalPostId: props.postId,
     forwardComment: '',
-    location: '',
     visibility: 1
   }
   originalPost.value = null
@@ -186,28 +229,62 @@ const handleClose = () => {
   border-radius: 8px;
   padding: 12px;
   margin-top: 8px;
-  border-left: 4px solid #e6e6e6;
+  border-left: 4px solid #409EFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .preview-header {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  color: #606266;
+  margin-bottom: 10px;
+  color: #303133;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .preview-icon {
   margin-right: 8px;
+  color: #409EFF;
+}
+
+.preview-title {
+  color: #606266;
 }
 
 .preview-content {
   font-size: 14px;
   color: #303133;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   white-space: pre-wrap;
   word-break: break-all;
   line-height: 1.5;
+}
+
+.preview-running-record {
+  background-color: #eef5fe;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.record-heading {
+  display: flex;
+  align-items: center;
+  color: #409EFF;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.record-heading .el-icon {
+  margin-right: 5px;
+}
+
+.record-stats {
+  display: flex;
+  font-size: 12px;
+  color: #606266;
+  justify-content: space-between;
 }
 
 .preview-images {
@@ -237,10 +314,6 @@ const handleClose = () => {
   align-items: center;
   font-size: 18px;
   font-weight: bold;
-}
-
-.location-selector {
-  margin-top: 8px;
 }
 
 .visibility-selector {

@@ -15,6 +15,7 @@ import com.example.auth.service.TeacherStudentService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -48,6 +49,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private TeacherStudentService teacherStudentService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     @Transactional
@@ -569,5 +573,25 @@ public class UserServiceImpl implements UserService {
         activities.sort((a1, a2) -> a2.getTime().compareTo(a1.getTime()));
         
         return activities;
+    }
+
+    /**
+     * 获取用户发布的帖子数量
+     */
+    @Override
+    public int getUserPostCount(Long userId) {
+        String sql = "SELECT COUNT(*) FROM social_posts WHERE user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null ? count : 0;
+    }
+    
+    /**
+     * 获取用户的跑步记录数量
+     */
+    @Override
+    public int getUserRunningRecordCount(Long userId) {
+        String sql = "SELECT COUNT(*) FROM running_records WHERE user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null ? count : 0;
     }
 }

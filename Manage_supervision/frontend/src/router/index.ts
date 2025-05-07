@@ -129,6 +129,15 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true
         }
       },
+      {
+        path: 'user/:id/profile',
+        name: 'UserProfile',
+        component: () => import('../views/Profile.vue'),
+        meta: {
+          title: '用户主页',
+          requiresAuth: true
+        }
+      },
     ]
   },
   {
