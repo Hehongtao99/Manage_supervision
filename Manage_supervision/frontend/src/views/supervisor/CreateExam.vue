@@ -62,7 +62,7 @@
 
       <el-card class="form-card">
         <template #header>
-          <div class="card-header">
+          <div class="card-header question-header">
             <span>考试题目</span>
             <el-button type="primary" @click="openQuestionSelectorDialog">
               添加题目
@@ -116,7 +116,7 @@
 
       <el-card class="form-card">
         <template #header>
-          <div class="card-header">
+          <div class="card-header student-header">
             <span>考试学生</span>
             <el-button type="primary" @click="openStudentSelectorDialog">
               添加学生
@@ -777,8 +777,10 @@ const getQuestionTypeText = (type: string) => {
 <style scoped>
 .create-exam-container {
   padding: 20px;
-  max-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
   overflow-y: auto;
+  padding-bottom: 100px; /* 增加底部填充，确保内容不被固定按钮遮挡 */
+  box-sizing: border-box;
 }
 
 .header {
@@ -789,18 +791,37 @@ const getQuestionTypeText = (type: string) => {
   position: sticky;
   top: 0;
   background-color: #fff;
-  z-index: 1;
+  z-index: 20;
   padding: 10px 0;
+  border-bottom: 1px solid #ebeef5;
 }
 
 .form-card {
   margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 10px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  height: 50px;
+  position: sticky;
+  top: 60px;
+  z-index: 5;
+}
+
+.question-header, .student-header {
+  background-color: #ecf5ff;
+  border-bottom: 1px solid #d9ecff;
+}
+
+.question-header .el-button, .student-header .el-button {
+  font-weight: bold;
 }
 
 .empty-tip {
@@ -820,11 +841,15 @@ const getQuestionTypeText = (type: string) => {
   justify-content: center;
   gap: 15px;
   margin-top: 30px;
-  position: sticky;
+  position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   background-color: #fff;
-  padding: 15px 0;
-  z-index: 1;
+  padding: 20px 0;
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid #ebeef5;
 }
 
 .dialog-filter {

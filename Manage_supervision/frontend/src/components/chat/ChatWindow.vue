@@ -6,7 +6,7 @@
         <span class="username">{{ otherUser.name }}</span>
       </div>
       <div v-else class="placeholder">
-        <span>Please select a chat</span>
+        <span>请选择一个聊天</span>
       </div>
     </div>
     
@@ -16,7 +16,7 @@
       ref="chatContent"
       @scroll="handleScroll"
     >
-      <el-empty v-if="!conversation" description="Select a contact to start chatting" />
+      <el-empty v-if="!conversation" description="选择联系人开始聊天" />
       
       <template v-else>
         <div v-if="loading" class="loading-container">
@@ -24,7 +24,7 @@
         </div>
         
         <div v-else-if="messages.length === 0" class="empty-conversation">
-          <el-empty description="No messages yet" />
+          <el-empty description="暂无消息" />
         </div>
         
         <template v-else>
@@ -34,7 +34,7 @@
               link 
               @click="loadMoreMessages"
             >
-              Load more
+              加载更多
             </el-button>
           </div>
           
@@ -55,7 +55,7 @@
           v-model="messageContent"
           type="textarea"
           :autosize="{ minRows: 2, maxRows: 5 }"
-          placeholder="Type a message..."
+          placeholder="输入消息..."
           @keydown.enter.exact.prevent="sendMessage"
         />
       </div>
@@ -70,7 +70,7 @@
           :on-change="handleFileSelected"
         >
           <el-button type="primary" :icon="Upload" plain class="upload-btn">
-            File
+            文件
           </el-button>
         </el-upload>
         
@@ -80,7 +80,7 @@
           @click="sendMessage"
           :loading="sending"
         >
-          Send
+          发送
         </el-button>
       </div>
       
@@ -252,8 +252,8 @@ const sendMessage = async () => {
   } catch (error) {
     console.error('Failed to send message:', error);
     ElNotification({
-      title: 'Send Failed',
-      message: error instanceof Error ? error.message : 'Failed to send message, please try again',
+      title: '发送失败',
+      message: error instanceof Error ? error.message : '发送消息失败，请重试',
       type: 'error'
     });
   } finally {
@@ -268,8 +268,8 @@ const handleFileSelected = (file: any) => {
   // 如果文件太大，显示警告
   if (file.size > 20 * 1024 * 1024) { // 20MB
     ElNotification({
-      title: 'File Too Large',
-      message: 'File size cannot exceed 20MB',
+      title: '文件过大',
+      message: '文件大小不能超过20MB',
       type: 'warning'
     });
   }

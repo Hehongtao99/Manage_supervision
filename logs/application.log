@@ -3289,3 +3289,153 @@ java.lang.RuntimeException: OpenCV(4.6.0) D:\a\javacpp-presets\javacpp-presets\o
 2025-05-07 07:31:20.256 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
 2025-05-07 07:31:20.257 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
 2025-05-07 07:31:20.257 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 00:53:47.673 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 63580 (C:\Users\37602\Desktop\template\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\template)
+2025-05-08 00:53:47.677 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-05-08 00:53:50.065 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-08 00:53:50.808 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 729 ms. Found 20 JPA repository interfaces.
+2025-05-08 00:53:52.828 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-05-08 00:53:52.896 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-05-08 00:53:52.902 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-08 00:53:52.904 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-05-08 00:53:53.091 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-08 00:53:53.092 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 5340 ms
+2025-05-08 00:53:53.638 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-08 00:53:53.854 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-05-08 00:53:53.973 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-05-08 00:53:54.709 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-08 00:53:55.569 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@131c0b6f
+2025-05-08 00:53:55.571 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-08 00:53:55.679 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-05-08 00:53:55.686 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-05-08 00:53:56.978 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-08 00:54:00.168 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-08 00:54:02.053 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-05-08 00:54:02.055 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-05-08 00:54:02.063 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-05-08 00:54:02.064 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-05-08 00:54:02.412 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil构造函数被调用
+2025-05-08 00:54:02.413 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始初始化FaceRecognitionUtil...
+2025-05-08 00:54:02.413 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试加载OpenCV本地库...
+2025-05-08 00:54:02.421 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功加载OpenCV core本地库
+2025-05-08 00:54:02.421 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始加载Haar级联分类器模型文件
+2025-05-08 00:54:02.421 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt2.xml
+2025-05-08 00:54:02.422 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /haarcascade_frontalface_alt2.xml
+2025-05-08 00:54:02.422 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt.xml
+2025-05-08 00:54:02.422 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功从路径加载模型: /models/haarcascade_frontalface_alt.xml
+2025-05-08 00:54:02.425 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 从临时文件加载Haar级联分类器: C:\Users\37602\AppData\Local\Temp\haarcascade_3769797976035237460.xml
+2025-05-08 00:54:02.431 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器模型文件提取完成: C:\Users\37602\AppData\Local\Temp\haarcascade_3769797976035237460.xml
+2025-05-08 00:54:04.488 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器加载成功
+2025-05-08 00:54:04.489 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始创建LBPH人脸识别器
+2025-05-08 00:54:04.849 [main] INFO  c.e.auth.util.FaceRecognitionUtil - LBPH人脸识别器创建成功
+2025-05-08 00:54:04.850 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil初始化完成
+2025-05-08 00:54:05.127 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-05-08 00:54:05.275 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-08 00:54:05.410 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-05-08 00:54:05.418 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-05-08 00:54:05.419 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-05-08 00:54:05.600 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\template\uploads/
+2025-05-08 00:54:05.904 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-05-08 00:54:05.958 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-05-08 00:54:05.961 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-05-08 00:54:05.962 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@6f301c90]]
+2025-05-08 00:54:05.963 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-05-08 00:54:05.980 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 19.099 seconds (process running for 21.027)
+2025-05-08 00:55:05.910 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]
+2025-05-08 00:55:58.772 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-08 00:55:58.774 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-05-08 00:55:58.777 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
+2025-05-08 00:56:00.739 [http-nio-8081-exec-5] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 00:56:00.753 [http-nio-8081-exec-6] INFO  c.e.auth.controller.ExamController - 教师获取考试选项列表, 教师ID: 3
+2025-05-08 00:56:01.525 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 00:56:01.525 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 00:56:01.526 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 00:56:01.526 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 00:56:17.337 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-05-08 01:00:27.542 [http-nio-8081-exec-1] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 01:00:27.950 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 01:00:27.950 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 01:00:27.952 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 01:00:27.952 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 01:00:31.295 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 教师获取考试列表, 教师ID: 3, 状态: , 关键词: 
+2025-05-08 01:05:58.599 [http-nio-8081-exec-6] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 01:05:58.997 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 01:05:58.998 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 01:05:59.002 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 01:05:59.003 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 01:06:08.964 [http-nio-8081-exec-3] INFO  c.e.a.c.SupervisorController - Supervisor requested their assigned students list, ID: 3
+2025-05-08 01:06:08.966 [http-nio-8081-exec-3] INFO  c.e.a.service.impl.UserServiceImpl - 获取教师ID为3的学生列表
+2025-05-08 01:06:09.506 [http-nio-8081-exec-3] INFO  c.e.a.c.SupervisorController - 学生数据示例: id=4, name=null, userNumber=S25521158
+2025-05-08 01:09:58.674 [http-nio-8081-exec-2] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸特征大小: 10000 bytes
+2025-05-08 01:09:58.892 [http-nio-8081-exec-2] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸图像大小: 11272 bytes
+2025-05-08 01:09:59.108 [http-nio-8081-exec-2] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 用户 3 的人脸注册成功
+2025-05-08 01:25:05.957 [MessageBroker-3] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 418]
+2025-05-08 01:55:05.965 [MessageBroker-4] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 851]
+2025-05-08 02:25:05.970 [MessageBroker-12] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 1284]
+2025-05-08 02:55:05.974 [MessageBroker-11] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 1717]
+2025-05-08 03:25:05.976 [MessageBroker-2] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 2150]
+2025-05-08 03:55:05.979 [MessageBroker-13] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 2583]
+2025-05-08 04:25:05.995 [MessageBroker-6] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 3016]
+2025-05-08 04:55:05.996 [MessageBroker-13] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 3449]
+2025-05-08 05:25:06.013 [MessageBroker-2] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 3882]
+2025-05-08 05:55:06.020 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 4315]
+2025-05-08 06:25:06.030 [MessageBroker-10] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 4748]
+2025-05-08 06:55:06.068 [MessageBroker-12] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 5181]
+2025-05-08 07:25:06.082 [MessageBroker-4] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 5614]
+2025-05-08 07:55:06.087 [MessageBroker-4] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 6047]
+2025-05-08 08:25:06.096 [MessageBroker-13] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 51], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 6480]
+2025-05-08 08:39:46.604 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=14m48s759ms375µs300ns).
+2025-05-08 08:45:03.661 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 08:45:03.668 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 08:45:03.687 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 08:45:03.687 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 08:55:01.271 [MessageBroker-6] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 4 total, 0 closed abnormally (0 connect failure, 0 send limit, 1 transport error)], stompSubProtocol[processed CONNECT(4)-CONNECTED(4)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 69], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 7], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 6864]
+2025-05-08 08:59:25.646 [http-nio-8081-exec-4] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 08:59:26.106 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 08:59:26.106 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 08:59:26.109 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 08:59:26.109 [http-nio-8081-exec-7] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 08:59:32.216 [http-nio-8081-exec-5] WARN  c.e.a.service.impl.UserServiceImpl - 电子邮件格式不合法
+2025-05-08 08:59:32.216 [http-nio-8081-exec-5] WARN  c.e.a.service.impl.UserServiceImpl - 手机号格式不合法
+2025-05-08 08:59:32.552 [http-nio-8081-exec-5] INFO  c.e.a.service.impl.UserServiceImpl - 用户 2 个人信息更新成功
+2025-05-08 08:59:35.058 [http-nio-8081-exec-3] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 08:59:35.541 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 08:59:35.541 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 08:59:35.542 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 08:59:35.542 [http-nio-8081-exec-9] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 08:59:45.593 [http-nio-8081-exec-10] INFO  c.e.auth.controller.ExamController - 教师获取考试选项列表, 教师ID: 3
+2025-05-08 08:59:54.185 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: null, 页码: 0, 大小: 1000
+2025-05-08 08:59:54.233 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 13
+2025-05-08 08:59:54.306 [http-nio-8081-exec-10] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 4)收到的通知
+2025-05-08 08:59:54.647 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 08:59:54.647 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 08:59:54.648 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-05-08 08:59:54.648 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=1000, 总页数=1, 总元素数=13
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 返回考试数量: 13, 总数: 13
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=13, 标题=11111111111111111, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=12, 标题=呜呜呜呜呜呜呜呜, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=9, 标题=爱的方式三生三世, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=8, 标题=水电费啊啊啊啊啊, 状态=ONGOING, 学生状态=PENDING_PUBLISH
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=6, 标题=啊啊啊啊啊啊啊啊啊啊啊, 状态=ONGOING, 学生状态=GRADED
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=SUBMITTED
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-05-08 08:59:57.085 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 08:59:57.086 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 08:59:57.086 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=7, 标题=发多少啊啊啊啊啊啊啊, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 08:59:57.086 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=10, 标题= 范德萨发大水, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 08:59:57.086 [http-nio-8081-exec-3] INFO  c.e.auth.controller.ExamController - 考试记录: ID=11, 标题=QQ群QQ群前前前前, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:00:06.529 [http-nio-8081-exec-8] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 4)收到的通知
+2025-05-08 09:00:13.947 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取考试选项列表, 教师ID: 3
+2025-05-08 09:00:14.192 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 4
+2025-05-08 09:00:14.192 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.8662466793252268
+2025-05-08 09:00:14.193 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.9078310197517866
+2025-05-08 09:00:14.194 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.8779638466226095
+2025-05-08 09:00:14.194 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.8719350232613283
+2025-05-08 09:00:14.194 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 4 个匹配的用户
+2025-05-08 09:00:14.233 [http-nio-8081-exec-10] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 09:00:14.640 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:00:14.640 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:00:14.640 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 09:00:14.640 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 09:00:24.763 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取考试选项列表, 教师ID: 3

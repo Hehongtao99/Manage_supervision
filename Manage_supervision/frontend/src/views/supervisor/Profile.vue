@@ -112,7 +112,7 @@
               </el-form>
             </el-tab-pane>
             <el-tab-pane label="人脸识别" name="face">
-              <teacher-face-register />
+              <face-register />
             </el-tab-pane>
           </el-tabs>
         </el-col>
@@ -126,7 +126,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElLoading } from 'element-plus';
 import { useUserStore } from '../../stores/user';
 import axios from '../../utils/axios';
-import TeacherFaceRegister from '../../components/face/TeacherFaceRegister.vue';
+import FaceRegister from '../../components/face/FaceRegister.vue';
 
 // 教师仪表盘数据接口
 interface SupervisorDashboardDTO {
