@@ -3439,3 +3439,111 @@ java.lang.RuntimeException: OpenCV(4.6.0) D:\a\javacpp-presets\javacpp-presets\o
 2025-05-08 09:00:14.640 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
 2025-05-08 09:00:14.640 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
 2025-05-08 09:00:24.763 [http-nio-8081-exec-4] INFO  c.e.auth.controller.ExamController - 教师获取考试选项列表, 教师ID: 3
+2025-05-08 09:03:34.549 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:03:34.550 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:03:34.551 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-08 09:03:34.551 [http-nio-8081-exec-2] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-08 09:03:49.486 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸特征大小: 10000 bytes
+2025-05-08 09:03:49.713 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸图像大小: 11959 bytes
+2025-05-08 09:03:49.994 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 用户 2 的人脸注册成功
+2025-05-08 09:03:59.990 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 5
+2025-05-08 09:03:59.990 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.8953049720506502
+2025-05-08 09:03:59.990 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.9309233260829567
+2025-05-08 09:03:59.991 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.9065151801498181
+2025-05-08 09:03:59.991 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.8519833891343367
+2025-05-08 09:03:59.991 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.9973915622845674
+2025-05-08 09:03:59.991 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 5 个匹配的用户
+2025-05-08 09:04:11.895 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:04:11.895 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:04:11.897 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-08 09:04:11.897 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-08 09:09:02.809 [http-nio-8081-exec-6] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸特征大小: 10000 bytes
+2025-05-08 09:09:03.089 [http-nio-8081-exec-6] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸图像大小: 12270 bytes
+2025-05-08 09:09:03.240 [http-nio-8081-exec-6] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 用户 2 的人脸注册成功
+2025-05-08 09:09:07.526 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 用户 2 的人脸数据删除成功
+2025-05-08 09:09:13.739 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 4
+2025-05-08 09:09:13.740 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.92647485837095
+2025-05-08 09:09:13.741 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.9344537075975625
+2025-05-08 09:09:13.741 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.9380739706941603
+2025-05-08 09:09:13.741 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 3, 相似度: 0.8492101457795793
+2025-05-08 09:09:13.741 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 4 个匹配的用户
+2025-05-08 09:09:22.609 [http-nio-8081-exec-7] INFO  c.e.auth.controller.ExamController - 教师获取考试选项列表, 教师ID: 3
+2025-05-08 09:09:22.610 [http-nio-8081-exec-1] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-08 09:09:23.071 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:09:23.071 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:09:23.072 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-08 09:09:23.072 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-08 09:09:29.930 [http-nio-8081-exec-4] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 用户 3 的人脸数据删除成功
+2025-05-08 09:09:36.224 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 1
+2025-05-08 09:09:36.225 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9312397464137883
+2025-05-08 09:09:36.225 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 1 个匹配的用户
+2025-05-08 09:09:36.953 [http-nio-8081-exec-10] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 4)收到的通知
+2025-05-08 09:09:37.080 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: null, 页码: 0, 大小: 1000
+2025-05-08 09:09:37.120 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 13
+2025-05-08 09:09:37.181 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:09:37.181 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:09:37.182 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-05-08 09:09:37.182 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-05-08 09:09:40.126 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=1000, 总页数=1, 总元素数=13
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 返回考试数量: 13, 总数: 13
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=13, 标题=11111111111111111, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=12, 标题=呜呜呜呜呜呜呜呜, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=9, 标题=爱的方式三生三世, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=8, 标题=水电费啊啊啊啊啊, 状态=ONGOING, 学生状态=PENDING_PUBLISH
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=6, 标题=啊啊啊啊啊啊啊啊啊啊啊, 状态=ONGOING, 学生状态=GRADED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=SUBMITTED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:40.127 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:40.129 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=7, 标题=发多少啊啊啊啊啊啊啊, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:40.129 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=10, 标题= 范德萨发大水, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:40.129 [http-nio-8081-exec-2] INFO  c.e.auth.controller.ExamController - 考试记录: ID=11, 标题=QQ群QQ群前前前前, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:44.506 [http-nio-8081-exec-7] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 1
+2025-05-08 09:09:44.506 [http-nio-8081-exec-7] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9322923232707088
+2025-05-08 09:09:44.506 [http-nio-8081-exec-7] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 1 个匹配的用户
+2025-05-08 09:09:45.242 [http-nio-8081-exec-4] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 4)收到的通知
+2025-05-08 09:09:45.317 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生获取考试列表, 学生ID: 4, 用户名: 3, token中提取的ID: 4, 状态: null, 页码: 0, 大小: 1000
+2025-05-08 09:09:45.358 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 学生关联的考试数量: 13
+2025-05-08 09:09:45.447 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:09:45.447 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:09:45.448 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 4
+2025-05-08 09:09:45.448 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 4
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试列表页码信息: 当前页=0, 每页大小=1000, 总页数=1, 总元素数=13
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 返回考试数量: 13, 总数: 13
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=13, 标题=11111111111111111, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=12, 标题=呜呜呜呜呜呜呜呜, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=9, 标题=爱的方式三生三世, 状态=ONGOING, 学生状态=PUBLISHED
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=8, 标题=水电费啊啊啊啊啊, 状态=ONGOING, 学生状态=PENDING_PUBLISH
+2025-05-08 09:09:47.989 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=6, 标题=啊啊啊啊啊啊啊啊啊啊啊, 状态=ONGOING, 学生状态=GRADED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=5, 标题=发的撒旦法, 状态=ONGOING, 学生状态=GRADED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=4, 标题=放大书法大赛阿凡达, 状态=ONGOING, 学生状态=SUBMITTED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=3, 标题=fdsaf, 状态=ONGOING, 学生状态=IN_PROGRESS
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=1, 标题=1323, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=2, 标题=测试考试 - 1745770723621, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=7, 标题=发多少啊啊啊啊啊啊啊, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=10, 标题= 范德萨发大水, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:47.990 [http-nio-8081-exec-9] INFO  c.e.auth.controller.ExamController - 考试记录: ID=11, 标题=QQ群QQ群前前前前, 状态=PUBLISHED, 学生状态=NOT_STARTED
+2025-05-08 09:09:53.341 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:09:53.341 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:09:53.342 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-08 09:09:53.342 [http-nio-8081-exec-6] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-08 09:10:00.834 [http-nio-8081-exec-4] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸特征大小: 10000 bytes
+2025-05-08 09:10:01.098 [http-nio-8081-exec-4] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 提取到的人脸图像大小: 12477 bytes
+2025-05-08 09:10:01.176 [http-nio-8081-exec-4] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 用户 2 的人脸注册成功
+2025-05-08 09:10:11.145 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-08 09:10:11.145 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9236628111867456
+2025-05-08 09:10:11.145 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.9801098306771752
+2025-05-08 09:10:11.145 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 2 个匹配的用户
+2025-05-08 09:10:13.671 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:10:13.671 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:10:13.672 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-08 09:10:13.672 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-08 09:12:25.121 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:12:25.121 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:12:25.123 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-08 09:12:25.123 [http-nio-8081-exec-5] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-08 09:17:05.077 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-08 09:17:05.078 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-08 09:17:05.079 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-08 09:17:05.079 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
