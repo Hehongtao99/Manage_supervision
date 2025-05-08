@@ -24,6 +24,11 @@ export interface DashboardStats {
   userList: UserInfo[]
 }
 
+export interface UserCreationTrend {
+  dates: string[]
+  counts: number[]
+}
+
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   const userStore = useUserStore()
   
@@ -38,5 +43,14 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   console.log('调用仪表盘API，用户角色:', userStore.user.roles, '使用端点:', endpoint)
   
   const response = await axios.get<DashboardStats>(`/api/dashboard${endpoint}`)
+  return response.data
+}
+
+/**
+ * 获取近7天用户创建趋势数据
+ * @returns 用户创建趋势数据，包含日期和对应的创建用户数量
+ */
+export const getUserCreationTrend = async (): Promise<UserCreationTrend> => {
+  const response = await axios.get<UserCreationTrend>('/api/dashboard/admin/user-creation-trend')
   return response.data
 } 

@@ -12,6 +12,7 @@ import {
 import VChart from 'vue-echarts'
 import axios from '../../utils/axios'
 import { ElMessage } from 'element-plus'
+import { getUserCreationTrend } from '../../api/dashboard'
 
 // 注册 ECharts 组件
 use([
@@ -41,8 +42,8 @@ const userRoleDistribution = ref([
   { value: 0, name: '普通用户' }
 ])
 
-// 近7天活跃用户数据
-const userActivityData = ref({
+// 近7天用户创建趋势数据
+const userCreationData = ref({
   dates: [],
   counts: []
 })
@@ -92,10 +93,10 @@ const pieChartOption = computed(() => ({
   ]
 }))
 
-// 用户活跃度折线图配置
+// 用户创建趋势折线图配置
 const lineChartOption = computed(() => ({
   title: {
-    text: '近7天活跃用户',
+    text: '近7天创建用户趋势',
     left: 'center'
   },
   tooltip: {
@@ -103,17 +104,21 @@ const lineChartOption = computed(() => ({
   },
   xAxis: {
     type: 'category',
-    data: userActivityData.value.dates
+    data: userCreationData.value.dates
   },
   yAxis: {
-    type: 'value'
+    type: 'value',
+    minInterval: 1,
+    axisLabel: {
+      formatter: '{value}'
+    }
   },
   series: [
     {
-      name: '活跃用户',
+      name: '创建用户数',
       type: 'line',
       smooth: true,
-      data: userActivityData.value.counts,
+      data: userCreationData.value.counts,
       itemStyle: {
         color: '#409EFF'
       },
@@ -145,63 +150,44 @@ const fetchDashboardData = async () => {
     const roleDistResponse = await axios.get('/api/admin/statistics/role-distribution')
     userRoleDistribution.value = roleDistResponse.data
 
-    // 3. 获取近7天活跃用户数据
-    const activityResponse = await axios.get('/api/admin/statistics/user-activity')
-    userActivityData.value = activityResponse.data
-
-    // 4. 获取最近活动
-    // const activitiesResponse = await axios.get('/api/admin/activities/recent')
-    // recentActivities.value = activitiesResponse.data
+    // 3. 获取近7天用户创建趋势数据
+    try {
+      const creationTrendData = await getUserCreationTrend()
+      userCreationData.value = creationTrendData
+    } catch (error) {
+      console.error('获取用户创建趋势数据失败:', error)
+      // 显示错误提示而不是使用模拟数据
+      ElMessage.error('获取用户创建趋势数据失败，请稍后再试')
+      userCreationData.value = {
+        dates: [],
+        counts: []
+      }
+    }
   } catch (error) {
     console.error('获取控制台数据失败:', error)
-    ElMessage.error('获取控制台数据失败')
-    
-    // 使用模拟数据以便展示
-    mockDashboardData()
+    ElMessage.error('获取控制台数据失败，请稍后再试')
+    loading.value = false
   } finally {
     loading.value = false
   }
 }
 
-// 模拟数据（当API未实现时使用）
+// 修改模拟数据方法，保留必要的统计数据初始化但移除创建趋势的模拟
 const mockDashboardData = () => {
   statistics.value = {
-    totalUsers: 256,
-    activeUsers: 198,
-    totalRoles: 4,
+    totalUsers: 0,
+    activeUsers: 0,
+    totalRoles: 0,
     systemHealth: '正常'
   }
   
-  userRoleDistribution.value = [
-    { value: 2, name: '管理员' },
-    { value: 18, name: '教师' },
-    { value: 156, name: '学生' },
-    { value: 80, name: '普通用户' }
-  ]
+  userRoleDistribution.value = []
   
-  const today = new Date()
-  const dates = []
-  const counts = []
-  
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-    dates.push(`${date.getMonth() + 1}/${date.getDate()}`)
-    counts.push(Math.floor(Math.random() * 70) + 120) // 模拟120-190之间的活跃用户
+  // 不再模拟用户创建趋势数据
+  userCreationData.value = {
+    dates: [],
+    counts: []
   }
-  
-  userActivityData.value = {
-    dates,
-    counts
-  }
-  
-  // recentActivities.value = [
-  //   { id: 1, user: '李老师', action: '登录了系统', time: '10分钟前' },
-  //   { id: 2, user: '王管理员', action: '更新了用户权限', time: '30分钟前' },
-  //   { id: 3, user: '张三', action: '提交了作业', time: '1小时前' },
-  //   { id: 4, user: '系统', action: '执行了自动备份', time: '3小时前' },
-  //   { id: 5, user: '教务处', action: '发布了新通知', time: '1天前' }
-  // ]
 }
 
 onMounted(async () => {

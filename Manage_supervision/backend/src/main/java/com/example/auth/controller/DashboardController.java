@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
@@ -43,5 +45,15 @@ public class DashboardController {
         // 获取当前登录的督导员ID
         Long supervisorId = userContext.getCurrentUser().getId();
         return ResponseEntity.ok(dashboardService.getSupervisorDashboardStats(supervisorId));
+    }
+    
+    /**
+     * 获取近7天用户创建趋势数据
+     * @return 日期和用户创建数量的映射
+     */
+    @GetMapping("/admin/user-creation-trend")
+    @RequireRole("ADMIN")
+    public ResponseEntity<Map<String, Object>> getUserCreationTrend() {
+        return ResponseEntity.ok(dashboardService.getUserCreationTrend());
     }
 } 

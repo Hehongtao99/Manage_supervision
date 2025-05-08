@@ -11,9 +11,12 @@ import com.example.auth.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -144,5 +147,55 @@ public class DashboardServiceImpl implements DashboardService {
         stats.setWeeklyEvents(0); // 设置为0或者移除该字段
         
         return stats;
+    }
+    
+    @Override
+    public Map<String, Object> getUserCreationTrend() {
+        // 获取所有用户
+        List<User> allUsers = userMapper.selectList(new LambdaQueryWrapper<>());
+        
+        // 计算近7天的日期范围
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6); // 7天包括今天
+        
+        // 初始化日期和用户数量数组
+        List<String> dates = new ArrayList<>();
+        List<Integer> counts = new ArrayList<>();
+        
+        // 日期格式化器
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+        
+        // 为过去7天每一天创建日期并初始化计数为0
+        Map<LocalDate, Integer> dateCountMap = new LinkedHashMap<>();
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = startDate.plusDays(i);
+            dateCountMap.put(date, 0);
+            dates.add(date.format(formatter));
+        }
+        
+        // 统计每天创建的用户数量
+        for (User user : allUsers) {
+            LocalDateTime createTime = user.getCreateTime();
+            if (createTime != null) {
+                LocalDate createDate = createTime.toLocalDate();
+                if (!createDate.isBefore(startDate) && !createDate.isAfter(today)) {
+                    // 如果创建日期在近7天内，增加对应日期的计数
+                    dateCountMap.put(createDate, dateCountMap.getOrDefault(createDate, 0) + 1);
+                }
+            }
+        }
+        
+        // 收集统计结果到计数列表
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = startDate.plusDays(i);
+            counts.add(dateCountMap.get(date));
+        }
+        
+        // 返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("dates", dates);
+        result.put("counts", counts);
+        
+        return result;
     }
 } 

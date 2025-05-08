@@ -163,6 +163,20 @@
       </el-col>
     </el-row>
 
+    <!-- 用户创建趋势图表 -->
+    <el-row style="margin-top: 20px" v-if="userStore.isAdmin">
+      <el-col :span="24">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <h3>近7天创建用户趋势</h3>
+            </div>
+          </template>
+          <v-chart class="chart" :option="userCreationChartOption" autoresize />
+        </el-card>
+      </el-col>
+    </el-row>
+
     <!-- 管理员入口 -->
     <div class="admin-actions" v-if="userStore.isAdmin">
       <el-button type="primary" @click="$router.push('/admin/users')">进入管理面板</el-button>
@@ -175,12 +189,12 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getDashboardStats, type DashboardStats } from '../api/dashboard'
+import { getDashboardStats, getUserCreationTrend, type DashboardStats } from '../api/dashboard'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { PieChart } from 'echarts/charts'
-import { LegendComponent, TooltipComponent, TitleComponent } from 'echarts/components'
+import { PieChart, LineChart } from 'echarts/charts'
+import { LegendComponent, TooltipComponent, TitleComponent, GridComponent } from 'echarts/components'
 import { 
   Calendar, 
   Document
@@ -191,9 +205,11 @@ import { getMyTasks } from '../api/task'
 use([
   CanvasRenderer,
   PieChart,
+  LineChart,
   LegendComponent,
   TooltipComponent,
-  TitleComponent
+  TitleComponent,
+  GridComponent
 ])
 
 const router = useRouter()
@@ -209,6 +225,12 @@ const studentStats = ref({
 // 学生任务数据
 const myTasks = ref([])
 const tasksLoading = ref(false)
+
+// 近7天用户创建趋势数据
+const userCreationData = ref({
+  dates: [],
+  counts: []
+})
 
 // 根据用户角色获取仪表盘标题
 const getDashboardTitle = computed(() => {
@@ -346,9 +368,74 @@ const getChineseStatus = (status: string) => {
   return statusMap[status] || status;
 }
 
+// 用户创建趋势图表配置
+const userCreationChartOption = computed(() => ({
+  title: {
+    text: '近7天创建用户趋势',
+    left: 'center'
+  },
+  tooltip: {
+    trigger: 'axis'
+  },
+  xAxis: {
+    type: 'category',
+    data: userCreationData.value.dates
+  },
+  yAxis: {
+    type: 'value',
+    minInterval: 1, // 确保Y轴间隔至少为1
+    axisLabel: {
+      formatter: '{value}' // 格式化为整数
+    }
+  },
+  series: [
+    {
+      name: '创建用户数',
+      type: 'line',
+      smooth: true,
+      data: userCreationData.value.counts,
+      itemStyle: {
+        color: '#67C23A'
+      },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(103, 194, 58, 0.5)' },
+            { offset: 1, color: 'rgba(103, 194, 58, 0.1)' }
+          ]
+        }
+      }
+    }
+  ]
+}))
+
+// 获取近7天用户创建趋势数据
+const fetchUserCreationData = async () => {
+  if (userStore.isAdmin) {
+    try {
+      const data = await getUserCreationTrend()
+      userCreationData.value = data
+    } catch (error) {
+      console.error('获取用户创建趋势数据失败:', error)
+      // 显示错误状态而不是使用模拟数据
+      ElMessage.error('获取用户创建趋势数据失败，请稍后再试')
+      userCreationData.value = {
+        dates: [],
+        counts: []
+      }
+    }
+  }
+}
+
 onMounted(() => {
   fetchDashboardData()
   fetchMyTasks()
+  fetchUserCreationData() // 获取用户创建趋势数据
 })
 
 const handleLogout = () => {
