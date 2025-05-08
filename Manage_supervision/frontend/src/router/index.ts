@@ -109,6 +109,16 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'course-applications',
+        name: 'CourseApplicationReview',
+        component: () => import('../views/admin/CourseApplicationReview.vue'),
+        meta: { 
+          title: '课程申请审核',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
         path: 'roles',
         name: 'RoleManagement',
         component: () => import('../views/admin/RoleManagement.vue'),
@@ -124,6 +134,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/admin/SystemLogs.vue'),
         meta: { 
           title: '系统日志',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'subjects',
+        name: 'SubjectManagement',
+        component: () => import('../views/admin/SubjectManagement.vue'),
+        meta: { 
+          title: '科目管理',
           requiresAuth: true,
           requiresAdmin: true
         }
@@ -145,6 +165,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/supervisor/StudentManagement.vue'),
         meta: { 
           title: '学生管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'course-applications',
+        name: 'CourseApplication',
+        component: () => import('../views/supervisor/CourseApplication.vue'),
+        meta: { 
+          title: '课程申请',
           requiresAuth: true,
           requiresSupervisor: true
         }

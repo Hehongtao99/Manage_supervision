@@ -319,10 +319,22 @@ const handleSubmit = async () => {
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
-        // 这里添加保存用户信息的API调用
-        // await userStore.updateUserInfo(formModel.value);
-        ElMessage.success('用户信息已更新');
+        // 调用store中的updateProfile方法保存用户信息
+        const success = await userStore.updateProfile({
+          realName: formModel.value.realName,
+          nickname: formModel.value.nickname,
+          email: formModel.value.email,
+          phone: formModel.value.phone,
+          bio: formModel.value.bio
+        });
+        
+        if (success) {
+          ElMessage.success('用户信息已更新');
+        } else {
+          ElMessage.error(userStore.error || '保存失败，请稍后重试');
+        }
       } catch (error) {
+        console.error('保存个人信息失败:', error);
         ElMessage.error('保存失败，请稍后重试');
       }
     }

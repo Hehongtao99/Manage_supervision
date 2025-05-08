@@ -45,6 +45,14 @@
           <el-icon><Avatar /></el-icon>
           <span>学生管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/course-applications" @click="handleRoute('/admin/course-applications')">
+          <el-icon><Document /></el-icon>
+          <span>课程申请审核</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/subjects" @click="handleRoute('/admin/subjects')">
+          <el-icon><Reading /></el-icon>
+          <span>科目管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 
@@ -54,6 +62,13 @@
         <el-icon><User /></el-icon>
         <template #title>
           <span>学生管理</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/supervisor/course-applications" @click="handleRoute('/supervisor/course-applications')">
+        <el-icon><Document /></el-icon>
+        <template #title>
+          <span>课程申请</span>
         </template>
       </el-menu-item>
 
@@ -106,7 +121,8 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Reading
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
