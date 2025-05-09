@@ -553,11 +553,17 @@ class ChatService {
   
   // 获取当前用户的所有会话
   async getConversations() {
+    const response = await axios.get('/api/chat/conversations');
+    return response.data;
+  }
+  
+  // 根据ID获取单个会话
+  async getConversationById(conversationId: number) {
     try {
-      const response = await axios.get('/api/chat/conversations');
-      return response.data as Conversation[];
+      const response = await axios.get(`/api/chat/conversations/${conversationId}`);
+      return response.data;
     } catch (error) {
-      console.error('获取会话列表失败:', error);
+      console.error(`获取会话 ${conversationId} 失败:`, error);
       throw error;
     }
   }

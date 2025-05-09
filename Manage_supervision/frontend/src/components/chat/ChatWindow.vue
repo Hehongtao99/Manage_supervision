@@ -120,6 +120,7 @@ const props = defineProps<{
 // 组件事件
 const emit = defineEmits<{
   (e: 'messageSent'): void;
+  (e: 'error', error: any): void;
 }>();
 
 // Store
@@ -370,6 +371,8 @@ const loadConversationMessages = async () => {
     scrollToBottom();
   } catch (error) {
     console.error('Failed to load conversation messages:', error);
+    // 发出错误事件
+    emit('error', error);
   } finally {
     loading.value = false;
   }

@@ -149,6 +149,32 @@ public class ChatController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 
+    /**
+     * 创建与指定用户的会话
+     */
+    @PostMapping("/conversations")
+    public ResponseEntity<ConversationDTO> createConversation(@RequestBody Map<String, Long> requestBody) {
+        User currentUser = userContext.getCurrentUser();
+        if (currentUser == null) {
+            // 用户未认证或获取用户信息失败
+            return ResponseEntity.status(401).body(null);
+        }
+        
+        Long recipientId = requestBody.get("recipientId");
+        if (recipientId == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        
+        User otherUser = userService.findById(recipientId);
+        if (otherUser == null) {
+            // 目标用户不存在
+            return ResponseEntity.notFound().build();
+        }
+        
+        ConversationDTO conversation = chatService.getOrCreateConversation(currentUser, otherUser);
+        return ResponseEntity.ok(conversation);
+    }
+
     // WebSocket 端点
 
     /**

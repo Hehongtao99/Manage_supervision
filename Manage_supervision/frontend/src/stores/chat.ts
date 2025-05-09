@@ -206,10 +206,12 @@ export const useChatStore = defineStore('chat', {
         }
         
         this.loadingMessages = false;
+        return messages;
       } catch (error) {
         console.error('加载会话消息失败:', error);
         this.error = '加载会话消息失败';
         this.loadingMessages = false;
+        throw error;
       }
     },
     
@@ -448,6 +450,48 @@ export const useChatStore = defineStore('chat', {
       
       // 断开WebSocket连接
       chatService.disconnect();
+    },
+    
+    // 根据ID获取单个会话
+    async fetchConversation(conversationId: number) {
+      this.error = null;
+      
+      try {
+        // 检查缓存中是否有该会话
+        let conversation = this.conversations.find(c => c.id === conversationId);
+        
+        // 如果缓存中没有，从服务器请求
+        if (!conversation) {
+          await this.loadConversations();
+          conversation = this.conversations.find(c => c.id === conversationId);
+          
+          // 如果还是没有找到，则直接请求该会话
+          if (!conversation) {
+            // 通过API获取会话详情
+            const response = await chatService.getConversationById(conversationId);
+            if (response) {
+              conversation = response;
+              // 将会话添加到列表中
+              const exists = this.conversations.some(c => c.id === conversation.id);
+              if (!exists) {
+                this.conversations.push(conversation);
+              }
+            }
+          }
+        }
+        
+        // 如果找到会话，加载消息
+        if (conversation) {
+          await this.loadMessagesForConversation(conversationId);
+          return conversation;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('获取会话失败:', error);
+        this.error = '获取会话失败';
+        throw error;
+      }
     }
   }
 }); 
