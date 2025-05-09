@@ -56,6 +56,15 @@ const routes: RouteRecordRaw[] = [
           title: '聊天',
           requiresAuth: true
         }
+      },
+      {
+        path: 'courses',
+        name: 'CourseList',
+        component: () => import('../views/student/CourseList.vue'),
+        meta: {
+          title: '课程浏览',
+          requiresAuth: true
+        }
       }
     ]
   },

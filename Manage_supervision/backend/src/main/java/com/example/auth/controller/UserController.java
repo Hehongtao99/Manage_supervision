@@ -128,6 +128,8 @@ public class UserController {
             userData.put("phone", updatedUser.getPhone());
             userData.put("bio", updatedUser.getBio());
             userData.put("avatar", updatedUser.getAvatar());
+            userData.put("graduationSchool", updatedUser.getGraduationSchool());
+            userData.put("teachingSubjects", updatedUser.getTeachingSubjects());
             userData.put("roles", updatedUser.getRoles().stream().map(role -> role.getName()).toList());
             
             response.put("user", userData);

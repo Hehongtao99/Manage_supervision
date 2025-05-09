@@ -96,6 +96,13 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/courses" @click="handleRoute('/courses')">
+        <el-icon><Reading /></el-icon>
+        <template #title>
+          <span>课程浏览</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/profile" @click="handleRoute('/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>

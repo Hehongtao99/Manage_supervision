@@ -16,4 +16,7 @@ public class UserDTO {
     private String createTime;
     private String userNumber;
     private String avatar;
+    private String bio;
+    private String graduationSchool;
+    private String teachingSubjects;
 }

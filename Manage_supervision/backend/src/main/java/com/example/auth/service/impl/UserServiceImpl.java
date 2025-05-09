@@ -258,6 +258,25 @@ public class UserServiceImpl implements UserService {
                 }
             }
             
+            // 添加对新增简历字段的处理
+            if (profileData.containsKey("graduationSchool")) {
+                String graduationSchool = profileData.get("graduationSchool");
+                if (graduationSchool != null && graduationSchool.length() <= 255) {
+                    user.setGraduationSchool(graduationSchool);
+                } else {
+                    logger.warn("毕业学校长度不合法，应小于等于255个字符");
+                }
+            }
+            
+            if (profileData.containsKey("teachingSubjects")) {
+                String teachingSubjects = profileData.get("teachingSubjects");
+                if (teachingSubjects != null && teachingSubjects.length() <= 1000) {
+                    user.setTeachingSubjects(teachingSubjects);
+                } else {
+                    logger.warn("教授科目长度不合法，应小于等于1000个字符");
+                }
+            }
+            
             // 保存更新
             userMapper.updateById(user);
             logger.info("用户 {} 个人信息更新成功", user.getUsername());

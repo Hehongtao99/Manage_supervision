@@ -25,6 +25,8 @@ interface UserState {
     bio?: string
     avatar?: string
     userNumber?: string
+    graduationSchool?: string
+    teachingSubjects?: string
   }
   token: string | null
   initialized: boolean
@@ -192,7 +194,9 @@ export const useUserStore = defineStore('user', {
           phone: response.data.user.phone,
           bio: response.data.user.bio,
           avatar: response.data.user.avatar || '',
-          userNumber: response.data.user.userNumber || ''
+          userNumber: response.data.user.userNumber || '',
+          graduationSchool: response.data.user.graduationSchool,
+          teachingSubjects: response.data.user.teachingSubjects
         }
         
         // 同时更新userInfo
@@ -308,7 +312,9 @@ export const useUserStore = defineStore('user', {
           phone: response.data.phone,
           bio: response.data.bio,
           avatar: response.data.avatar || '',
-          userNumber: response.data.userNumber || ''
+          userNumber: response.data.userNumber || '',
+          graduationSchool: response.data.graduationSchool,
+          teachingSubjects: response.data.teachingSubjects
         }
         
         // 获取用户角色的权限
@@ -350,10 +356,11 @@ export const useUserStore = defineStore('user', {
     async updateProfile(profileData: UpdateProfileRequest) {
       try {
         this.error = null
-        console.log('开始更新个人信息:', JSON.stringify(profileData))
+        console.log('开始更新个人信息，请求数据:', JSON.stringify(profileData))
         
         const response = await axios.put('/api/user/profile', profileData)
         
+        console.log('个人信息更新响应状态:', response.status)
         console.log('个人信息更新响应数据:', JSON.stringify(response.data))
         
         // 添加数据验证
@@ -364,6 +371,7 @@ export const useUserStore = defineStore('user', {
         if (response.data && response.data.user) {
           // 创建新的用户对象，确保深度合并
           const updatedUser = response.data.user
+          console.log('服务器返回的更新后用户数据:', JSON.stringify(updatedUser))
           
           // 更新用户信息，保留未更新的字段
           this.user = { 
@@ -376,16 +384,29 @@ export const useUserStore = defineStore('user', {
             phone: updatedUser.phone || this.user.phone,
             bio: updatedUser.bio || this.user.bio,
             avatar: updatedUser.avatar || this.user.avatar,
+            graduationSchool: updatedUser.graduationSchool || this.user.graduationSchool,
+            teachingSubjects: updatedUser.teachingSubjects || this.user.teachingSubjects,
             // 确保roles数组被正确处理
             roles: Array.isArray(updatedUser.roles) ? updatedUser.roles : this.user.roles
           }
           
-          console.log('个人信息更新成功，更新后的用户信息:', JSON.stringify(this.user))
+          console.log('个人信息更新成功，新用户状态:', {
+            bio: this.user.bio,
+            graduationSchool: this.user.graduationSchool, 
+            teachingSubjects: this.user.teachingSubjects
+          })
+        } else {
+          console.warn('响应数据中没有user字段:', response.data)
         }
         
         return true
       } catch (error: any) {
         console.error('Failed to update profile:', error)
+        
+        if (error.response) {
+          console.error('错误响应状态:', error.response.status)
+          console.error('错误响应数据:', JSON.stringify(error.response.data))
+        }
         
         if (error.response?.data?.message) {
           this.error = error.response.data.message

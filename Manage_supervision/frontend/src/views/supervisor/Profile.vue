@@ -60,16 +60,46 @@
                 <el-form-item label="电话号码" prop="phone">
                   <el-input v-model="formModel.phone" placeholder="请输入电话号码" />
                 </el-form-item>
-                <el-form-item label="个人简介" prop="bio">
+                <el-form-item>
+                  <el-button type="primary" @click="handleSubmit">保存更改</el-button>
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
+            <el-tab-pane label="个人简历" name="resume">
+              <el-form
+                ref="resumeFormRef"
+                :model="formModel"
+                label-position="left"
+                label-width="100px"
+              >
+                <el-form-item label="毕业学校" prop="graduationSchool">
+                  <el-input 
+                    v-model="formModel.graduationSchool" 
+                    placeholder="请输入毕业学校" 
+                  />
+                </el-form-item>
+                <el-form-item label="主要教授科目" prop="teachingSubjects">
+                  <el-input 
+                    v-model="formModel.teachingSubjects" 
+                    placeholder="请输入主要教授科目，多个科目用逗号分隔" 
+                  />
+                </el-form-item>
+                <el-form-item label="个人介绍" prop="bio">
                   <el-input
                     v-model="formModel.bio"
                     type="textarea"
-                    placeholder="请输入个人简介"
-                    :rows="3"
+                    placeholder="请输入个人介绍，包括您的教学经验、专业背景等"
+                    :rows="6"
                   />
                 </el-form-item>
+                <el-alert
+                  title="简历信息将在管理员审核课程申请时显示，有助于提高审核通过率"
+                  type="info"
+                  :closable="false"
+                  style="margin-bottom: 20px;"
+                />
                 <el-form-item>
-                  <el-button type="primary" @click="handleSubmit">保存更改</el-button>
+                  <el-button type="primary" @click="handleResumeSubmit">保存简历</el-button>
                 </el-form-item>
               </el-form>
             </el-tab-pane>
@@ -151,7 +181,9 @@ const formModel = ref({
   nickname: userStore.user.nickname || '',
   email: userStore.user.email || '',
   phone: userStore.user.phone || '',
-  bio: userStore.user.bio || ''
+  bio: userStore.user.bio || '',
+  graduationSchool: userStore.user.graduationSchool || '',
+  teachingSubjects: userStore.user.teachingSubjects || ''
 });
 
 // 表单校验规则
@@ -212,9 +244,17 @@ const passwordRules = {
 // 表单引用
 const formRef = ref(null);
 const passwordFormRef = ref(null);
+const resumeFormRef = ref(null);
 
 // 初始化加载用户数据
 onMounted(async () => {
+  // 检查URL参数中是否有tab，如果有则设置activeTab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  if (tabParam && ['basic', 'resume', 'security'].includes(tabParam)) {
+    activeTab.value = tabParam;
+  }
+  
   try {
     // 强制刷新用户信息
     const success = await userStore.fetchUserInfo(true)
@@ -230,6 +270,8 @@ onMounted(async () => {
       formModel.value.email = userStore.user.email || ''
       formModel.value.phone = userStore.user.phone || ''
       formModel.value.bio = userStore.user.bio || ''
+      formModel.value.graduationSchool = userStore.user.graduationSchool || ''
+      formModel.value.teachingSubjects = userStore.user.teachingSubjects || ''
       
       // 获取教师仪表盘数据，包括真实学生数量
       await fetchSupervisorStats()
@@ -324,8 +366,7 @@ const handleSubmit = async () => {
           realName: formModel.value.realName,
           nickname: formModel.value.nickname,
           email: formModel.value.email,
-          phone: formModel.value.phone,
-          bio: formModel.value.bio
+          phone: formModel.value.phone
         });
         
         if (success) {
@@ -375,6 +416,54 @@ const fetchSupervisorStats = async () => {
   } finally {
     statsLoading.value = false;
   }
+};
+
+// 添加处理简历提交的方法
+const handleResumeSubmit = async () => {
+  if (!resumeFormRef.value) {
+    console.error('表单引用为空，无法提交');
+    ElMessage.error('表单引用错误，请尝试刷新页面');
+    return;
+  }
+  
+  console.log('开始校验表单');
+  resumeFormRef.value.validate(async (valid: boolean) => {
+    if (valid) {
+      console.log('表单校验通过，准备提交简历信息', {
+        bio: formModel.value.bio,
+        graduationSchool: formModel.value.graduationSchool,
+        teachingSubjects: formModel.value.teachingSubjects
+      });
+      
+      try {
+        // 调用store中的updateProfile方法保存用户信息
+        const success = await userStore.updateProfile({
+          bio: formModel.value.bio,
+          graduationSchool: formModel.value.graduationSchool,
+          teachingSubjects: formModel.value.teachingSubjects
+        });
+        
+        if (success) {
+          console.log('简历信息提交成功，更新后的用户信息：', {
+            bio: userStore.user.bio,
+            graduationSchool: userStore.user.graduationSchool,
+            teachingSubjects: userStore.user.teachingSubjects
+          });
+          
+          ElMessage.success('简历信息已更新');
+        } else {
+          console.error('简历信息更新失败，可能的错误:', userStore.error);
+          ElMessage.error(userStore.error || '保存失败，请稍后重试');
+        }
+      } catch (error) {
+        console.error('保存简历信息失败，详细错误:', error);
+        ElMessage.error('保存失败，请稍后重试');
+      }
+    } else {
+      console.warn('表单校验未通过');
+      ElMessage.warning('请检查填写的信息是否正确');
+    }
+  });
 };
 </script>
 

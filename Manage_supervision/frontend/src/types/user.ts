@@ -11,6 +11,8 @@ export interface UserProfile {
   createTime: string;
   status: 'active' | 'inactive';
   userNumber: string;
+  graduationSchool: string;
+  teachingSubjects: string;
 }
 
 export interface Role {
@@ -27,6 +29,8 @@ export interface UpdateProfileRequest {
   bio?: string;
   email?: string;
   phone?: string;
+  graduationSchool?: string;
+  teachingSubjects?: string;
 }
 
 export interface UpdatePasswordRequest {

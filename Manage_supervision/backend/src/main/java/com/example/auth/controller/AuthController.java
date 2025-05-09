@@ -88,6 +88,8 @@ public class AuthController {
         userData.put("phone", user.getPhone());
         userData.put("bio", user.getBio());
         userData.put("userNumber", user.getUserNumber());
+        userData.put("graduationSchool", user.getGraduationSchool());
+        userData.put("teachingSubjects", user.getTeachingSubjects());
         
         response.put("user", userData);
 
@@ -126,6 +128,8 @@ public class AuthController {
             userData.put("phone", user.getPhone());
             userData.put("bio", user.getBio());
             userData.put("userNumber", user.getUserNumber());
+            userData.put("graduationSchool", user.getGraduationSchool());
+            userData.put("teachingSubjects", user.getTeachingSubjects());
             
             return ResponseEntity.ok(userData);
         } catch (Exception e) {

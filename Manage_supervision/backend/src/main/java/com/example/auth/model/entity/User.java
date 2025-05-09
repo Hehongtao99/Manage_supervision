@@ -36,6 +36,12 @@ public class User {
     
     @TableField("user_number")
     private String userNumber;
+    
+    @TableField("graduation_school")
+    private String graduationSchool;
+    
+    @TableField("teaching_subjects")
+    private String teachingSubjects;
 
     @TableField(exist = false)
     private Set<Role> roles;
@@ -92,6 +98,14 @@ public class User {
     public String getUserNumber() {
         return userNumber;
     }
+    
+    public String getGraduationSchool() {
+        return graduationSchool;
+    }
+    
+    public String getTeachingSubjects() {
+        return teachingSubjects;
+    }
 
     // Setters
     public void setId(Long id) {
@@ -144,5 +158,13 @@ public class User {
     
     public void setUserNumber(String userNumber) {
         this.userNumber = userNumber;
+    }
+    
+    public void setGraduationSchool(String graduationSchool) {
+        this.graduationSchool = graduationSchool;
+    }
+    
+    public void setTeachingSubjects(String teachingSubjects) {
+        this.teachingSubjects = teachingSubjects;
     }
 }
