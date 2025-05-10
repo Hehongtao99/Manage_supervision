@@ -5,8 +5,12 @@ import com.example.auth.model.dto.DashboardStats;
 import com.example.auth.model.dto.SupervisorDashboardDTO;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
+import com.example.auth.model.entity.Order;
+import com.example.auth.model.entity.CourseApplication;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
+import com.example.auth.mapper.OrderMapper;
+import com.example.auth.mapper.CourseApplicationMapper;
 import com.example.auth.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,12 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Autowired
     private RoleMapper roleMapper;
+    
+    @Autowired
+    private OrderMapper orderMapper;
+
+    @Autowired
+    private CourseApplicationMapper courseApplicationMapper;
 
     private DashboardStats.SystemInfo getSystemInfo() {
         DashboardStats.SystemInfo systemInfo = new DashboardStats.SystemInfo();
@@ -195,6 +205,88 @@ public class DashboardServiceImpl implements DashboardService {
         Map<String, Object> result = new HashMap<>();
         result.put("dates", dates);
         result.put("counts", counts);
+        
+        return result;
+    }
+    
+    @Override
+    public Map<String, Object> getStudentLearningRecords(Long studentId) {
+        // 获取学生的所有已完成订单
+        List<Order> completedOrders = orderMapper.findCompletedOrdersByStudentId(studentId);
+        
+        // 按课程名称分组统计学习时长
+        Map<String, Integer> courseHoursMap = new HashMap<>();
+        
+        for (Order order : completedOrders) {
+            // 使用非数据库字段courseTitle，这是在OrderMapper.xml中通过JOIN查询填充的
+            String courseTitle = order.getCourseTitle() != null ? order.getCourseTitle() : "未知课程";
+            Integer hours = order.getHours() != null ? order.getHours() : 0;
+            
+            // 累加该课程的学习时长
+            courseHoursMap.put(courseTitle, courseHoursMap.getOrDefault(courseTitle, 0) + hours);
+        }
+        
+        // 准备返回数据
+        List<String> courseNames = new ArrayList<>(courseHoursMap.keySet());
+        List<Integer> courseHours = new ArrayList<>();
+        
+        for (String courseName : courseNames) {
+            courseHours.add(courseHoursMap.get(courseName));
+        }
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("courseNames", courseNames);
+        result.put("courseHours", courseHours);
+        result.put("totalCourses", courseNames.size());
+        result.put("totalHours", courseHours.stream().mapToInt(Integer::intValue).sum());
+        
+        return result;
+    }
+    
+    @Override
+    public Map<String, Object> getStudentLearningTrend(Long studentId) {
+        // 获取学生的所有已完成订单
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getStudentId, studentId)
+               .eq(Order::getStatus, "COMPLETED")
+               .orderByAsc(Order::getCreateTime);
+        List<Order> completedOrders = orderMapper.selectList(wrapper);
+        
+        // 按月份统计学习时长
+        Map<String, Integer> monthlyHoursMap = new LinkedHashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        
+        // 初始化过去6个月的数据
+        LocalDate today = LocalDate.now();
+        for (int i = 5; i >= 0; i--) {
+            LocalDate date = today.minusMonths(i);
+            String monthKey = date.format(formatter);
+            monthlyHoursMap.put(monthKey, 0);
+        }
+        
+        // 统计每月的学习时长
+        for (Order order : completedOrders) {
+            if (order.getCreateTime() != null && order.getHours() != null) {
+                String monthKey = order.getCreateTime().format(formatter);
+                
+                // 只统计最近6个月的数据
+                if (monthlyHoursMap.containsKey(monthKey)) {
+                    monthlyHoursMap.put(monthKey, monthlyHoursMap.get(monthKey) + order.getHours());
+                }
+            }
+        }
+        
+        // 准备返回数据
+        List<String> months = new ArrayList<>(monthlyHoursMap.keySet());
+        List<Integer> hours = new ArrayList<>();
+        
+        for (String month : months) {
+            hours.add(monthlyHoursMap.get(month));
+        }
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("months", months);
+        result.put("hours", hours);
         
         return result;
     }

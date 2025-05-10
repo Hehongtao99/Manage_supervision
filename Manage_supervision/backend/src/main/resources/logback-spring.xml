@@ -14,7 +14,6 @@
     </appender>
 
     <!-- 文件 Appender (可选) -->
-    <!-- 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [ %-5level] [%thread] %logger{36} - %msg%n</pattern>
@@ -29,24 +28,45 @@
            <MaxFileSize>10MB</MaxFileSize>
         </triggeringPolicy>
     </appender>
-    -->
 
-    <!-- Logger 配置 -->
-    <!-- Spring Boot 的日志级别 -->
-    <logger name="org.springframework.web" level="INFO"/>
-    <logger name="org.springboot.sample" level="INFO"/>
-    
-    <!-- MyBatis-Plus SQL 日志 -->
-    <logger name="com.example.auth.mapper" level="DEBUG"/> 
-    <!-- <logger name="com.baomidou.mybatisplus" level="DEBUG"/> -->
+    <!-- 开发环境配置 -->
+    <springProfile name="dev">
+        <!-- Logger 配置 -->
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.springboot.sample" level="INFO"/>
+        
+        <!-- MyBatis-Plus SQL 日志 -->
+        <logger name="com.example.auth.mapper" level="DEBUG"/> 
+        <logger name="com.baomidou.mybatisplus" level="DEBUG"/>
 
-    <!-- 项目日志级别 -->
-    <logger name="com.example.auth" level="INFO"/>
+        <!-- 项目日志级别 -->
+        <logger name="com.example.auth" level="DEBUG"/>
 
-    <!-- Root Logger -->
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <!-- <appender-ref ref="FILE"/> -->
-    </root>
+        <!-- Root Logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- 生产环境配置 -->
+    <springProfile name="prod">
+        <!-- Logger 配置 - 生产环境降低日志级别 -->
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springboot.sample" level="WARN"/>
+        
+        <!-- MyBatis-Plus SQL 日志 - 完全关闭 -->
+        <logger name="com.example.auth.mapper" level="ERROR"/> 
+        <logger name="com.baomidou.mybatisplus" level="ERROR"/>
+
+        <!-- 项目日志级别 - 只记录错误 -->
+        <logger name="com.example.auth" level="ERROR"/>
+
+        <!-- Root Logger -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
 
 </configuration> 

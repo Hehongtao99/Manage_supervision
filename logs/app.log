@@ -1,0 +1,4 @@
+2025-05-10 22:08:58.015 [ ERROR] [http-nio-8081-exec-3] c.e.auth.config.WebSocketConfig - WebSocket连接JWT验证失败，Token无效
+2025-05-10 22:08:58.015 [ ERROR] [http-nio-8081-exec-4] c.e.auth.config.WebSocketConfig - WebSocket连接JWT验证失败，Token无效
+2025-05-10 22:08:59.437 [ ERROR] [http-nio-8081-exec-6] c.e.auth.config.WebSocketConfig - 消息中缺少用户身份信息，拒绝消息: DISCONNECT
+2025-05-10 22:11:55.862 [ ERROR] [http-nio-8081-exec-1] c.e.auth.config.WebSocketConfig - 消息中缺少用户身份信息，拒绝消息: DISCONNECT

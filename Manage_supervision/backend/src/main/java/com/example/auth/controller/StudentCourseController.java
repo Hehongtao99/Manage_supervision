@@ -2,6 +2,7 @@ package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.model.dto.CourseApplicationDTO;
+import com.example.auth.model.dto.PageResult;
 import com.example.auth.service.CourseApplicationService;
 import com.example.auth.service.ChatService;
 import com.example.auth.util.JwtUtil;
@@ -51,5 +52,18 @@ public class StudentCourseController {
         logger.info("获取课程详情: {}", courseId);
         CourseApplicationDTO courseDetail = courseApplicationService.getCourseApplicationById(courseId);
         return ResponseEntity.ok(courseDetail);
+    }
+
+    /**
+     * 学生获取已审核通过的课程（分页）
+     */
+    @GetMapping("/courses/approved/page")
+    @RequireRole("USER")
+    public ResponseEntity<PageResult<CourseApplicationDTO>> getApprovedCoursesPaged(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "12") int size) {
+        logger.info("获取已审核通过的课程列表（分页）: page={}, size={}", page, size);
+        PageResult<CourseApplicationDTO> courses = courseApplicationService.getAllApprovedCourseApplicationsPaged(page, size);
+        return ResponseEntity.ok(courses);
     }
 } 

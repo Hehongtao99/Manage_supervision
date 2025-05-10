@@ -56,4 +56,28 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> getUserCreationTrend() {
         return ResponseEntity.ok(dashboardService.getUserCreationTrend());
     }
+    
+    /**
+     * 获取学生学习记录报表数据 - 按课程统计学习时长
+     * @return 学习记录报表数据
+     */
+    @GetMapping("/student/learning-records")
+    @RequireRole("USER")
+    public ResponseEntity<Map<String, Object>> getStudentLearningRecords() {
+        // 获取当前登录的学生ID
+        Long studentId = userContext.getCurrentUser().getId();
+        return ResponseEntity.ok(dashboardService.getStudentLearningRecords(studentId));
+    }
+    
+    /**
+     * 获取学生学习记录趋势数据 - 按时间统计学习时长
+     * @return 学习记录趋势数据
+     */
+    @GetMapping("/student/learning-trend")
+    @RequireRole("USER")
+    public ResponseEntity<Map<String, Object>> getStudentLearningTrend() {
+        // 获取当前登录的学生ID
+        Long studentId = userContext.getCurrentUser().getId();
+        return ResponseEntity.ok(dashboardService.getStudentLearningTrend(studentId));
+    }
 } 

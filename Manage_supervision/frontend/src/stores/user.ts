@@ -251,8 +251,8 @@ export const useUserStore = defineStore('user', {
         console.log('用户是教师，重定向到教师控制台')
         router.push('/supervisor/students')
       } else {
-        console.log('用户是普通用户，重定向到普通仪表盘')
-        router.push('/dashboard')
+        console.log('用户是普通用户，重定向到聊天页面')
+        router.push('/chat')
       }
     },
 

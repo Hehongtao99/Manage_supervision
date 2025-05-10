@@ -79,6 +79,21 @@
               </el-card>
             </el-col>
           </el-row>
+          
+          <!-- 添加分页控件 -->
+          <div class="pagination-container">
+            <el-pagination
+              v-model:currentPage="pageParams.page"
+              v-model:page-size="pageParams.size"
+              :page-sizes="[12, 24, 36, 48]"
+              :small="false"
+              :background="true"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total"
+              @size-change="handleSizeChange"
+              @current-change="handlePageChange"
+            />
+          </div>
         </div>
       </div>
     </el-card>
@@ -160,23 +175,172 @@
           </div>
 
           <div class="actions">
-            <el-button type="primary" size="large" @click="startChat(currentCourse.teacherId)">
+            <el-button type="primary" size="large" @click="showOrderDialog">
+              <el-icon><ShoppingCart /></el-icon>下单
+            </el-button>
+            <el-button type="default" size="large" @click="startChat(currentCourse.teacherId)">
               <el-icon><ChatDotRound /></el-icon>联系教师
             </el-button>
           </div>
         </div>
       </div>
     </el-dialog>
+
+    <!-- 课程下单对话框 -->
+    <el-dialog
+      v-model="orderDialogVisible"
+      title="确认课程订单"
+      width="500px"
+      destroy-on-close
+    >
+      <div v-if="currentCourse" class="order-form">
+        <el-form ref="orderForm" :model="orderForm" label-width="100px">
+          <el-form-item label="课程名称">
+            <span>{{ currentCourse.title }}</span>
+          </el-form-item>
+          <el-form-item label="教师">
+            <span>{{ currentCourse.teacherName }}</span>
+          </el-form-item>
+          <el-form-item label="科目">
+            <span>{{ currentCourse.subject }}</span>
+          </el-form-item>
+          <el-form-item label="课时单价">
+            <span class="highlight-price">¥{{ currentCourse.hourlyPrice }}/小时</span>
+          </el-form-item>
+          <el-form-item label="购买小时数" prop="hours" required>
+            <el-input-number 
+              v-model="orderForm.hours" 
+              :min="1" 
+              :max="100"
+              @change="calculateTotal"
+              @input="val => calculateTotal(val)"
+            ></el-input-number>
+          </el-form-item>
+          <el-form-item label="总价">
+            <span class="highlight-price">¥{{ formattedTotal }}</span>
+          </el-form-item>
+          <el-form-item label="留言">
+            <el-input 
+              v-model="orderForm.message" 
+              type="textarea" 
+              rows="3" 
+              placeholder="请输入留言（选填）"
+            ></el-input>
+          </el-form-item>
+          <el-form-item label="支付方式" required>
+            <div class="payment-method-buttons">
+              <div 
+                class="payment-method-btn" 
+                :class="{ active: orderForm.paymentMethod === 'wechat' }"
+                @click="selectPaymentMethod('wechat')"
+              >
+                <span>微信支付</span>
+              </div>
+              <div 
+                class="payment-method-btn" 
+                :class="{ active: orderForm.paymentMethod === 'alipay' }"
+                @click="selectPaymentMethod('alipay')"
+              >
+                <span>支付宝</span>
+              </div>
+            </div>
+          </el-form-item>
+        </el-form>
+        
+        <div class="dialog-footer">
+          <el-button @click="orderDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitOrder" :loading="submitLoading">确认下单</el-button>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- 支付二维码对话框 -->
+    <el-dialog
+      v-model="paymentDialogVisible"
+      :title="getPaymentDialogTitle"
+      width="400px"
+      :close-on-click-modal="false"
+      destroy-on-close
+      @closed="handlePaymentDialogClosed"
+    >
+      <div class="payment-dialog-content">
+        <div class="qr-code-container">
+          <div v-if="currentPaymentMethod === 'wechat'" class="qr-code-image wechat-qr">
+            <div class="qr-inner">
+              <QRCode
+                :value="getPaymentQrValue"
+                :size="150"
+                level="H"
+                render-as="svg"
+              />
+              <span class="qr-logo-text">微信</span>
+            </div>
+          </div>
+          <div v-else-if="currentPaymentMethod === 'alipay'" class="qr-code-image alipay-qr">
+            <div class="qr-inner">
+              <QRCode
+                :value="getPaymentQrValue"
+                :size="150"
+                level="H"
+                render-as="svg"
+              />
+              <span class="qr-logo-text">支付宝</span>
+            </div>
+          </div>
+          <div v-else class="qr-code-placeholder">
+            <el-icon><Picture /></el-icon>
+            <span>请选择支付方式</span>
+          </div>
+        </div>
+        
+        <div class="payment-info">
+          <p>订单金额: <span class="highlight-price">¥{{ currentOrderAmount }}</span></p>
+          <p class="payment-tip">请使用{{ currentPaymentMethod === 'wechat' ? '微信' : '支付宝' }}扫码支付</p>
+          <p class="payment-tip">支付后请点击"确认支付"按钮</p>
+        </div>
+        
+        <div class="payment-actions">
+          <el-button @click="handleCancelPayment" type="default">取消支付</el-button>
+          <el-button @click="handleConfirmPayment" type="primary">确认支付</el-button>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- 取消支付确认对话框 -->
+    <el-dialog
+      v-model="cancelPaymentDialogVisible"
+      title="取消支付"
+      width="400px"
+      destroy-on-close
+    >
+      <p>确定要取消此订单的支付吗？</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="cancelPaymentDialogVisible = false">返回</el-button>
+          <el-button type="danger" @click="confirmCancelPayment" :loading="cancelLoading">确认取消</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, Picture, User, Collection, ChatDotRound, Money, Clock, Calendar } from '@element-plus/icons-vue'
-import { getAllApprovedCourses, CourseDTO, startChatWithTeacher } from '../../api/courses'
+import { Search, Picture, User, Collection, ChatDotRound, Money, Clock, Calendar, ShoppingCart } from '@element-plus/icons-vue'
+import { getAllApprovedCourses, CourseDTO, startChatWithTeacher, getApprovedCoursesPaged, PageParams, PageResult } from '../../api/courses'
+import { createOrder, cancelOrder } from '../../api/order'
 import { useChatStore } from '../../stores/chat'
 import { useRouter } from 'vue-router'
+import QRCode from 'qrcode.vue'
+
+// 工具函数：格式化价格，确保显示为有效数字
+const formatPrice = (price: number | undefined | null): number => {
+  if (price === undefined || price === null || isNaN(price)) {
+    return 0;
+  }
+  return parseFloat(Number(price).toFixed(2));
+}
 
 // 状态变量
 const loading = ref(false)
@@ -191,7 +355,46 @@ const currentConversation = ref(null)
 const chatStore = useChatStore()
 const router = useRouter()
 
-// 计算过滤后的课程列表
+// 下单相关状态
+const orderDialogVisible = ref(false)
+const orderForm = ref({
+  hours: 1,
+  message: '',
+  totalAmount: 0,
+  paymentMethod: 'wechat' // 默认选择微信支付
+})
+const submitLoading = ref(false)
+
+// 支付相关状态
+const paymentDialogVisible = ref(false)
+const currentOrderId = ref<number | null>(null)
+const currentOrderAmount = ref<string>('0.00')
+const cancelPaymentDialogVisible = ref(false)
+const cancelLoading = ref(false)
+
+// 获取支付对话框标题
+const getPaymentDialogTitle = computed(() => {
+  if(currentPaymentMethod.value === 'wechat') {
+    return '微信支付';
+  } else if(currentPaymentMethod.value === 'alipay') {
+    return '支付宝支付';
+  } else {
+    return '请选择支付方式';
+  }
+})
+
+// 引入分页相关接口和方法
+import { getApprovedCoursesPaged, PageParams, PageResult } from '../../api/courses'
+
+// 修改课程获取方法
+const pageParams = reactive<PageParams>({
+  page: 1,
+  size: 12 // 或者根据UI合理设置
+});
+
+const total = ref(0);
+
+// 在计算属性中过滤课程
 const filteredCourses = computed(() => {
   let result = [...courses.value]
   
@@ -226,34 +429,49 @@ const filteredCourses = computed(() => {
   }
   
   return result
-})
+});
 
-// 初始化
-onMounted(async () => {
-  await fetchCourses()
-})
+// 计算属性：总价格
+const calculatedTotal = computed(() => {
+  if (!currentCourse.value || !orderForm.value?.hours) return 0;
+  const price = currentCourse.value.hourlyPrice || 0;
+  const hours = orderForm.value?.hours || 0;
+  return formatPrice(price * hours);
+});
 
-// 获取课程列表
+// 格式化显示的总价
+const formattedTotal = computed(() => {
+  const total = calculatedTotal.value;
+  return total.toFixed(2);
+});
+
+// 监听分页参数变化重新加载数据
+watch(pageParams, async () => {
+  await fetchCourses();
+});
+
+// 获取课程列表（分页）
 const fetchCourses = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const data = await getAllApprovedCourses()
-    courses.value = data
+    const data = await getApprovedCoursesPaged(pageParams);
+    courses.value = data.records;
+    total.value = data.total;
     
     // 提取所有科目
-    const subjectSet = new Set<string>()
-    data.forEach((course: CourseDTO) => {
+    const subjectSet = new Set<string>();
+    data.records.forEach((course: CourseDTO) => {
       if (course.subject) {
-        subjectSet.add(course.subject)
+        subjectSet.add(course.subject);
       }
-    })
-    subjects.value = Array.from(subjectSet)
+    });
+    subjects.value = Array.from(subjectSet);
   } catch (error) {
-    ElMessage.error('获取课程列表失败')
+    ElMessage.error('获取课程列表失败');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 处理搜索
 const handleSearch = () => {
@@ -347,6 +565,234 @@ const startChat = async (teacherId: number) => {
     }
   }
 }
+
+// 显示下单对话框
+const showOrderDialog = () => {
+  if (!currentCourse.value) return
+  
+  // 确保课程价格是有效数字
+  const hourlyPrice = currentCourse.value.hourlyPrice || 0
+  
+  // 计算默认总价
+  const totalAmount = formatPrice(hourlyPrice * 1)
+  
+  // 重置订单表单
+  orderForm.value = {
+    hours: 1,
+    message: '',
+    totalAmount: totalAmount, // 格式化初始总价
+    paymentMethod: 'wechat' // 默认选择微信支付
+  }
+  
+  console.log('初始化订单:', {
+    courseId: currentCourse.value.id,
+    title: currentCourse.value.title,
+    hourlyPrice: hourlyPrice,
+    totalAmount: orderForm.value.totalAmount,
+    paymentMethod: orderForm.value.paymentMethod
+  })
+  
+  orderDialogVisible.value = true
+}
+
+// 计算总价
+const calculateTotal = (val: number) => {
+  if (!currentCourse.value) return
+  
+  // 确保val是有效数字
+  const hours = (!isNaN(val) && val > 0) ? val : 1;
+  
+  // 获取课程单价，确保是有效数字
+  const hourlyPrice = currentCourse.value.hourlyPrice || 0;
+  
+  // 计算并更新总价，使用格式化函数确保是有效数字
+  const total = formatPrice(hourlyPrice * hours);
+  console.log('计算总价: 小时数 =', hours, '单价 =', hourlyPrice, '总价 =', total);
+  
+  // 确保orderForm.value不为null
+  if (!orderForm.value) return;
+  
+  // 确保更新是响应式的
+  orderForm.value = {
+    ...orderForm.value,
+    totalAmount: total
+  };
+}
+
+// 监听小时数变化
+watch(() => orderForm.value?.hours, (newVal) => {
+  if (newVal) {
+    calculateTotal(newVal)
+  }
+})
+
+// 提交订单
+const submitOrder = async () => {
+  if (!currentCourse.value || !orderForm.value) return
+  
+  // 验证支付方式是否已选择
+  if (!orderForm.value.paymentMethod) {
+    ElMessage.warning('请选择支付方式')
+    return
+  }
+  
+  submitLoading.value = true
+  try {
+    // 确保courseId是有效的
+    if (!currentCourse.value.id) {
+      ElMessage.error('课程ID无效')
+      submitLoading.value = false
+      return
+    }
+    
+    const courseId = Number(currentCourse.value.id)
+    const hours = Number(orderForm.value.hours)
+    const price = Number(currentCourse.value.hourlyPrice)
+    
+    console.log('提交订单参数:', {
+      courseId: courseId,
+      hours: hours,
+      price: price,
+      message: orderForm.value.message,
+      paymentMethod: orderForm.value.paymentMethod
+    })
+    
+    const result = await createOrder(
+      courseId,
+      hours,
+      price,
+      orderForm.value.message
+    )
+    
+    if (result.success) {
+      // 保存当前支付方式，用于二维码页面显示
+      currentPaymentMethod.value = orderForm.value.paymentMethod
+      
+      // 保存当前订单金额
+      currentOrderAmount.value = formattedTotal.value
+      
+      // 关闭订单对话框
+      orderDialogVisible.value = false
+      
+      // 存储订单ID，用于支付成功后跳转或取消
+      currentOrderId.value = result.orderId
+      
+      // 显示支付二维码对话框
+      paymentDialogVisible.value = true
+    } else {
+      ElMessage.error(result.message || '订单创建失败')
+    }
+  } catch (error) {
+    console.error('提交订单失败:', error)
+    ElMessage.error('订单提交失败，请稍后再试')
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+// 处理取消支付
+const handleCancelPayment = () => {
+  cancelPaymentDialogVisible.value = true
+}
+
+// 确认取消支付
+const confirmCancelPayment = async () => {
+  if (!currentOrderId.value) return
+  
+  cancelLoading.value = true
+  try {
+    const result = await cancelOrder(currentOrderId.value)
+    
+    if (result.success) {
+      ElMessage.success('订单已取消')
+      
+      // 关闭所有相关对话框
+      cancelPaymentDialogVisible.value = false
+      paymentDialogVisible.value = false
+      
+      // 重置订单ID和相关状态
+      currentOrderId.value = null
+      currentPaymentMethod.value = null
+      
+      // 可选: 跳转到订单列表
+      router.push('/orders')
+    } else {
+      ElMessage.error(result.message || '取消订单失败')
+    }
+  } catch (error) {
+    console.error('取消订单失败:', error)
+    ElMessage.error('取消订单失败，请稍后再试')
+  } finally {
+    cancelLoading.value = false
+  }
+}
+
+// 处理确认支付
+const handleConfirmPayment = async () => {
+  try {
+    // 这里应该调用确认支付的API，但由于没有实际的支付功能，我们直接模拟成功
+    ElMessage.success('支付成功')
+    
+    // 关闭支付对话框
+    paymentDialogVisible.value = false
+    
+    // 重置支付状态
+    currentOrderId.value = null
+    currentPaymentMethod.value = null
+    
+    // 跳转到订单列表页面
+    router.push('/orders')
+  } catch (error) {
+    console.error('确认支付失败:', error)
+    ElMessage.error('确认支付失败，请稍后再试')
+  }
+}
+
+// 处理支付对话框关闭事件
+const handlePaymentDialogClosed = () => {
+  // 如果对话框是通过x按钮关闭的，而不是通过取消支付或确认支付，我们可能需要处理一些状态
+  if (currentOrderId.value) {
+    // 打开取消支付对话框，询问用户是否要取消
+    handleCancelPayment();
+  }
+}
+
+// 处理支付方式选择
+const selectPaymentMethod = (method: string) => {
+  orderForm.value.paymentMethod = method
+  calculateTotal(orderForm.value.hours)
+}
+
+// 获取支付二维码值
+const getPaymentQrValue = computed(() => {
+  if (!currentOrderId.value || !currentPaymentMethod.value) {
+    return 'https://example.com/error'
+  }
+  
+  // 创建包含订单信息的支付二维码值
+  const paymentType = currentPaymentMethod.value
+  const orderId = currentOrderId.value
+  const amount = currentOrderAmount.value
+  
+  // 在实际应用中，这里应该返回真实的支付URL或订单信息
+  // 这里仅作模拟示例
+  return `https://example.com/pay?id=${orderId}&type=${paymentType}&amount=${amount}`
+})
+
+// 新增的 currentPaymentMethod 和 currentPaymentQrValue 变量
+const currentPaymentMethod = ref<string | null>(null)
+const currentPaymentQrValue = ref<string | null>(null)
+
+// 处理页码变化
+const handlePageChange = (newPage: number) => {
+  pageParams.page = newPage;
+};
+
+// 处理每页条数变化
+const handleSizeChange = (newSize: number) => {
+  pageParams.size = newSize;
+  pageParams.page = 1; // 重置到第一页
+};
 </script>
 
 <style scoped>
@@ -472,15 +918,14 @@ const startChat = async (teacherId: number) => {
 }
 
 .course-price {
-  margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px dashed #ebeef5;
+  margin-top: 10px;
+  text-align: right;
 }
 
 .price-label {
-  color: #ff6700;
+  color: #e6a23c;
   font-weight: bold;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 /* 课程详情页样式 */
@@ -697,6 +1142,157 @@ const startChat = async (teacherId: number) => {
 @media (max-width: 768px) {
   .chat-dialog {
     width: 90vw !important;
+  }
+}
+
+.order-form {
+  padding: 0 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.highlight-price {
+  color: #f56c6c;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 支付相关样式 */
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.qr-code-image {
+  width: 200px;
+  height: 200px;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.wechat-qr {
+  background-color: #2aae67;
+}
+
+.alipay-qr {
+  background-color: #00a0e9;
+}
+
+.qr-inner {
+  width: 180px;
+  height: 180px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: 4px;
+}
+
+.qr-logo-text {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.qr-code-placeholder {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f7fa;
+  color: #909399;
+  border-radius: 8px;
+}
+
+.qr-code-placeholder .el-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.payment-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.payment-tip {
+  color: #909399;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.payment-method-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.payment-method-btn {
+  padding: 10px 20px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.payment-method-btn:hover {
+  background-color: #f5f7fa;
+}
+
+.active {
+  background-color: #f5f7fa;
+  border-color: #409EFF;
+}
+
+/* 添加分页容器样式 */
+.pagination-container {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filter-container {
+    width: 100%;
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .search-input {
+    width: 100%;
   }
 }
 </style> 

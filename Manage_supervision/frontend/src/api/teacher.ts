@@ -61,4 +61,17 @@ export const unassignStudent = async (teacherId: number, studentId: number) => {
     console.error('取消分配学生失败:', error)
     throw error
   }
+}
+
+// 获取未分配学生列表
+export const getUnassignedStudents = async (page = 1, size = 10) => {
+  try {
+    const response = await axios.get('/api/admin/students/unassigned', {
+      params: { page, size }
+    })
+    return response.data
+  } catch (error) {
+    console.error('获取未分配学生列表失败:', error)
+    throw error
+  }
 } 

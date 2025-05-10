@@ -22,9 +22,6 @@ public class CourseApplication {
     @TableField("teacher_id")
     private Long teacherId;
 
-    @TableField("course_id")
-    private Long courseId;
-
     @TableField("title")
     private String title;
 

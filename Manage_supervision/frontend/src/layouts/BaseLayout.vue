@@ -183,31 +183,6 @@ const requestNotificationPermission = async () => {
   }
 };
 
-// 初始化聊天服务
-onMounted(async () => {
-  if (userStore.isLoggedIn) {
-    await chatStore.initChat()
-    
-    // 请求通知权限
-    await requestNotificationPermission()
-    
-    // 监听新消息通知
-    setupMessageNotifications()
-  }
-})
-
-// 监听用户登录状态
-watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
-  if (isLoggedIn) {
-    await chatStore.initChat()
-    
-    // 监听新消息通知
-    setupMessageNotifications()
-  } else {
-    chatStore.clearChatData()
-  }
-})
-
 // 设置消息通知
 const setupMessageNotifications = () => {
   // 使用聊天事件总线监听新消息
@@ -218,13 +193,51 @@ const setupMessageNotifications = () => {
     }
   })
   
-  // 组件卸载时取消监听
-  onUnmounted(() => {
+  // 返回取消订阅函数
+  return unsubscribeMessageReceived
+}
+
+// 全局变量存储取消订阅函数
+let unsubscribeMessageReceived = null
+
+// 初始化聊天服务
+onMounted(async () => {
+  if (userStore.isLoggedIn) {
+    await chatStore.initChat()
+    
+    // 请求通知权限
+    await requestNotificationPermission()
+    
+    // 监听新消息通知
+    unsubscribeMessageReceived = setupMessageNotifications()
+  }
+})
+
+// 组件卸载时取消监听
+onUnmounted(() => {
+  if (unsubscribeMessageReceived) {
+    unsubscribeMessageReceived()
+  }
+})
+
+// 监听用户登录状态
+watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
+  if (isLoggedIn) {
+    await chatStore.initChat()
+    
+    // 监听新消息通知
+    if (!unsubscribeMessageReceived) {
+      unsubscribeMessageReceived = setupMessageNotifications()
+    }
+  } else {
+    // 用户登出时清理
+    chatStore.clearChatData()
     if (unsubscribeMessageReceived) {
       unsubscribeMessageReceived()
+      unsubscribeMessageReceived = null
     }
-  })
-}
+  }
+})
 
 // 显示消息通知
 const showMessageNotification = (message) => {
@@ -444,6 +457,7 @@ const playNotificationSound = () => {
 .app-main {
   padding: 16px;
   min-height: calc(100vh - 60px);
+  overflow-y: auto; /* 允许内容溢出时滚动 */
 }
 
 /* 路由过渡动画 */

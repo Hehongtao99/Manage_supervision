@@ -26,7 +26,6 @@ a:hover {
 /* 基础样式已移至App.vue */
 body {
   margin: 0;
-  display: flex;
   min-height: 100vh;
 }
 

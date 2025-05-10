@@ -18,16 +18,30 @@ export interface CourseDTO {
   updateTime: string
 }
 
+// 添加分页相关接口
+export interface PageParams {
+  page: number;
+  size: number;
+}
+
+export interface PageResult<T> {
+  records: T[];
+  total: number;
+  size: number;
+  current: number;
+  pages: number;
+}
+
 /**
- * 学生获取所有已审核通过的课程
+ * 学生获取所有已审核通过的课程（支持分页）
  */
-export const getAllApprovedCourses = async () => {
+export const getApprovedCoursesPaged = async (params: PageParams) => {
   try {
-    const response = await axios.get('/api/student/courses/approved')
-    return response.data
+    const response = await axios.get('/api/student/courses/approved/page', { params });
+    return response.data;
   } catch (error) {
-    console.error('获取已审核通过的课程列表失败:', error)
-    throw error
+    console.error('获取已审核通过的课程列表失败:', error);
+    throw error;
   }
 }
 

@@ -3,7 +3,9 @@ package com.example.auth.controller;
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.model.dto.StudentDTO;
 import com.example.auth.model.dto.StudentDetailDTO;
+import com.example.auth.model.dto.TeacherStudentCourseDTO;
 import com.example.auth.model.dto.UserDTO;
+import com.example.auth.service.TeacherStudentService;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
 import org.slf4j.Logger;
@@ -27,7 +29,9 @@ public class SupervisorController {
     @Autowired
     private UserService userService;
 
-    
+    @Autowired
+    private TeacherStudentService teacherStudentService;
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -136,6 +140,25 @@ public class SupervisorController {
         } catch (Exception e) {
             logger.error("Failed to delete student", e);
             return ResponseEntity.badRequest().body(Map.of("message", "Failed to delete student: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get students with course information assigned to supervisor
+     */
+    @GetMapping("/students/with-courses")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> getStudentsWithCourses(@RequestHeader("Authorization") String auth) {
+        try {
+            String token = auth.replace("Bearer ", "");
+            Long supervisorId = jwtUtil.getUserIdFromToken(token);
+            logger.info("Supervisor requested their students with course information, ID: {}", supervisorId);
+            
+            List<TeacherStudentCourseDTO> studentsWithCourses = teacherStudentService.getStudentsWithCoursesByTeacher(supervisorId);
+            return ResponseEntity.ok(studentsWithCourses);
+        } catch (Exception e) {
+            logger.error("Failed to get students with course information", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get students with course information: " + e.getMessage()));
         }
     }
 }

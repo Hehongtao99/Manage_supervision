@@ -79,10 +79,38 @@
         </template>
       </el-menu-item>
 
+      <el-menu-item index="/supervisor/orders" @click="handleRoute('/supervisor/orders')">
+        <el-icon><ShoppingCart /></el-icon>
+        <template #title>
+          <span>订单管理</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/supervisor/after-sales" @click="handleRoute('/supervisor/after-sales')">
+        <el-icon><Service /></el-icon>
+        <template #title>
+          <span>售后管理</span>
+        </template>
+      </el-menu-item>
+
       <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
           <span>教师信息</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/supervisor/income-report" @click="handleRoute('/supervisor/income-report')">
+        <el-icon><TrendCharts /></el-icon>
+        <template #title>
+          <span>收入报表</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/supervisor/course-students" @click="handleRoute('/supervisor/course-students')">
+        <el-icon><Postcard /></el-icon>
+        <template #title>
+          <span>课程学生管理</span>
         </template>
       </el-menu-item>
     </template>
@@ -100,6 +128,27 @@
         <el-icon><Reading /></el-icon>
         <template #title>
           <span>课程浏览</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/orders" @click="handleRoute('/orders')">
+        <el-icon><ShoppingCart /></el-icon>
+        <template #title>
+          <span>我的订单</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/after-sales" @click="handleRoute('/after-sales')">
+        <el-icon><Service /></el-icon>
+        <template #title>
+          <span>售后管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/learning-report" @click="handleRoute('/learning-report')">
+        <el-icon><TrendCharts /></el-icon>
+        <template #title>
+          <span>学习记录报表</span>
         </template>
       </el-menu-item>
 
@@ -129,7 +178,11 @@ import {
   List,
   Folder,
   ChatDotRound,
-  Reading
+  Reading,
+  ShoppingCart,
+  Service,
+  TrendCharts,
+  Postcard
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

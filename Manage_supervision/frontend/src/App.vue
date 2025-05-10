@@ -30,8 +30,6 @@ html, body {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* 防止整个页面滚动 */
-  position: fixed; /* 确保页面不会滚动 */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -40,10 +38,7 @@ html, body {
 #app {
   height: 100%;
   width: 100%;
-  overflow: hidden;
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
 }
 
 /* 全局样式 */

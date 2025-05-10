@@ -7,6 +7,7 @@ import java.io.Serializable;
  */
 public class CourseDTO implements Serializable {
     private String name; // 课程名称
+    private String title; // 课程标题
     private String status; // 课程状态: 进行中, 已完成, 未开始
     private String description; // 课程描述
     private int completion; // 完成度(0-100)
@@ -34,6 +35,14 @@ public class CourseDTO implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getStatus() {

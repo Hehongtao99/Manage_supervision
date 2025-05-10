@@ -1,11 +1,13 @@
 package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.mapper.CourseApplicationMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.dto.CourseApplicationDTO;
 import com.example.auth.model.entity.CourseApplication;
 import com.example.auth.model.entity.User;
+import com.example.auth.model.dto.PageResult;
 import com.example.auth.service.CourseApplicationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -72,7 +74,6 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
             // 创建新的课程申请
             CourseApplication application = new CourseApplication();
             application.setTeacherId(teacherId);
-            application.setCourseId(null); // 初始课程申请时没有关联的课程ID
             application.setTitle(title);
             application.setSubject(subject);
             
@@ -204,7 +205,6 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
             // 更新申请信息
             application.setTitle(title);
             application.setSubject(subject);
-            // 保留原有的courseId值，不做修改
             
             try {
                 application.setHourlyPrice(new BigDecimal(hourlyPrice));
@@ -294,7 +294,6 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         dto.setId(application.getId());
         dto.setTeacherId(application.getTeacherId());
         dto.setTeacherName(application.getTeacherName());
-        dto.setCourseId(application.getCourseId());
         dto.setTitle(application.getTitle());
         dto.setSubject(application.getSubject());
         dto.setHourlyPrice(application.getHourlyPrice());
@@ -395,6 +394,84 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         } catch (Exception e) {
             logger.error("获取课程申请详情出错", e);
             return null;
+        }
+    }
+    
+    @Override
+    public PageResult<CourseApplicationDTO> getAllApplicationsPaged(int page, int size) {
+        logger.info("获取所有课程申请列表 - 分页: page={}, size={}", page, size);
+        
+        try {
+            // 创建分页对象
+            Page<CourseApplication> pageParam = new Page<>(page, size);
+            // 使用自定义Mapper方法或基于分页的查询
+            LambdaQueryWrapper<CourseApplication> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.orderByDesc(CourseApplication::getCreateTime);
+            
+            Page<CourseApplication> resultPage = courseApplicationMapper.selectPage(pageParam, queryWrapper);
+            
+            // 手动获取教师信息
+            for (CourseApplication app : resultPage.getRecords()) {
+                User teacher = userMapper.selectById(app.getTeacherId());
+                if (teacher != null) {
+                    app.setTeacherName(teacher.getUsername());
+                }
+            }
+            
+            // 转换成DTO列表
+            List<CourseApplicationDTO> dtoList = convertToDTOList(resultPage.getRecords());
+            
+            // 创建分页结果对象
+            PageResult<CourseApplicationDTO> pageResult = new PageResult<>();
+            pageResult.setRecords(dtoList);
+            pageResult.setTotal(resultPage.getTotal());
+            pageResult.setSize(resultPage.getSize());
+            pageResult.setCurrent(resultPage.getCurrent());
+            pageResult.setPages(resultPage.getPages());
+            
+            return pageResult;
+        } catch (Exception e) {
+            logger.error("获取所有课程申请出错", e);
+            return new PageResult<>();
+        }
+    }
+    
+    @Override
+    public PageResult<CourseApplicationDTO> getAllApprovedCourseApplicationsPaged(int page, int size) {
+        logger.info("获取所有已审核通过的课程申请 - 分页: page={}, size={}", page, size);
+        try {
+            // 创建分页对象
+            Page<CourseApplication> pageParam = new Page<>(page, size);
+            // 根据状态查询已审核通过的课程
+            LambdaQueryWrapper<CourseApplication> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(CourseApplication::getStatus, "APPROVED")
+                        .orderByDesc(CourseApplication::getCreateTime);
+            
+            Page<CourseApplication> resultPage = courseApplicationMapper.selectPage(pageParam, queryWrapper);
+            
+            // 手动获取教师信息
+            for (CourseApplication app : resultPage.getRecords()) {
+                User teacher = userMapper.selectById(app.getTeacherId());
+                if (teacher != null) {
+                    app.setTeacherName(teacher.getUsername());
+                }
+            }
+            
+            // 转换成DTO列表
+            List<CourseApplicationDTO> dtoList = convertToDTOList(resultPage.getRecords());
+            
+            // 创建分页结果对象
+            PageResult<CourseApplicationDTO> pageResult = new PageResult<>();
+            pageResult.setRecords(dtoList);
+            pageResult.setTotal(resultPage.getTotal());
+            pageResult.setSize(resultPage.getSize());
+            pageResult.setCurrent(resultPage.getCurrent());
+            pageResult.setPages(resultPage.getPages());
+            
+            return pageResult;
+        } catch (Exception e) {
+            logger.error("获取已审核通过的课程申请出错", e);
+            return new PageResult<>();
         }
     }
 } 

@@ -59,8 +59,10 @@ public class AdminTeacherStudentController {
     // 获取未分配学生列表
     @GetMapping("/students/unassigned")
     @RequireRole("ADMIN")
-    public ResponseEntity<List<UserDTO>> getUnassignedStudents() {
-        List<UserDTO> students = teacherStudentService.getUnassignedStudents();
+    public ResponseEntity<List<UserDTO>> getUnassignedStudents(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<UserDTO> students = teacherStudentService.getUnassignedStudents(size, page);
         return ResponseEntity.ok(students);
     }
 

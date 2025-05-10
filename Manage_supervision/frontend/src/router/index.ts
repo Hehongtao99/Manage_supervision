@@ -65,6 +65,33 @@ const routes: RouteRecordRaw[] = [
           title: '课程浏览',
           requiresAuth: true
         }
+      },
+      {
+        path: 'orders',
+        name: 'OrderList',
+        component: () => import('../views/student/OrderList.vue'),
+        meta: {
+          title: '我的订单',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'after-sales',
+        name: 'StudentAfterSales',
+        component: () => import('../views/student/AfterSalesManagement.vue'),
+        meta: {
+          title: '售后管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'learning-report',
+        name: 'LearningReport',
+        component: () => import('../views/student/LearningReport.vue'),
+        meta: {
+          title: '学习记录报表',
+          requiresAuth: true
+        }
       }
     ]
   },
@@ -207,6 +234,46 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresSupervisor: true
         }
+      },
+      {
+        path: 'orders',
+        name: 'OrderManagement',
+        component: () => import('../views/supervisor/OrderManagement.vue'),
+        meta: { 
+          title: '订单管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'after-sales',
+        name: 'AfterSalesManagement',
+        component: () => import('../views/supervisor/AfterSalesManagement.vue'),
+        meta: { 
+          title: '售后管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'income-report',
+        name: 'IncomeReport',
+        component: () => import('../views/supervisor/IncomeReport.vue'),
+        meta: { 
+          title: '收入报表',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
+        path: 'course-students',
+        name: 'CourseStudentManagement',
+        component: () => import('../views/supervisor/CourseStudentManagement.vue'),
+        meta: { 
+          title: '课程学生管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
       }
     ]
   }
@@ -265,14 +332,14 @@ router.beforeEach(async (to, from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/chat')
+      next('/')
       return
     }
     
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
       console.log('需要教师权限，但用户不是教师，重定向到首页')
-      next('/chat')
+      next('/')
       return
     }
   }
@@ -291,6 +358,9 @@ router.beforeEach(async (to, from, next) => {
   
   // 设置页面标题
   document.title = `${to.meta.title || '首页'} - 毕业设计督导系统`
+  
+  // 记录路由导航前后信息，辅助调试
+  console.log('从路径:', from.path, '导航到:', to.path, '用户角色:', userStore.user.roles)
   
   // 放行路由
   console.log('路由检查通过，允许导航到:', to.path)

@@ -9,6 +9,7 @@ import java.util.List;
 public class StudentDetailDTO extends StudentDTO implements Serializable {
     private List<CourseDTO> courses; // 学生课程列表
     private List<ActivityDTO> activities; // 学生活动列表
+    private List<StudentCourseDTO> orderedCourses; // 学生已购买的课程订单列表
 
     public StudentDetailDTO() {
         super();
@@ -17,14 +18,19 @@ public class StudentDetailDTO extends StudentDTO implements Serializable {
     // 主要构造函数
     public StudentDetailDTO(Long id, String name, String studentId, String className,
                           String email, String phone, String status, String lastLogin, int progress,
-                          List<CourseDTO> courses, List<ActivityDTO> activities) {
+                          List<CourseDTO> courses, List<ActivityDTO> activities,
+                          List<StudentCourseDTO> orderedCourses) {
         super(id, name, studentId, className, email, phone, status, lastLogin, progress);
         this.courses = courses;
         this.activities = activities;
+        this.orderedCourses = orderedCourses;
     }
 
     // 从StudentDTO创建StudentDetailDTO
-    public static StudentDetailDTO fromStudentDTO(StudentDTO studentDTO, List<CourseDTO> courses, List<ActivityDTO> activities) {
+    public static StudentDetailDTO fromStudentDTO(StudentDTO studentDTO, 
+                                                 List<CourseDTO> courses, 
+                                                 List<ActivityDTO> activities,
+                                                 List<StudentCourseDTO> orderedCourses) {
         return new StudentDetailDTO(
             studentDTO.getId(),
             studentDTO.getName(),
@@ -36,7 +42,8 @@ public class StudentDetailDTO extends StudentDTO implements Serializable {
             studentDTO.getLastLogin(),
             studentDTO.getProgress(),
             courses,
-            activities
+            activities,
+            orderedCourses
         );
     }
 
@@ -55,5 +62,13 @@ public class StudentDetailDTO extends StudentDTO implements Serializable {
 
     public void setActivities(List<ActivityDTO> activities) {
         this.activities = activities;
+    }
+    
+    public List<StudentCourseDTO> getOrderedCourses() {
+        return orderedCourses;
+    }
+    
+    public void setOrderedCourses(List<StudentCourseDTO> orderedCourses) {
+        this.orderedCourses = orderedCourses;
     }
 } 

@@ -15,6 +15,7 @@ export interface StudentDTO {
 export interface StudentDetailDTO extends StudentDTO {
   courses: CourseDTO[];
   activities: ActivityDTO[];
+  orderedCourses?: StudentCourseDTO[];
 }
 
 export interface CourseDTO {
@@ -29,6 +30,21 @@ export interface ActivityDTO {
   title: string;
   content: string;
   time: string;
+}
+
+// 学生已购买的课程信息
+export interface StudentCourseDTO {
+  courseId: number;
+  courseTitle: string;
+  courseSubject: string;
+  orderId: number;
+  orderNumber: string;
+  status: string;
+  price: number;
+  hours: number;
+  totalAmount: number;
+  createTime: string;
+  teacherId: number;
 }
 
 // 获取学生列表（分页）

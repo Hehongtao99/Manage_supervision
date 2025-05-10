@@ -1,6 +1,7 @@
 package com.example.auth.service;
 
 import com.example.auth.model.dto.CourseApplicationDTO;
+import com.example.auth.model.dto.PageResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -93,4 +94,20 @@ public interface CourseApplicationService {
      * @return 课程申请详情
      */
     CourseApplicationDTO getCourseApplicationById(Long courseId);
+
+    /**
+     * 获取所有已审核通过的课程申请（分页）
+     * @param page 页码
+     * @param size 每页条数
+     * @return 分页结果
+     */
+    PageResult<CourseApplicationDTO> getAllApprovedCourseApplicationsPaged(int page, int size);
+
+    /**
+     * 获取所有课程申请（分页）
+     * @param page 页码
+     * @param size 每页条数
+     * @return 分页结果
+     */
+    PageResult<CourseApplicationDTO> getAllApplicationsPaged(int page, int size);
 } 

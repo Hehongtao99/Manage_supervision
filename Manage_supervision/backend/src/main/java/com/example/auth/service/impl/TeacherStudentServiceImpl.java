@@ -4,15 +4,18 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.TeacherStudentCourseDTO;
 import com.example.auth.model.dto.TeacherStudentDTO;
 import com.example.auth.model.dto.TeacherWithStudentsDTO;
 import com.example.auth.model.dto.UserDTO;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.TeacherStudentRelation;
 import com.example.auth.model.entity.User;
+import com.example.auth.model.entity.Order;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.TeacherStudentMapper;
 import com.example.auth.mapper.UserMapper;
+import com.example.auth.mapper.OrderMapper;
 import com.example.auth.service.TeacherStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +40,9 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Autowired
     private TeacherStudentMapper teacherStudentMapper;
+
+    @Autowired
+    private OrderMapper orderMapper;
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -99,26 +107,33 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
     }
 
     @Override
-    public List<UserDTO> getUnassignedStudents() {
+    public List<UserDTO> getUnassignedStudents(int pageSize, int pageNum) {
         // 获取学生角色ID
         Role studentRole = roleMapper.findByName("USER");
         if (studentRole == null) {
             throw new RuntimeException("学生角色不存在");
         }
         
-        // 查询未分配给任何教师的学生ID
+        // 获取未分配给教师的学生ID列表
         List<Long> unassignedStudentIds = teacherStudentMapper.findUnassignedStudentIdsByRoleId(studentRole.getId());
         
         if (unassignedStudentIds.isEmpty()) {
             return new ArrayList<>();
         }
         
-        // 根据ID查询学生详细信息
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.in(User::getId, unassignedStudentIds);
-        List<User> unassignedStudents = userMapper.selectList(queryWrapper);
+        // 创建分页对象
+        Page<User> page = new Page<>(pageNum, pageSize);
         
-        return unassignedStudents.stream()
+        // 查询学生详细信息，带分页
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(User::getId, unassignedStudentIds)
+                   .eq(User::getStatus, "active")
+                   .orderByDesc(User::getCreateTime);
+        
+        Page<User> userPage = userMapper.selectPage(page, queryWrapper);
+        
+        // 转换成DTO
+        return userPage.getRecords().stream()
                 .map(this::convertToUserDTO)
                 .collect(Collectors.toList());
     }
@@ -254,16 +269,80 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Override
     public boolean isTeacherAssignedToStudent(Long teacherId, Long studentId) {
-        // 检查教师和学生是否存在
-        User teacher = userMapper.selectById(teacherId);
-        User student = userMapper.selectById(studentId);
+        return teacherStudentMapper.existsByTeacherIdAndStudentId(teacherId, studentId);
+    }
+    
+    @Override
+    public List<TeacherStudentCourseDTO> getStudentsWithCoursesByTeacher(Long teacherId) {
+        // 查询该教师的订单，只获取学生ID
+        LambdaQueryWrapper<Order> studentIdQueryWrapper = new LambdaQueryWrapper<>();
+        studentIdQueryWrapper.eq(Order::getTeacherId, teacherId)
+                             .select(Order::getStudentId)
+                             .groupBy(Order::getStudentId);
         
-        if (teacher == null || student == null) {
-            return false;
+        List<Order> studentOrders = orderMapper.selectList(studentIdQueryWrapper);
+        
+        if (studentOrders.isEmpty()) {
+            return new ArrayList<>();
         }
         
-        // 查询是否存在活跃的师生关系
-        return teacherStudentMapper.existsByTeacherIdAndStudentId(teacherId, studentId);
+        // 提取所有学生ID
+        List<Long> studentIds = studentOrders.stream()
+                                            .map(Order::getStudentId)
+                                            .distinct()
+                                            .collect(Collectors.toList());
+        
+        // 获取学生详细信息
+        LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+        userWrapper.in(User::getId, studentIds);
+        List<User> students = userMapper.selectList(userWrapper);
+        
+        Map<Long, TeacherStudentCourseDTO> studentDtoMap = new HashMap<>();
+        
+        // 转换为DTO对象
+        for (User student : students) {
+            TeacherStudentCourseDTO dto = new TeacherStudentCourseDTO();
+            dto.setId(student.getId());
+            dto.setUsername(student.getUsername());
+            dto.setRealName(student.getRealName());
+            dto.setNickname(student.getNickname());
+            dto.setEmail(student.getEmail());
+            dto.setPhone(student.getPhone());
+            dto.setUserNumber(student.getUserNumber());
+            dto.setAvatar(student.getAvatar());
+            dto.setStatus(student.getStatus());
+            dto.setCourses(new ArrayList<>());
+            
+            studentDtoMap.put(student.getId(), dto);
+        }
+        
+        // 获取每个学生购买的所有课程
+        for (Long studentId : studentIds) {
+            LambdaQueryWrapper<Order> studentOrderWrapper = new LambdaQueryWrapper<>();
+            studentOrderWrapper.eq(Order::getTeacherId, teacherId)
+                              .eq(Order::getStudentId, studentId);
+            List<Order> studentCourseOrders = orderMapper.selectList(studentOrderWrapper);
+            
+            TeacherStudentCourseDTO studentDto = studentDtoMap.get(studentId);
+            if (studentDto != null) {
+                for (Order order : studentCourseOrders) {
+                    TeacherStudentCourseDTO.StudentCourseInfo courseInfo = new TeacherStudentCourseDTO.StudentCourseInfo();
+                    courseInfo.setOrderId(order.getId());
+                    courseInfo.setCourseId(order.getCourseId());
+                    courseInfo.setCourseTitle(order.getCourseTitle());
+                    courseInfo.setCourseSubject(order.getCourseSubject());
+                    courseInfo.setPrice(order.getPrice());
+                    courseInfo.setHours(order.getHours());
+                    courseInfo.setTotalAmount(order.getTotalAmount());
+                    courseInfo.setStatus(order.getStatus());
+                    courseInfo.setCreateTime(order.getCreateTime());
+                    
+                    studentDto.getCourses().add(courseInfo);
+                }
+            }
+        }
+        
+        return new ArrayList<>(studentDtoMap.values());
     }
 
     private UserDTO convertToUserDTO(User user) {
@@ -308,5 +387,15 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
                 : null);
         
         return dto;
+    }
+
+    private List<Order> getStudentOrders(Long studentId, int pageSize, int pageNum) {
+        LambdaQueryWrapper<Order> studentOrderWrapper = new LambdaQueryWrapper<>();
+        studentOrderWrapper.eq(Order::getStudentId, studentId);
+        // 创建分页对象
+        Page<Order> page = new Page<>(pageNum, pageSize);
+        // 使用分页查询
+        Page<Order> orderPage = orderMapper.selectPage(page, studentOrderWrapper);
+        return orderPage.getRecords();
     }
 } 

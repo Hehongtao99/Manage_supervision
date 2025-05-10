@@ -1,6 +1,7 @@
 package com.example.auth.service;
 
 import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.TeacherStudentCourseDTO;
 import com.example.auth.model.dto.TeacherStudentDTO;
 import com.example.auth.model.dto.TeacherWithStudentsDTO;
 import com.example.auth.model.dto.UserDTO;
@@ -16,7 +17,7 @@ public interface TeacherStudentService {
     PageResponse<UserDTO> getAllStudents(int page, int size, String keyword);
     
     // 获取未分配给任何教师的学生列表
-    List<UserDTO> getUnassignedStudents();
+    List<UserDTO> getUnassignedStudents(int pageSize, int pageNum);
     
     // 获取特定教师的学生列表
     List<UserDTO> getStudentsByTeacher(Long teacherId);
@@ -35,4 +36,7 @@ public interface TeacherStudentService {
     
     // 判断教师是否分配给了指定学生
     boolean isTeacherAssignedToStudent(Long teacherId, Long studentId);
-} 
+    
+    // 获取教师的学生列表及其课程信息（通过订单表关联）
+    List<TeacherStudentCourseDTO> getStudentsWithCoursesByTeacher(Long teacherId);
+}

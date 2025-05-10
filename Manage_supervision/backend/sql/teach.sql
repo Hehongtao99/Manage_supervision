@@ -11,7 +11,7 @@
  Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 09/05/2025 09:13:06
+ Date: 10/05/2025 17:19:58
 */
 
 SET NAMES utf8mb4;
@@ -40,11 +40,31 @@ CREATE TABLE `chat_messages`  (
   CONSTRAINT `FK_chat_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `FK_chat_messages_recipient` FOREIGN KEY (`recipient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `FK_chat_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of chat_messages
 -- ----------------------------
+INSERT INTO `chat_messages` VALUES (1, 1, 4, 3, '1', '2025-05-09 23:24:02', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (2, 1, 4, 3, '在吗', '2025-05-09 23:27:25', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (3, 1, 3, 4, '在吗', '2025-05-09 23:27:34', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (4, 1, 3, 4, '再', '2025-05-09 23:27:36', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (5, 1, 3, 4, '干啥', '2025-05-09 23:27:37', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (6, 1, 3, 4, '？》', '2025-05-09 23:27:39', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (7, 1, 3, 4, '1', '2025-05-09 23:27:40', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (8, 1, 3, 4, '1', '2025-05-09 23:27:41', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (9, 1, 3, 4, '1', '2025-05-09 23:27:42', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (10, 1, 3, 4, '1', '2025-05-09 23:27:42', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (11, 1, 3, 4, '1', '2025-05-09 23:27:42', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (12, 1, 3, 4, '1', '2025-05-09 23:27:43', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (13, 1, 3, 4, '1', '2025-05-09 23:27:43', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (15, 1, 3, 4, '1', '2025-05-09 23:27:49', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (16, 1, 3, 4, '1', '2025-05-09 23:27:51', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (17, 1, 4, 3, '1', '2025-05-09 23:31:53', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (18, 1, 4, 3, '1', '2025-05-09 23:31:54', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (19, 1, 4, 3, '1', '2025-05-09 23:56:49', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (20, 1, 4, 3, '1', '2025-05-09 23:56:52', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `chat_messages` VALUES (21, 1, 4, 3, '1', '2025-05-10 16:10:50', 1, NULL, NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for conversations
@@ -63,11 +83,12 @@ CREATE TABLE `conversations`  (
   INDEX `idx_conversations_user2_id`(`user2_id` ASC) USING BTREE,
   CONSTRAINT `FK_conversations_user1` FOREIGN KEY (`user1_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `FK_conversations_user2` FOREIGN KEY (`user2_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of conversations
 -- ----------------------------
+INSERT INTO `conversations` VALUES (1, 4, 3, '2025-05-09 10:11:52', '2025-05-10 16:10:50', 0, 0);
 
 -- ----------------------------
 -- Table structure for course_applications
@@ -141,6 +162,39 @@ CREATE TABLE `courses`  (
 
 -- ----------------------------
 -- Records of courses
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for orders
+-- ----------------------------
+DROP TABLE IF EXISTS `orders`;
+CREATE TABLE `orders`  (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `student_id` bigint NOT NULL COMMENT '学生ID',
+  `teacher_id` bigint NOT NULL COMMENT '教师ID',
+  `course_id` bigint NOT NULL COMMENT '课程ID',
+  `order_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '订单编号',
+  `price` decimal(10, 2) NOT NULL COMMENT '课程价格',
+  `hours` int NOT NULL COMMENT '购买小时数',
+  `total_amount` decimal(10, 2) NOT NULL COMMENT '订单总金额',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'PENDING' COMMENT '订单状态：PENDING(待确认), ACCEPTED(已接受), REJECTED(已拒绝), CANCELED(已取消), COMPLETED(已完成)',
+  `message` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '学生留言',
+  `reject_reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '拒绝原因',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_order_number`(`order_number` ASC) USING BTREE,
+  INDEX `idx_student_id`(`student_id` ASC) USING BTREE,
+  INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+  INDEX `idx_course_id`(`course_id` ASC) USING BTREE,
+  INDEX `idx_status`(`status` ASC) USING BTREE,
+  CONSTRAINT `fk_orders_course` FOREIGN KEY (`course_id`) REFERENCES `course_applications` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_orders_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_orders_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '订单表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of orders
 -- ----------------------------
 
 -- ----------------------------
@@ -263,6 +317,6 @@ CREATE TABLE `users`  (
 INSERT INTO `users` VALUES (1, 'admin', '$2a$10$X7aPRYS9WF0cGHV9lOJhQO3YfpJiA4SZ5uE5MUmjHjjQEa5LsPzWe', '2025-05-08 16:09:28', NULL, '系统管理员', 'Admin', 'admin@example.com', NULL, NULL, 'active', 'S25951466', NULL, NULL);
 INSERT INTO `users` VALUES (2, '1', '$2a$12$niV6hiPbw8ZE1NY8bjAsa.hHqeRCa2ReLI3gK9SYfgAjCjAIFoKsa', '2025-05-09 00:36:03', NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'S25600694', NULL, NULL);
 INSERT INTO `users` VALUES (3, '2', '$2a$12$5ezMuR6b7bn60zSE39jUbu8l2kghd0Hg60YuaCkxx1QjYKeTo9xE2', '2025-05-09 00:36:07', '/uploads/20e86439-a7f4-49b6-8bc7-7a5221199356.jpg', '李白', '剑仙', '3401611059@qq.com', '13384403671', '我超级66666666666666666', 'active', 'S25674269', '北京理工大学', '语文，英语');
-INSERT INTO `users` VALUES (4, '3', '$2a$12$tziSlw7gvYq8KMOYzYf1E./LwfNYgINd6WXOTlF2zbvf6PVy3r7t6', '2025-05-09 00:36:10', NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'S25630096', NULL, NULL);
+INSERT INTO `users` VALUES (4, '3', '$2a$12$tziSlw7gvYq8KMOYzYf1E./LwfNYgINd6WXOTlF2zbvf6PVy3r7t6', '2025-05-09 00:36:10', '/uploads/3502ef94-e741-458d-9473-b07a11d7ab30.jpg', NULL, NULL, NULL, NULL, NULL, 'active', 'S25630096', NULL, NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;

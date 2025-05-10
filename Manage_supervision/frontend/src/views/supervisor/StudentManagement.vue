@@ -141,7 +141,67 @@
           <el-descriptions-item label="个人简介" :span="2">
             {{ currentStudent.bio || '暂无个人简介' }}
           </el-descriptions-item>
+          <el-descriptions-item label="与您的课程关系" :span="2">
+            <el-tag v-if="hasTeacherStudentCourseRelation" type="success">
+              <el-icon><Check /></el-icon> 该学生选修了您的课程
+            </el-tag>
+            <el-tag v-else type="info">
+              <el-icon><InfoFilled /></el-icon> 该学生未选修您的课程
+            </el-tag>
+          </el-descriptions-item>
         </el-descriptions>
+        
+        <!-- 学生已购买的课程信息 -->
+        <div class="student-courses mt-4">
+          <h3>已选课程</h3>
+          <el-divider />
+          
+          <el-table
+            v-if="currentStudent.orderedCourses && currentStudent.orderedCourses.length > 0"
+            :data="currentStudent.orderedCourses"
+            style="width: 100%"
+            border
+            stripe
+          >
+            <el-table-column prop="courseTitle" label="课程名称" min-width="150">
+              <template #default="scope">
+                {{ scope.row.courseTitle || `课程ID-${scope.row.courseId}` }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="courseSubject" label="科目" min-width="100">
+              <template #default="scope">
+                {{ scope.row.courseSubject || '未知' }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="120">
+              <template #default="scope">
+                <el-tag :type="getOrderStatusType(scope.row.status)">
+                  {{ getOrderStatusText(scope.row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="hours" label="课时" width="80" />
+            <el-table-column prop="totalAmount" label="金额" width="100">
+              <template #default="scope">
+                ¥{{ scope.row.totalAmount }}
+              </template>
+            </el-table-column>
+            <el-table-column label="购买时间" prop="createTime" align="center">
+              <template #default="scope">
+                {{ formatDate(scope.row.createTime, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="关系" width="100" align="center">
+              <template #default="scope">
+                <el-tag v-if="isCurrentTeacherCourse(scope.row)" type="success" effect="dark">
+                  <el-icon><Check /></el-icon> 您的课程
+                </el-tag>
+              </template>
+            </el-table-column>
+          </el-table>
+          
+          <el-empty v-else description="暂无已选课程" />
+        </div>
         
         <!-- 学生进度部分 - 需要权限才能显示 -->
         <div v-if="hasPermission('STUDENT_PROGRESS_VIEW')" class="student-progress mt-4">
@@ -221,12 +281,15 @@ import {
   View,
   Edit,
   Delete,
-  Lock
+  Lock,
+  InfoFilled,
+  Check
 } from '@element-plus/icons-vue';
 import { getStudents, getStudentDetail, updateStudentStatus, deleteStudent, getAssignedStudents } from '../../api/student';
 import type { Student } from '../../api/user';
 import { useRouter } from 'vue-router';
 import { hasPermission } from '../../utils/permission';
+import { formatDate } from '../../utils/date';
 
 // 状态变量
 const loading = ref<boolean>(false);
@@ -448,6 +511,61 @@ const getActivityType = (type: string): string => {
     case 'error': return 'danger';
     default: return 'primary';
   }
+};
+
+// 获取订单状态类型
+const getOrderStatusType = (status: string): string => {
+  switch (status) {
+    case 'COMPLETED': return 'success';
+    case 'ACCEPTED': return 'primary';
+    case 'PENDING': return 'warning';
+    case 'REJECTED': 
+    case 'CANCELED': 
+    case 'REFUND_PENDING':
+    case 'REFUND_REJECTED': return 'danger';
+    default: return 'info';
+  }
+};
+
+// 获取订单状态文本
+const getOrderStatusText = (status: string): string => {
+  switch (status) {
+    case 'COMPLETED': return '已完成';
+    case 'ACCEPTED': return '已接受';
+    case 'PENDING': return '待处理';
+    case 'REJECTED': return '已拒绝';
+    case 'CANCELED': return '已取消';
+    case 'REFUND_PENDING': return '退款中';
+    case 'REFUND_REJECTED': return '拒绝退款';
+    default: return status;
+  }
+};
+
+// 检查当前导师是否与学生有课程关联
+const hasTeacherStudentCourseRelation = computed(() => {
+  if (!currentStudent.value || !currentStudent.value.orderedCourses) {
+    return false;
+  }
+  
+  // 从存储或者上下文中获取当前导师ID
+  const currentTeacherId = localStorage.getItem('userId');
+  
+  // 如果没有导师ID，返回false
+  if (!currentTeacherId) {
+    return false;
+  }
+  
+  // 检查订单中是否有任何一个订单的teacherId与当前导师ID匹配
+  return currentStudent.value.orderedCourses.some(
+    course => course.teacherId?.toString() === currentTeacherId.toString()
+  );
+});
+
+// 检查是否为当前教师的课程
+const isCurrentTeacherCourse = (course: any): boolean => {
+  // 实现逻辑来判断是否为当前教师的课程
+  // 这里需要根据实际情况实现
+  return false; // 临时返回，需要根据实际情况实现
 };
 </script>
 

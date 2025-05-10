@@ -1,32 +1,26 @@
 package com.example.auth.service.impl;
 
-import com.example.auth.model.dto.ActivityDTO;
-import com.example.auth.model.dto.CourseDTO;
-import com.example.auth.model.dto.StudentDTO;
-import com.example.auth.model.dto.StudentDetailDTO;
-import com.example.auth.model.dto.UserDTO;
-import com.example.auth.model.entity.Role;
-import com.example.auth.model.entity.User;
+import com.example.auth.mapper.OrderMapper;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
-import com.example.auth.service.UserService;
+import com.example.auth.model.dto.*;
+import com.example.auth.model.entity.Order;
+import com.example.auth.model.entity.Role;
+import com.example.auth.model.entity.User;
 import com.example.auth.service.TeacherStudentService;
+import com.example.auth.service.UserService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +42,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private TeacherStudentService teacherStudentService;
+
+    @Autowired
+    private OrderMapper orderMapper;
 
     @Override
     @Transactional
@@ -363,8 +360,11 @@ public class UserServiceImpl implements UserService {
             List<CourseDTO> courses = generateCoursesForStudent(user);
             List<ActivityDTO> activities = generateActivitiesForStudent(user);
             
+            // 获取学生的订单课程信息
+            List<StudentCourseDTO> orderedCourses = getStudentOrderedCourses(id);
+            
             // 创建并返回StudentDetailDTO
-            return StudentDetailDTO.fromStudentDTO(studentDTO, courses, activities);
+            return StudentDetailDTO.fromStudentDTO(studentDTO, courses, activities, orderedCourses);
         } catch (Exception e) {
             logger.error("获取学生详情过程中发生异常", e);
             throw new RuntimeException("获取学生详情失败: " + e.getMessage());
@@ -588,5 +588,43 @@ public class UserServiceImpl implements UserService {
         activities.sort((a1, a2) -> a2.getTime().compareTo(a1.getTime()));
         
         return activities;
+    }
+
+    /**
+     * 获取学生已订购的课程信息
+     * @param studentId 学生ID
+     * @return 学生已订购的课程列表
+     */
+    private List<StudentCourseDTO> getStudentOrderedCourses(Long studentId) {
+        try {
+            // 使用MybatisPlus的条件构造器
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Order> queryWrapper = 
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+            
+            // 设置查询条件：该学生的所有订单
+            queryWrapper.eq(Order::getStudentId, studentId);
+            
+            // 查询学生的所有订单
+            List<Order> orders = orderMapper.selectList(queryWrapper);
+            
+            // 将订单转换为StudentCourseDTO
+            return orders.stream().map(order -> {
+                StudentCourseDTO courseDTO = new StudentCourseDTO();
+                courseDTO.setCourseId(order.getCourseId());
+                courseDTO.setCourseTitle(order.getCourseTitle());
+                courseDTO.setCourseSubject(order.getCourseSubject());
+                courseDTO.setOrderId(order.getId());
+                courseDTO.setOrderNumber(order.getOrderNumber());
+                courseDTO.setStatus(order.getStatus());
+                courseDTO.setPrice(order.getPrice());
+                courseDTO.setHours(order.getHours());
+                courseDTO.setTotalAmount(order.getTotalAmount());
+                courseDTO.setCreateTime(order.getCreateTime());
+                return courseDTO;
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("获取学生已订购课程失败", e);
+            return new ArrayList<>();
+        }
     }
 }

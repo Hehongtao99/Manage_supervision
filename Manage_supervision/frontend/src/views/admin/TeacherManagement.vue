@@ -255,7 +255,7 @@ const fetchTeacherStudents = async (teacherId: number) => {
 const fetchUnassignedStudents = async () => {
   unassignedStudentsLoading.value = true
   try {
-    const students = await getUnassignedStudents()
+    const students = await getUnassignedStudents(1, 50) // 默认获取50条
     unassignedStudents.value = students
   } catch (error) {
     ElMessage.error('获取未分配学生列表失败')

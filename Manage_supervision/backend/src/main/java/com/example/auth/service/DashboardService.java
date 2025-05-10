@@ -21,4 +21,18 @@ public interface DashboardService {
      * @return 包含日期和对应创建用户数的Map
      */
     Map<String, Object> getUserCreationTrend();
+    
+    /**
+     * 获取学生学习记录报表数据 - 按课程统计学习时长
+     * @param studentId 学生ID
+     * @return 包含课程名称和对应学习时长的Map
+     */
+    Map<String, Object> getStudentLearningRecords(Long studentId);
+    
+    /**
+     * 获取学生学习记录趋势数据 - 按时间统计学习时长
+     * @param studentId 学生ID
+     * @return 包含日期和对应学习时长的Map
+     */
+    Map<String, Object> getStudentLearningTrend(Long studentId);
 } 
