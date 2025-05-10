@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart, LineChart, BarChart } from 'echarts/charts'
@@ -13,6 +13,18 @@ import VChart from 'vue-echarts'
 import axios from '../../utils/axios'
 import { ElMessage } from 'element-plus'
 import { getUserCreationTrend } from '../../api/dashboard'
+import { useRouter } from 'vue-router'
+import { 
+  UserFilled, 
+  Star, 
+  Lock, 
+  Monitor, 
+  User, 
+  Document, 
+  Comment,
+  Service
+} from '@element-plus/icons-vue'
+import { getAppealingOrders } from '../../api/order'
 
 // 注册 ECharts 组件
 use([
@@ -26,6 +38,7 @@ use([
   GridComponent
 ])
 
+const router = useRouter()
 const loading = ref(true)
 const statistics = ref({
   totalUsers: 0,
@@ -139,6 +152,8 @@ const lineChartOption = computed(() => ({
   ]
 }))
 
+const appealingOrdersCount = ref(0)
+
 const fetchDashboardData = async () => {
   loading.value = true
   try {
@@ -163,6 +178,10 @@ const fetchDashboardData = async () => {
         counts: []
       }
     }
+
+    // 4. 获取申诉中的订单数量
+    const orders = await getAppealingOrders()
+    appealingOrdersCount.value = orders.length
   } catch (error) {
     console.error('获取控制台数据失败:', error)
     ElMessage.error('获取控制台数据失败，请稍后再试')
@@ -192,6 +211,12 @@ const mockDashboardData = () => {
 
 onMounted(async () => {
   fetchDashboardData()
+})
+
+// 清理事件监听器
+onUnmounted(() => {
+  if (pieChart) pieChart.dispose()
+  if (lineChart) lineChart.dispose()
 })
 </script>
 
@@ -243,6 +268,54 @@ onMounted(async () => {
             <v-chart class="chart" :option="lineChartOption" autoresize />
           </div>
         </div>
+
+        <el-row :gutter="20" class="link-row">
+          <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+            <el-card class="shortcut-card" @click="navigateTo('/admin/users')">
+              <div class="shortcut-content">
+                <el-icon><User /></el-icon>
+                <span>用户管理</span>
+              </div>
+            </el-card>
+          </el-col>
+          
+          <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+            <el-card class="shortcut-card" @click="navigateTo('/admin/roles')">
+              <div class="shortcut-content">
+                <el-icon><Lock /></el-icon>
+                <span>角色管理</span>
+              </div>
+            </el-card>
+          </el-col>
+          
+          <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+            <el-card class="shortcut-card" @click="navigateTo('/admin/subjects')">
+              <div class="shortcut-content">
+                <el-icon><Document /></el-icon>
+                <span>科目管理</span>
+              </div>
+            </el-card>
+          </el-col>
+          
+          <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+            <el-card class="shortcut-card" @click="navigateTo('/admin/applications')">
+              <div class="shortcut-content">
+                <el-icon><Comment /></el-icon>
+                <span>课程申请审核</span>
+              </div>
+            </el-card>
+          </el-col>
+          
+          <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+            <el-card class="shortcut-card" @click="navigateTo('/admin/appeals')">
+              <div class="shortcut-content">
+                <el-icon><Service /></el-icon>
+                <span>退款申诉处理</span>
+                <el-badge v-if="appealingOrdersCount > 0" :value="appealingOrdersCount" class="appeal-badge"></el-badge>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
       </template>
     </el-skeleton>
   </div>
@@ -306,6 +379,46 @@ onMounted(async () => {
 
 .skeleton-container {
   width: 100%;
+}
+
+.link-row {
+  margin-bottom: 20px;
+}
+
+.shortcut-card {
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.shortcut-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+  position: relative;
+}
+
+.shortcut-content .el-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #409EFF;
+}
+
+.shortcut-content span {
+  font-size: 16px;
+}
+
+.appeal-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 @media (max-width: 1200px) {

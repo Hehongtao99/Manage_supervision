@@ -269,6 +269,202 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     }
     
     @Override
+    @Transactional
+    public boolean appealRefund(Long orderId, Long studentId, String appealReason) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || !order.getStudentId().equals(studentId)) {
+            logger.error("申诉退款失败: 订单不存在或学生无权操作");
+            return false;
+        }
+        
+        // 只有退款被拒绝的订单才能申诉
+        if (!"REFUND_REJECTED".equals(order.getStatus())) {
+            logger.error("申诉退款失败: 订单状态不是退款已拒绝");
+            return false;
+        }
+        
+        // 验证申诉理由不为空
+        if (appealReason == null || appealReason.trim().isEmpty()) {
+            logger.error("申诉退款失败: 申诉理由不能为空");
+            return false;
+        }
+        
+        // 更新订单状态为申诉中
+        order.setStatus("APPEALING");
+        order.setAppealReason(appealReason);
+        order.setAppealTime(LocalDateTime.now());
+        order.setUpdateTime(LocalDateTime.now());
+        
+        logger.info("学生ID={}对订单ID={}提出了退款申诉, 理由: {}", studentId, orderId, appealReason);
+        return orderMapper.updateById(order) > 0;
+    }
+    
+    @Override
+    @Transactional
+    public boolean respondToAppeal(Long orderId, Long teacherId, String teacherResponse) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || !order.getTeacherId().equals(teacherId)) {
+            logger.error("回复申诉失败: 订单不存在或教师无权操作");
+            return false;
+        }
+        
+        // 只有处于申诉中的订单才能回复
+        if (!"APPEALING".equals(order.getStatus())) {
+            logger.error("回复申诉失败: 订单状态不是申诉中");
+            return false;
+        }
+        
+        // 验证回复不为空
+        if (teacherResponse == null || teacherResponse.trim().isEmpty()) {
+            logger.error("回复申诉失败: 回复内容不能为空");
+            return false;
+        }
+        
+        // 更新教师回复
+        order.setTeacherResponse(teacherResponse);
+        order.setUpdateTime(LocalDateTime.now());
+        
+        logger.info("教师ID={}回复了订单ID={}的申诉, 回复: {}", teacherId, orderId, teacherResponse);
+        return orderMapper.updateById(order) > 0;
+    }
+    
+    @Override
+    @Transactional
+    public boolean approveAppeal(Long orderId, Long adminId, String adminDecision) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            logger.error("批准申诉失败: 订单不存在");
+            return false;
+        }
+        
+        // 验证是否有教师回复
+        if (order.getTeacherResponse() == null || order.getTeacherResponse().trim().isEmpty()) {
+            logger.error("批准申诉失败: 教师尚未回复申诉");
+            return false;
+        }
+        
+        // 只有处于申诉中的订单才能批准
+        if (!"APPEALING".equals(order.getStatus())) {
+            logger.error("批准申诉失败: 订单状态不是申诉中");
+            return false;
+        }
+        
+        // 更新订单状态为申诉批准
+        order.setStatus("APPEAL_APPROVED");
+        order.setAdminDecision(adminDecision);
+        order.setUpdateTime(LocalDateTime.now());
+        
+        logger.info("管理员ID={}批准了订单ID={}的申诉, 决定: {}", adminId, orderId, adminDecision);
+        return orderMapper.updateById(order) > 0;
+    }
+    
+    @Override
+    @Transactional
+    public boolean rejectAppeal(Long orderId, Long adminId, String adminDecision) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            logger.error("拒绝申诉失败: 订单不存在");
+            return false;
+        }
+        
+        // 验证是否有教师回复
+        if (order.getTeacherResponse() == null || order.getTeacherResponse().trim().isEmpty()) {
+            logger.error("拒绝申诉失败: 教师尚未回复申诉");
+            return false;
+        }
+        
+        // 只有处于申诉中的订单才能拒绝
+        if (!"APPEALING".equals(order.getStatus())) {
+            logger.error("拒绝申诉失败: 订单状态不是申诉中");
+            return false;
+        }
+        
+        // 更新订单状态为申诉拒绝
+        order.setStatus("APPEAL_REJECTED");
+        order.setAdminDecision(adminDecision);
+        order.setUpdateTime(LocalDateTime.now());
+        
+        logger.info("管理员ID={}拒绝了订单ID={}的申诉, 决定: {}", adminId, orderId, adminDecision);
+        return orderMapper.updateById(order) > 0;
+    }
+    
+    @Override
+    public List<OrderDTO> getAppealingOrders() {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getStatus, "APPEALING")
+               .orderByDesc(Order::getAppealTime);
+        
+        List<Order> orders = orderMapper.selectList(wrapper);
+        return orders.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+    
+    @Override
+    public PageResult<OrderDTO> getAppealingOrders(Integer page, Integer size) {
+        logger.info("获取申诉中订单列表（分页） - 页码: {}, 大小: {}", page, size);
+        try {
+            LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Order::getStatus, "APPEALING")
+                   .orderByDesc(Order::getAppealTime);
+            
+            // 创建分页对象
+            Page<Order> pageParam = new Page<>(page, size);
+            // 执行分页查询
+            Page<Order> orderPage = orderMapper.selectPage(pageParam, wrapper);
+            
+            // 将Order转换为OrderDTO
+            List<OrderDTO> orderDTOs = orderPage.getRecords().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            
+            // 构建分页结果
+            PageResult<OrderDTO> pageResult = new PageResult<>();
+            pageResult.setRecords(orderDTOs);
+            pageResult.setTotal(orderPage.getTotal());
+            pageResult.setSize(orderPage.getSize());
+            pageResult.setCurrent(orderPage.getCurrent());
+            pageResult.setPages(orderPage.getPages());
+            
+            return pageResult;
+        } catch (Exception e) {
+            logger.error("获取申诉中订单列表出错", e);
+            return new PageResult<>();
+        }
+    }
+    
+    @Override
+    public PageResult<OrderDTO> getProcessedAppeals(Integer page, Integer size) {
+        logger.info("获取已处理申诉订单列表（分页） - 页码: {}, 大小: {}", page, size);
+        try {
+            LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+            wrapper.in(Order::getStatus, "APPEAL_APPROVED", "APPEAL_REJECTED")
+                   .orderByDesc(Order::getUpdateTime);
+            
+            // 创建分页对象
+            Page<Order> pageParam = new Page<>(page, size);
+            // 执行分页查询
+            Page<Order> orderPage = orderMapper.selectPage(pageParam, wrapper);
+            
+            // 将Order转换为OrderDTO
+            List<OrderDTO> orderDTOs = orderPage.getRecords().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            
+            // 构建分页结果
+            PageResult<OrderDTO> pageResult = new PageResult<>();
+            pageResult.setRecords(orderDTOs);
+            pageResult.setTotal(orderPage.getTotal());
+            pageResult.setSize(orderPage.getSize());
+            pageResult.setCurrent(orderPage.getCurrent());
+            pageResult.setPages(orderPage.getPages());
+            
+            return pageResult;
+        } catch (Exception e) {
+            logger.error("获取已处理申诉订单列表出错", e);
+            return new PageResult<>();
+        }
+    }
+    
+    @Override
     public PageResult<OrderDTO> getTeacherOrders(Long teacherId, String status, Integer page, Integer size) {
         logger.info("获取教师订单列表 - 教师ID: {}, 状态: {}, 页码: {}, 大小: {}", teacherId, status, page, size);
         try {

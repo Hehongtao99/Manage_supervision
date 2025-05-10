@@ -183,6 +183,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'appeals',
+        name: 'AdminAppeals',
+        component: () => import('../views/admin/OrderAppealManagement.vue'),
+        meta: {
+          title: '申诉管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },

@@ -596,7 +596,7 @@ public class OrderController {
     public ResponseEntity<?> getTeacherOrdersPaged(
             @RequestHeader("Authorization") String auth,
             @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "page", defaultValue = "1") Integer page, 
             @RequestParam(value = "size", defaultValue = "10") Integer size) {
         logger.info("获取教师订单列表（分页） - 状态: {}, 页码: {}, 大小: {}", status, page, size);
         
@@ -637,6 +637,252 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     Map.of("error", "获取学生订单列表失败", "message", e.getMessage())
             );
+        }
+    }
+
+    /**
+     * 学生申诉退款
+     */
+    @PostMapping("/student/orders/{orderId}/appeal")
+    @RequireRole("USER")
+    public ResponseEntity<?> appealRefund(
+            @PathVariable("orderId") Long orderId,
+            @RequestBody Map<String, String> requestBody,
+            @RequestHeader("Authorization") String auth) {
+        
+        try {
+            String token = auth.replace("Bearer ", "");
+            Long studentId = jwtUtil.getUserIdFromToken(token);
+            
+            // 从请求体中获取申诉理由
+            String appealReason = requestBody.get("appealReason");
+            if (appealReason == null || appealReason.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "申诉理由不能为空"
+                ));
+            }
+            
+            logger.info("学生申诉退款, 订单ID: {}, 学生ID: {}, 申诉理由: {}", orderId, studentId, appealReason);
+            
+            boolean success = orderService.appealRefund(orderId, studentId, appealReason);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "申诉已提交，等待教师回复和管理员处理"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "申诉失败，可能是订单状态不允许申诉或订单不存在"
+                ));
+            }
+        } catch (Exception e) {
+            logger.error("申诉退款出错", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "系统错误：" + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * 教师回复申诉
+     */
+    @PostMapping("/supervisor/orders/{orderId}/respond-appeal")
+    @RequireRole("SUPERVISOR")
+    public ResponseEntity<?> respondToAppeal(
+            @PathVariable("orderId") Long orderId,
+            @RequestBody Map<String, String> requestBody,
+            @RequestHeader("Authorization") String auth) {
+        
+        try {
+            String token = auth.replace("Bearer ", "");
+            Long teacherId = jwtUtil.getUserIdFromToken(token);
+            
+            // 从请求体中获取回复内容
+            String teacherResponse = requestBody.get("teacherResponse");
+            if (teacherResponse == null || teacherResponse.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "回复内容不能为空"
+                ));
+            }
+            
+            logger.info("教师回复申诉, 订单ID: {}, 教师ID: {}, 回复内容: {}", orderId, teacherId, teacherResponse);
+            
+            boolean success = orderService.respondToAppeal(orderId, teacherId, teacherResponse);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "已回复申诉，等待管理员处理"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "回复申诉失败，可能是订单状态不允许回复或订单不存在"
+                ));
+            }
+        } catch (Exception e) {
+            logger.error("回复申诉出错", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "系统错误：" + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * 获取申诉中的订单列表（管理员）
+     */
+    @GetMapping("/admin/orders/appeals")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<OrderDTO>> getAppealingOrders() {
+        try {
+            logger.info("获取申诉中的订单列表");
+            
+            List<OrderDTO> orders = orderService.getAppealingOrders();
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            logger.error("获取申诉中的订单列表出错", e);
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+    
+    /**
+     * 获取申诉中的订单列表（管理员，分页）
+     */
+    @GetMapping("/admin/orders/appeals/page")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> getAppealingOrdersPaged(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        
+        logger.info("获取申诉中订单列表（分页） - 页码: {}, 大小: {}", page, size);
+        
+        try {
+            PageResult<OrderDTO> orders = orderService.getAppealingOrders(page, size);
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            logger.error("获取申诉中订单列表出错", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("error", "获取申诉中订单列表失败", "message", e.getMessage())
+            );
+        }
+    }
+    
+    /**
+     * 获取已处理的申诉订单列表（管理员，分页）
+     */
+    @GetMapping("/admin/orders/appeals/processed/page")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> getProcessedAppealsOrdersPaged(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        
+        logger.info("获取已处理申诉订单列表（分页） - 页码: {}, 大小: {}", page, size);
+        
+        try {
+            PageResult<OrderDTO> orders = orderService.getProcessedAppeals(page, size);
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            logger.error("获取已处理申诉订单列表出错", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("error", "获取已处理申诉订单列表失败", "message", e.getMessage())
+            );
+        }
+    }
+    
+    /**
+     * 管理员批准申诉
+     */
+    @PostMapping("/admin/orders/{orderId}/approve-appeal")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> approveAppeal(
+            @PathVariable("orderId") Long orderId,
+            @RequestBody Map<String, String> requestBody,
+            @RequestHeader("Authorization") String auth) {
+        
+        try {
+            String token = auth.replace("Bearer ", "");
+            Long adminId = jwtUtil.getUserIdFromToken(token);
+            
+            // 从请求体中获取决定理由
+            String adminDecision = requestBody.get("adminDecision");
+            if (adminDecision == null || adminDecision.trim().isEmpty()) {
+                adminDecision = "管理员同意退款";
+            }
+            
+            logger.info("管理员批准申诉, 订单ID: {}, 管理员ID: {}, 决定理由: {}", orderId, adminId, adminDecision);
+            
+            boolean success = orderService.approveAppeal(orderId, adminId, adminDecision);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "申诉已批准，订单将退款"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "批准申诉失败，可能是订单状态不允许操作或教师尚未回复"
+                ));
+            }
+        } catch (Exception e) {
+            logger.error("批准申诉出错", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "系统错误：" + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * 管理员拒绝申诉
+     */
+    @PostMapping("/admin/orders/{orderId}/reject-appeal")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> rejectAppeal(
+            @PathVariable("orderId") Long orderId,
+            @RequestBody Map<String, String> requestBody,
+            @RequestHeader("Authorization") String auth) {
+        
+        try {
+            String token = auth.replace("Bearer ", "");
+            Long adminId = jwtUtil.getUserIdFromToken(token);
+            
+            // 从请求体中获取决定理由
+            String adminDecision = requestBody.get("adminDecision");
+            if (adminDecision == null || adminDecision.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "决定理由不能为空"
+                ));
+            }
+            
+            logger.info("管理员拒绝申诉, 订单ID: {}, 管理员ID: {}, 决定理由: {}", orderId, adminId, adminDecision);
+            
+            boolean success = orderService.rejectAppeal(orderId, adminId, adminDecision);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "申诉已拒绝，订单不予退款"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "拒绝申诉失败，可能是订单状态不允许操作或教师尚未回复"
+                ));
+            }
+        } catch (Exception e) {
+            logger.error("拒绝申诉出错", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "系统错误：" + e.getMessage()
+            ));
         }
     }
 } 

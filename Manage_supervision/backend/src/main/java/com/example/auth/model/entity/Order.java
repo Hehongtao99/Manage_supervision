@@ -40,7 +40,7 @@ public class Order {
     private BigDecimal totalAmount;
 
     @TableField("status")
-    private String status; // PENDING, ACCEPTED, REJECTED, CANCELED, COMPLETED
+    private String status; // PENDING, ACCEPTED, REJECTED, CANCELED, COMPLETED, REFUND_PENDING, REFUND_REJECTED, APPEALING, APPEAL_APPROVED, APPEAL_REJECTED
 
     @TableField("message")
     private String message;
@@ -50,12 +50,24 @@ public class Order {
 
     @TableField("refund_reason")
     private String refundReason;
+    
+    @TableField("appeal_reason")
+    private String appealReason;
+    
+    @TableField("teacher_response")
+    private String teacherResponse;
 
     @TableField("create_time")
     private LocalDateTime createTime;
 
     @TableField("update_time")
     private LocalDateTime updateTime;
+    
+    @TableField("appeal_time")
+    private LocalDateTime appealTime;
+    
+    @TableField("admin_decision")
+    private String adminDecision;
 
     // 非数据库字段，用于展示
     @TableField(exist = false)

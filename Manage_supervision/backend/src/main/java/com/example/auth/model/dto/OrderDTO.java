@@ -22,8 +22,12 @@ public class OrderDTO {
     private String message;
     private String rejectReason;
     private String refundReason;
+    private String appealReason;
+    private String teacherResponse;
+    private String adminDecision;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    private LocalDateTime appealTime;
 
     // 关联信息
     private String studentName;

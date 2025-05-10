@@ -10,12 +10,16 @@ export interface OrderDTO {
   price: number
   hours: number
   totalAmount: number
-  status: string // PENDING, REFUND_PENDING, REFUND_REJECTED, CANCELED
+  status: string // PENDING, REFUND_PENDING, REFUND_REJECTED, CANCELED, APPEALING, APPEAL_APPROVED, APPEAL_REJECTED
   message: string
   refundReason: string
   rejectReason: string
+  appealReason: string
+  teacherResponse: string
+  adminDecision: string
   createTime: string
   updateTime: string
+  appealTime: string
   
   // 关联信息
   studentName: string
@@ -28,9 +32,15 @@ export interface OrderDTO {
 // 订单状态中文映射
 export const orderStatusMap = {
   'PENDING': '已支付',
+  'ACCEPTED': '已接受',
+  'REJECTED': '已拒绝',
   'REFUND_PENDING': '退款申请中',
   'REFUND_REJECTED': '退款已拒绝',
-  'CANCELED': '已取消'
+  'CANCELED': '已取消',
+  'COMPLETED': '已完成',
+  'APPEALING': '申诉中',
+  'APPEAL_APPROVED': '申诉通过',
+  'APPEAL_REJECTED': '申诉驳回'
 }
 
 /**
@@ -103,6 +113,21 @@ export const cancelOrder = async (orderId: number, refundReason: string) => {
     return response.data
   } catch (error) {
     console.error('申请退款失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 学生申诉退款
+ */
+export const appealRefund = async (orderId: number, appealReason: string) => {
+  try {
+    const response = await axios.post(`/api/student/orders/${orderId}/appeal`, {
+      appealReason: appealReason
+    })
+    return response.data
+  } catch (error) {
+    console.error('申诉退款失败:', error)
     throw error
   }
 }
@@ -200,6 +225,94 @@ export const rejectRefund = async (orderId: number, rejectReason: string) => {
     return response.data
   } catch (error) {
     console.error('拒绝退款失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 教师回复申诉
+ */
+export const respondToAppeal = async (orderId: number, teacherResponse: string) => {
+  try {
+    const response = await axios.post(`/api/supervisor/orders/${orderId}/respond-appeal`, {
+      teacherResponse: teacherResponse
+    })
+    return response.data
+  } catch (error) {
+    console.error('回复申诉失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 管理员获取申诉订单列表
+ */
+export const getAppealingOrders = async () => {
+  try {
+    const response = await axios.get('/api/admin/orders/appeals')
+    return response.data
+  } catch (error) {
+    console.error('获取申诉订单列表失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 管理员获取申诉订单列表（分页）
+ */
+export const getAppealingOrdersPaged = async (page: number, size: number) => {
+  try {
+    const response = await axios.get('/api/admin/orders/appeals/page', {
+      params: { page, size }
+    })
+    return response.data
+  } catch (error) {
+    console.error('获取申诉订单列表失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 管理员获取已处理的申诉订单列表（分页）
+ */
+export const getProcessedAppealsPaged = async (page: number, size: number) => {
+  try {
+    const response = await axios.get('/api/admin/orders/appeals/processed/page', {
+      params: { page, size }
+    })
+    return response.data
+  } catch (error) {
+    console.error('获取已处理申诉记录失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 管理员批准申诉
+ */
+export const approveAppeal = async (orderId: number, adminDecision?: string) => {
+  try {
+    const response = await axios.post(`/api/admin/orders/${orderId}/approve-appeal`, {
+      adminDecision: adminDecision || '管理员同意退款'
+    })
+    return response.data
+  } catch (error) {
+    console.error('批准申诉失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 管理员拒绝申诉
+ */
+export const rejectAppeal = async (orderId: number, adminDecision: string) => {
+  try {
+    const response = await axios.post(`/api/admin/orders/${orderId}/reject-appeal`, {
+      adminDecision: adminDecision
+    })
+    return response.data
+  } catch (error) {
+    console.error('拒绝申诉失败:', error)
     throw error
   }
 } 

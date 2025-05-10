@@ -105,4 +105,53 @@ export const startChatWithTeacher = async (teacherId: number) => {
     }
     throw error
   }
+}
+
+/**
+ * 开始与学生的聊天
+ */
+export const startChatWithStudent = async (studentId: number) => {
+  try {
+    console.log('API调用: 开始与学生聊天，学生ID:', studentId)
+    
+    // 首先检查studentId是否有效
+    if (!studentId || studentId <= 0) {
+      throw new Error('无效的学生ID')
+    }
+    
+    // 发起API请求创建/获取会话
+    const response = await axios.post('/api/chat/conversations', {
+      recipientId: studentId
+    })
+    
+    console.log('聊天会话API原始返回:', response)
+    
+    // 处理响应数据，有些API会直接返回数据，有些会封装在data字段
+    const conversationData = response.data
+    console.log('聊天会话API处理后数据:', conversationData)
+    
+    // 检查返回的数据是否有效 - 会话对象必须有id
+    if (!conversationData || !conversationData.id) {
+      console.error('API返回的会话数据无效:', conversationData)
+      throw new Error('服务器返回的会话数据无效')
+    }
+    
+    return conversationData
+  } catch (error: any) {
+    console.error('开始聊天失败:', error)
+    if (error instanceof AxiosError && error.response) {
+      console.error('API错误状态码:', error.response.status)
+      console.error('API错误详情:', error.response.data)
+      
+      // 根据不同的错误状态码给出不同的错误消息
+      if (error.response.status === 401) {
+        throw new Error('未登录或会话已过期，请重新登录')
+      } else if (error.response.status === 404) {
+        throw new Error('找不到指定学生')
+      } else if (error.response.status === 500) {
+        throw new Error('服务器内部错误，请稍后再试')
+      }
+    }
+    throw error
+  }
 } 

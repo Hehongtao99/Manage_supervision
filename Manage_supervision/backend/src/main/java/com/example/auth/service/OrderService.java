@@ -102,6 +102,64 @@ public interface OrderService {
      * @return 是否成功
      */
     boolean rejectRefund(Long orderId, Long teacherId, String rejectReason);
+    
+    /**
+     * 学生申诉退款申请（学生操作）
+     * @param orderId 订单ID
+     * @param studentId 学生ID
+     * @param appealReason 申诉理由
+     * @return 是否成功
+     */
+    boolean appealRefund(Long orderId, Long studentId, String appealReason);
+    
+    /**
+     * 教师回复申诉（教师操作）
+     * @param orderId 订单ID
+     * @param teacherId 教师ID
+     * @param teacherResponse 教师回复
+     * @return 是否成功
+     */
+    boolean respondToAppeal(Long orderId, Long teacherId, String teacherResponse);
+    
+    /**
+     * 管理员批准申诉并退款（管理员操作）
+     * @param orderId 订单ID
+     * @param adminId 管理员ID
+     * @param adminDecision 管理员决定
+     * @return 是否成功
+     */
+    boolean approveAppeal(Long orderId, Long adminId, String adminDecision);
+    
+    /**
+     * 管理员拒绝申诉（管理员操作）
+     * @param orderId 订单ID
+     * @param adminId 管理员ID
+     * @param adminDecision 管理员决定
+     * @return 是否成功
+     */
+    boolean rejectAppeal(Long orderId, Long adminId, String adminDecision);
+    
+    /**
+     * 获取管理员待处理申诉订单列表
+     * @return 申诉订单列表
+     */
+    List<OrderDTO> getAppealingOrders();
+    
+    /**
+     * 获取管理员待处理申诉订单列表（分页）
+     * @param page 页码
+     * @param size 每页大小
+     * @return 分页申诉订单列表
+     */
+    PageResult<OrderDTO> getAppealingOrders(Integer page, Integer size);
+
+    /**
+     * 获取管理员已处理申诉订单列表（分页）
+     * @param page 页码
+     * @param size 每页大小
+     * @return 分页已处理申诉订单列表
+     */
+    PageResult<OrderDTO> getProcessedAppeals(Integer page, Integer size);
 
     /**
      * 获取教师订单列表（分页）

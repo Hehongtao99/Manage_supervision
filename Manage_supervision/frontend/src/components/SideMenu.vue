@@ -53,6 +53,10 @@
           <el-icon><Reading /></el-icon>
           <span>科目管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/appeals" @click="handleRoute('/admin/appeals')">
+          <el-icon><Service /></el-icon>
+          <span>申诉管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 

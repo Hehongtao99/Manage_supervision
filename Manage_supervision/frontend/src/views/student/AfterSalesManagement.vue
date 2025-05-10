@@ -56,6 +56,14 @@
               <template #default="scope">
                 <div class="operation-buttons">
                   <el-button
+                    v-if="scope.row.status === 'REFUND_REJECTED'"
+                    type="warning"
+                    size="small"
+                    @click.stop="handleAppealRefund(scope.row)"
+                  >
+                    申诉
+                  </el-button>
+                  <el-button
                     type="primary"
                     size="small"
                     @click.stop="showOrderDetail(scope.row)"
@@ -139,6 +147,21 @@
             <span class="value">{{ currentOrder.rejectReason }}</span>
           </div>
           
+          <div v-if="currentOrder.appealReason" class="detail-item appeal-reason">
+            <span class="label">申诉理由：</span>
+            <span class="value highlight-reason">{{ currentOrder.appealReason }}</span>
+          </div>
+          
+          <div v-if="currentOrder.teacherResponse" class="detail-item teacher-response">
+            <span class="label">教师回复：</span>
+            <span class="value">{{ currentOrder.teacherResponse }}</span>
+          </div>
+          
+          <div v-if="currentOrder.adminDecision" class="detail-item admin-decision">
+            <span class="label">管理员决定：</span>
+            <span class="value highlight-reason">{{ currentOrder.adminDecision }}</span>
+          </div>
+          
           <div v-if="currentOrder.status === 'REFUND_REJECTED'" class="operation-tips">
             <el-alert
               title="您的退款申请已被拒绝"
@@ -146,7 +169,7 @@
               :closable="false"
               show-icon
             >
-              <p>如有疑问，您可以联系教师沟通或重新提交退款申请。</p>
+              <p>如有疑问，您可以联系教师沟通或提交申诉。</p>
             </el-alert>
           </div>
           
@@ -158,6 +181,39 @@
               show-icon
             >
               <p>请耐心等待教师处理您的退款申请。</p>
+            </el-alert>
+          </div>
+          
+          <div v-if="currentOrder.status === 'APPEALING'" class="operation-tips">
+            <el-alert
+              title="您的申诉正在处理中"
+              type="warning"
+              :closable="false"
+              show-icon
+            >
+              <p>请耐心等待教师回复和管理员处理您的申诉。</p>
+            </el-alert>
+          </div>
+          
+          <div v-if="currentOrder.status === 'APPEAL_APPROVED'" class="operation-tips">
+            <el-alert
+              title="您的申诉已通过，订单已退款"
+              type="success"
+              :closable="false"
+              show-icon
+            >
+              <p>退款金额将在1-7个工作日内退回您的支付账户。</p>
+            </el-alert>
+          </div>
+          
+          <div v-if="currentOrder.status === 'APPEAL_REJECTED'" class="operation-tips">
+            <el-alert
+              title="您的申诉未通过，无法退款"
+              type="error"
+              :closable="false"
+              show-icon
+            >
+              <p>如有疑问，您可以联系教师或管理员沟通。</p>
             </el-alert>
           </div>
           
@@ -175,8 +231,8 @@
         
         <div class="detail-footer">
           <template v-if="currentOrder.status === 'REFUND_REJECTED'">
-            <el-button type="warning" @click="handleReapplyRefund(currentOrder)">
-              重新申请退款
+            <el-button type="warning" @click="handleAppealRefund(currentOrder)">
+              申诉
             </el-button>
           </template>
           
@@ -220,6 +276,37 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 申诉对话框 -->
+    <el-dialog
+      v-model="appealDialogVisible"
+      title="申诉退款"
+      width="500px"
+      destroy-on-close
+      @open="onAppealDialogOpen"
+      @closed="onAppealDialogClosed"
+    >
+      <div class="appeal-form">
+        <el-form ref="appealFormRef" :model="appealForm" label-width="80px">
+          <el-form-item label="申诉理由" prop="reason" required>
+            <el-input 
+              v-model="appealForm.reason" 
+              type="textarea" 
+              rows="6" 
+              placeholder="请详细描述您的申诉理由，以便管理员做出决定（必填）"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="appealDialogVisible = false">取消</el-button>
+          <el-button type="warning" @click="confirmAppeal" :loading="operationLoading">
+            提交申诉
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -230,6 +317,7 @@ import { Refresh } from '@element-plus/icons-vue'
 import { 
   getStudentOrders, 
   cancelOrder,
+  appealRefund,
   OrderDTO, 
   orderStatusMap 
 } from '../../api/order'
@@ -240,7 +328,10 @@ import { useRouter } from 'vue-router'
 const refundStatusMap = {
   'REFUND_PENDING': '退款申请中',
   'REFUND_REJECTED': '退款已拒绝',
-  'CANCELED': '已退款'
+  'CANCELED': '已退款',
+  'APPEALING': '申诉中',
+  'APPEAL_APPROVED': '申诉通过',
+  'APPEAL_REJECTED': '申诉驳回'
 }
 
 // 状态变量
@@ -250,28 +341,27 @@ const statusFilter = ref('')
 const detailDialogVisible = ref(false)
 const currentOrder = ref<OrderDTO | null>(null)
 const refundDialogVisible = ref(false)
-const refundFormRef = ref()
-const refundForm = ref({
-  reason: ''
-})
+const appealDialogVisible = ref(false)
 const operationLoading = ref(false)
 const router = useRouter()
 
-// 计算过滤后的订单 - 只显示跟退款相关的订单
+// 表单数据
+const refundForm = ref({
+  reason: ''
+})
+const appealForm = ref({
+  reason: ''
+})
+
+// 当前操作的订单
+const orderToProcess = ref<OrderDTO | null>(null)
+
+// 计算过滤后的订单
 const filteredOrders = computed(() => {
-  // 先过滤只保留退款相关状态的订单
-  let result = orders.value.filter(order => 
-    order.status === 'REFUND_PENDING' || 
-    order.status === 'REFUND_REJECTED' ||
-    order.status === 'CANCELED'
-  );
-  
-  // 根据状态过滤器进一步过滤
-  if (statusFilter.value) {
-    result = result.filter(order => order.status === statusFilter.value);
+  if (!statusFilter.value) {
+    return orders.value
   }
-  
-  return result;
+  return orders.value.filter(order => order.status === statusFilter.value)
 })
 
 // 初始化加载
@@ -284,11 +374,14 @@ const loadRefundOrders = async () => {
   loading.value = true
   try {
     const data = await getStudentOrders()
-    // 过滤出与退款相关的订单
+    // 只筛选出退款相关的订单
     orders.value = data.filter((order: OrderDTO) => 
       order.status === 'REFUND_PENDING' || 
-      order.status === 'REFUND_REJECTED' ||
-      order.status === 'CANCELED'
+      order.status === 'REFUND_REJECTED' || 
+      order.status === 'CANCELED' ||
+      order.status === 'APPEALING' ||
+      order.status === 'APPEAL_APPROVED' ||
+      order.status === 'APPEAL_REJECTED'
     )
   } catch (error) {
     console.error('获取退款订单列表失败:', error)
@@ -307,94 +400,50 @@ const filterOrders = () => {
 const getStatusType = (status: string) => {
   switch (status) {
     case 'REFUND_PENDING':
+    case 'APPEALING':
       return 'warning'
     case 'REFUND_REJECTED':
+    case 'APPEAL_REJECTED':
       return 'danger'
     case 'CANCELED':
-      return 'info'
+    case 'APPEAL_APPROVED':
+      return 'success'
     default:
       return 'info'
   }
 }
 
 // 显示订单详情
-const showOrderDetail = (row: OrderDTO) => {
-  currentOrder.value = row
+const showOrderDetail = (order: OrderDTO) => {
+  currentOrder.value = order
   detailDialogVisible.value = true
 }
 
 // 联系教师
-const handleContactTeacher = async (teacherId: number) => {
-  if (!teacherId) {
-    ElMessage.error('教师ID无效，无法开始聊天')
-    return
-  }
-
-  try {
-    ElMessage({
-      message: '正在连接聊天...',
-      type: 'info',
-      duration: 1500,
-      showClose: false
-    })
-
-    const response = await startChatWithTeacher(teacherId)
-    
-    if (!response || !response.id) {
-      ElMessage.closeAll()
-      ElMessage.error('创建聊天会话失败')
-      return
-    }
-
-    // 关闭当前对话框
-    detailDialogVisible.value = false
-    
-    // 重定向到聊天页面
-    router.push({ 
-      path: '/chat',
-      query: { 
-        conversationId: response.id.toString()
-      } 
-    })
-  } catch (error) {
-    ElMessage.closeAll()
-    console.error('聊天初始化错误:', error)
-    ElMessage.error('连接聊天失败，请稍后再试')
-  }
-}
-
-// 重新申请退款
-const handleReapplyRefund = (order: OrderDTO) => {
-  currentOrder.value = order
-  refundDialogVisible.value = true
-}
-
-// 退款申请对话框打开事件
-const onRefundDialogOpen = () => {
-  // 确保表单内容被清空
-  refundForm.value = {
-    reason: ''
-  }
-  // 使用nextTick等待DOM更新后重置表单
-  nextTick(() => {
-    if (refundFormRef.value) {
-      refundFormRef.value.resetFields()
-    }
+const handleContactTeacher = (teacherId: number) => {
+  startChatWithTeacher(teacherId).then(() => {
+    router.push('/chat')
+  }).catch(error => {
+    console.error('开始聊天失败:', error)
+    ElMessage.error('联系教师失败，请稍后再试')
   })
 }
 
-// 退款申请对话框关闭事件
-const onRefundDialogClosed = () => {
-  // 清空表单数据
-  refundForm.value = {
-    reason: ''
-  }
+// 处理退款申请
+const handleReapplyRefund = (order: OrderDTO) => {
+  orderToProcess.value = order
+  refundDialogVisible.value = true
 }
 
-// 确认申请退款
+// 处理申诉
+const handleAppealRefund = (order: OrderDTO) => {
+  orderToProcess.value = order
+  appealDialogVisible.value = true
+}
+
+// 确认退款申请
 const confirmRefundOrder = async () => {
-  if (!currentOrder.value) return
-  
+  if (!orderToProcess.value) return
   if (!refundForm.value.reason.trim()) {
     ElMessage.warning('请输入退款理由')
     return
@@ -402,50 +451,95 @@ const confirmRefundOrder = async () => {
   
   operationLoading.value = true
   try {
-    const result = await cancelOrder(currentOrder.value.id, refundForm.value.reason)
+    await cancelOrder(orderToProcess.value.id, refundForm.value.reason)
+    ElMessage.success('退款申请已提交')
+    refundDialogVisible.value = false
+    await loadRefundOrders()
     
-    if (result.success) {
-      ElMessage.success(result.message || '退款申请已提交')
-      
-      // 更新订单状态
-      updateOrderStatus(currentOrder.value.id, 'REFUND_PENDING')
-      
-      // 关闭对话框
-      refundDialogVisible.value = false
-      detailDialogVisible.value = false
-      
-      // 刷新数据
-      await loadRefundOrders()
-    } else {
-      ElMessage.error(result.message || '退款申请失败')
+    // 如果当前正在查看该订单的详情，则刷新详情
+    if (detailDialogVisible.value && currentOrder.value?.id === orderToProcess.value.id) {
+      const data = await getStudentOrders()
+      const updatedOrder = data.find((o: OrderDTO) => o.id === orderToProcess.value?.id)
+      if (updatedOrder) {
+        currentOrder.value = updatedOrder
+      }
     }
   } catch (error) {
     console.error('申请退款失败:', error)
-    ElMessage.error('退款申请失败，请稍后再试')
+    ElMessage.error('退款申请提交失败，请稍后再试')
   } finally {
     operationLoading.value = false
   }
 }
 
-// 更新订单状态
-const updateOrderStatus = (orderId: number, newStatus: string) => {
-  const index = orders.value.findIndex(o => o.id === orderId)
-  if (index !== -1) {
-    orders.value[index].status = newStatus
+// 确认申诉
+const confirmAppeal = async () => {
+  if (!orderToProcess.value) return
+  if (!appealForm.value.reason.trim()) {
+    ElMessage.warning('请输入申诉理由')
+    return
   }
+  
+  operationLoading.value = true
+  try {
+    await appealRefund(orderToProcess.value.id, appealForm.value.reason)
+    ElMessage.success('申诉已提交，请耐心等待处理')
+    appealDialogVisible.value = false
+    await loadRefundOrders()
+    
+    // 如果当前正在查看该订单的详情，则刷新详情
+    if (detailDialogVisible.value && currentOrder.value?.id === orderToProcess.value.id) {
+      const data = await getStudentOrders()
+      const updatedOrder = data.find((o: OrderDTO) => o.id === orderToProcess.value?.id)
+      if (updatedOrder) {
+        currentOrder.value = updatedOrder
+      }
+    }
+  } catch (error) {
+    console.error('提交申诉失败:', error)
+    ElMessage.error('申诉提交失败，请稍后再试')
+  } finally {
+    operationLoading.value = false
+  }
+}
+
+// 退款对话框打开事件
+const onRefundDialogOpen = () => {
+  refundForm.value.reason = ''
+}
+
+// 退款对话框关闭事件
+const onRefundDialogClosed = () => {
+  refundForm.value.reason = ''
+  operationLoading.value = false
+}
+
+// 申诉对话框打开事件
+const onAppealDialogOpen = () => {
+  appealForm.value.reason = ''
+}
+
+// 申诉对话框关闭事件
+const onAppealDialogClosed = () => {
+  appealForm.value.reason = ''
+  operationLoading.value = false
 }
 </script>
 
 <style scoped>
 .after-sales-management {
-  margin: 20px;
+  padding: 20px;
+  height: 100%;
+}
+
+.box-card {
+  margin-bottom: 20px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 .filter-container {
@@ -453,41 +547,35 @@ const updateOrderStatus = (orderId: number, newStatus: string) => {
   gap: 10px;
 }
 
-.order-list-content {
-  margin-top: 20px;
+.order-container {
+  min-height: 200px;
 }
 
 .order-number {
   font-family: monospace;
-  color: #666;
+  color: #409EFF;
 }
 
 .amount {
-  color: #f56c6c;
+  color: #F56C6C;
   font-weight: bold;
 }
 
 .operation-buttons {
   display: flex;
   gap: 5px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
 }
 
-.operation-buttons .el-button {
-  margin-left: 0;
-  margin-right: 5px;
-  margin-bottom: 5px;
-}
-
+/* 订单详情样式 */
 .order-detail {
-  padding: 0 20px;
+  padding: 10px;
 }
 
 .detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .order-id {
@@ -496,103 +584,47 @@ const updateOrderStatus = (orderId: number, newStatus: string) => {
 }
 
 .detail-content {
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .detail-item {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   display: flex;
 }
 
-.detail-item .label {
+.label {
   width: 100px;
-  color: #606266;
+  color: #909399;
 }
 
-.detail-item .value {
+.value {
   flex: 1;
 }
 
-.detail-item .price {
-  color: #f56c6c;
+.price {
+  color: #F56C6C;
   font-weight: bold;
 }
 
 .highlight-reason {
+  color: #E6A23C;
   font-weight: bold;
-  color: #e6a23c;
 }
 
-.message {
-  border-left: 3px solid #e6a23c;
-  padding-left: 10px;
-  margin-top: 20px;
-}
-
-.refund-reason {
-  border-left: 3px solid #e6a23c;
-  padding-left: 10px;
-  margin-top: 20px;
-  background-color: #fdf6ec;
-  padding: 10px;
-  border-radius: 4px;
-}
-
-.reject-reason {
-  border-left-color: #f56c6c;
-  background-color: #fef0f0;
-  padding: 10px;
-  border-radius: 4px;
+.message, .refund-reason, .reject-reason, .appeal-reason, .teacher-response, .admin-decision {
+  margin-top: 15px;
+  border-top: 1px dashed #EBEEF5;
+  padding-top: 10px;
 }
 
 .operation-tips {
   margin-top: 20px;
-  margin-bottom: 20px;
 }
 
 .detail-footer {
-  margin-top: 30px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-}
-
-.refund-form {
-  padding: 20px 0;
-}
-
-@media (max-width: 768px) {
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .filter-container {
-    width: 100%;
-    margin-top: 15px;
-  }
-  
-  .operation-buttons {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-  
-  .operation-buttons .el-button {
-    margin-bottom: 5px;
-  }
-  
-  .detail-item {
-    flex-direction: column;
-  }
-  
-  .detail-item .label {
-    width: 100%;
-    margin-bottom: 5px;
-  }
-  
-  .detail-footer {
-    flex-wrap: wrap;
-  }
+  margin-top: 20px;
 }
 </style> 
