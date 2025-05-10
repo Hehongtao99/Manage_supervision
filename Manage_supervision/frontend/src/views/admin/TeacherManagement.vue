@@ -82,7 +82,11 @@
     <el-dialog
       title="教师学生管理"
       v-model="studentsDialogVisible"
-      width="800px"
+      width="1000px"
+      top="5vh"
+      :fullscreen="false"
+      :destroy-on-close="false"
+      :close-on-click-modal="false"
     >
       <div v-if="selectedTeacher" class="teacher-info">
         <h3>{{ selectedTeacher.realName }} 的学生列表</h3>
@@ -97,6 +101,7 @@
           v-loading="studentsLoading"
           :data="teacherStudents"
           border
+          height="500px"
           style="width: 100%; margin-top: 15px;"
         >
           <el-table-column prop="id" label="ID" width="80" />
@@ -128,7 +133,11 @@
     <el-dialog
       title="分配学生"
       v-model="assignDialogVisible"
-      width="800px"
+      width="1000px"
+      top="5vh"
+      :fullscreen="false"
+      :destroy-on-close="false"
+      :close-on-click-modal="false"
     >
       <div class="assign-students">
         <el-form :inline="true" class="search-form">
@@ -146,6 +155,7 @@
           v-loading="unassignedStudentsLoading"
           :data="filteredUnassignedStudents"
           border
+          height="500px"
           style="width: 100%"
           @selection-change="handleSelectionChange"
         >
@@ -401,15 +411,30 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
+.teacher-info {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
 .teacher-info h3 {
   margin-top: 0;
   margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  padding: 10px 0;
+  z-index: 1;
 }
 
 .action-bar {
   margin-bottom: 15px;
   display: flex;
   justify-content: flex-end;
+  position: sticky;
+  top: 50px;
+  background-color: #fff;
+  padding: 5px 0;
+  z-index: 1;
 }
 
 .empty-data {
@@ -423,5 +448,15 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  padding: 10px 0;
+  z-index: 1;
+}
+
+.assign-students {
+  max-height: 600px;
+  overflow-y: auto;
 }
 </style> 

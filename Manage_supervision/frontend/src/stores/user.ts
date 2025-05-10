@@ -393,19 +393,29 @@ export const useUserStore = defineStore('user', {
         return true
       } catch (error: any) {
         console.error('人脸登录失败:', error)
-        console.error('Error details:', error.stack)
         
-        if (error.response) {
-          console.error('Response status:', error.response.status)
-          console.error('Response data:', JSON.stringify(error.response.data))
-        }
-        
-        if (error.response?.data?.message) {
+        // 检查是否有来自API的详细错误信息
+        if (error.serverMessage) {
+          console.error('服务器返回的错误信息:', error.serverMessage)
+          this.error = error.serverMessage
+          
+          // 如果是人脸检测失败的特定错误
+          if (error.faceDetectionFailed) {
+            console.warn('人脸检测失败')
+            return { faceDetectionFailed: true, message: this.error }
+          }
+        } else if (error.response?.data?.message) {
           this.error = error.response.data.message
         } else if (error.message) {
           this.error = `人脸登录失败: ${error.message}`
         } else {
           this.error = '人脸登录失败，请稍后重试'
+        }
+        
+        // 记录更详细的错误信息用于调试
+        if (error.response) {
+          console.error('Response status:', error.response.status)
+          console.error('Response data:', JSON.stringify(error.response.data))
         }
         
         return false

@@ -234,4 +234,29 @@ public class FaceRecognitionServiceImpl implements FaceRecognitionService {
             return false;
         }
     }
+    
+    @Override
+    public byte[] extractFaceFeaturesFromBase64(String base64Image) throws Exception {
+        try {
+            if (base64Image == null || base64Image.isEmpty()) {
+                logger.warn("提取人脸特征失败：Base64图像为空");
+                return null;
+            }
+            
+            // 使用工具类提取人脸特征
+            byte[] faceFeatures = faceRecognitionUtil.extractFaceFeaturesFromBase64(base64Image);
+            
+            if (faceFeatures == null) {
+                logger.warn("提取人脸特征失败：未检测到人脸");
+                return null;
+            }
+            
+            // 记录特征长度，作为调试信息
+            logger.info("成功提取人脸特征，特征长度: {} 字节", faceFeatures.length);
+            return faceFeatures;
+        } catch (Exception e) {
+            logger.error("提取人脸特征过程中发生错误: {}", e.getMessage(), e);
+            throw new Exception("人脸特征提取失败: " + e.getMessage(), e);
+        }
+    }
 } 

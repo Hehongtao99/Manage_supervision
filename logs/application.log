@@ -3547,3 +3547,250 @@ java.lang.RuntimeException: OpenCV(4.6.0) D:\a\javacpp-presets\javacpp-presets\o
 2025-05-08 09:17:05.078 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
 2025-05-08 09:17:05.079 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
 2025-05-08 09:17:05.079 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 10:41:26.454 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 29520 (C:\Users\37602\Desktop\template\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\template)
+2025-05-10 10:41:26.455 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-05-10 10:41:26.994 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-10 10:41:27.151 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 143 ms. Found 20 JPA repository interfaces.
+2025-05-10 10:41:27.566 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-05-10 10:41:27.575 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-05-10 10:41:27.576 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-10 10:41:27.576 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-05-10 10:41:27.622 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-10 10:41:27.622 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1128 ms
+2025-05-10 10:41:27.749 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-10 10:41:27.789 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-05-10 10:41:27.814 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-05-10 10:41:27.984 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-10 10:41:28.560 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@df9d400
+2025-05-10 10:41:28.561 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-10 10:41:28.635 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-05-10 10:41:28.636 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-05-10 10:41:29.500 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-10 10:41:32.119 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-10 10:41:33.638 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-05-10 10:41:33.639 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-05-10 10:41:33.645 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-05-10 10:41:33.645 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-05-10 10:41:33.993 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil构造函数被调用
+2025-05-10 10:41:33.993 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始初始化FaceRecognitionUtil...
+2025-05-10 10:41:33.993 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试加载OpenCV本地库...
+2025-05-10 10:41:33.999 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功加载OpenCV core本地库
+2025-05-10 10:41:33.999 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始加载Haar级联分类器模型文件
+2025-05-10 10:41:33.999 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt2.xml
+2025-05-10 10:41:33.999 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /haarcascade_frontalface_alt2.xml
+2025-05-10 10:41:33.999 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt.xml
+2025-05-10 10:41:34.000 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功从路径加载模型: /models/haarcascade_frontalface_alt.xml
+2025-05-10 10:41:34.000 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 从临时文件加载Haar级联分类器: C:\Users\37602\AppData\Local\Temp\haarcascade_6043179334728280594.xml
+2025-05-10 10:41:34.005 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器模型文件提取完成: C:\Users\37602\AppData\Local\Temp\haarcascade_6043179334728280594.xml
+2025-05-10 10:41:35.899 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器加载成功
+2025-05-10 10:41:35.899 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始创建LBPH人脸识别器
+2025-05-10 10:41:36.071 [main] INFO  c.e.auth.util.FaceRecognitionUtil - LBPH人脸识别器创建成功
+2025-05-10 10:41:36.071 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil初始化完成
+2025-05-10 10:41:36.197 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-05-10 10:41:36.269 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-10 10:41:36.321 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-05-10 10:41:36.323 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-05-10 10:41:36.323 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-05-10 10:41:36.382 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\template\uploads/
+2025-05-10 10:41:36.475 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-05-10 10:41:36.489 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-05-10 10:41:36.490 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-05-10 10:41:36.491 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@25e62716]]
+2025-05-10 10:41:36.491 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-05-10 10:41:36.494 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 10.443 seconds (process running for 10.994)
+2025-05-10 10:41:43.710 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-10 10:41:43.710 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-05-10 10:41:43.712 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-05-10 10:41:44.971 [http-nio-8081-exec-7] INFO  c.e.a.s.impl.NotificationServiceImpl - 获取用户(ID: 3)发送的通知
+2025-05-10 10:41:45.152 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 10:41:45.152 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 10:41:45.153 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 3
+2025-05-10 10:41:45.154 [http-nio-8081-exec-10] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 3
+2025-05-10 10:41:48.267 [http-nio-8081-exec-4] INFO  c.e.a.c.SupervisorController - Supervisor requested their assigned students list, ID: 3
+2025-05-10 10:41:48.268 [http-nio-8081-exec-4] INFO  c.e.a.service.impl.UserServiceImpl - 获取教师ID为3的学生列表
+2025-05-10 10:41:48.695 [http-nio-8081-exec-4] INFO  c.e.a.c.SupervisorController - 学生数据示例: id=4, name=null, userNumber=S25521158
+2025-05-10 10:42:15.994 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 10:42:15.994 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 10:42:15.997 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-10 10:42:15.997 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 10:42:36.478 [MessageBroker-2] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 2 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(2)-CONNECTED(2)-DISCONNECT(1)], stompBrokerRelay[null], inboundChannel[pool size = 28, active threads = 0, queued tasks = 0, completed tasks = 39], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 2, completed tasks = 12]
+2025-05-10 10:47:28.599 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-05-10 10:47:28.600 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@25e62716]]
+2025-05-10 10:47:28.600 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-05-10 10:47:28.656 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-10 10:47:28.673 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-10 10:47:36.844 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 24596 (C:\Users\37602\Desktop\template\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\template)
+2025-05-10 10:47:36.846 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-05-10 10:47:37.424 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-10 10:47:37.535 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 105 ms. Found 20 JPA repository interfaces.
+2025-05-10 10:47:37.958 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-05-10 10:47:37.968 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-05-10 10:47:37.969 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-10 10:47:37.970 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-05-10 10:47:38.027 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-10 10:47:38.028 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1134 ms
+2025-05-10 10:47:38.163 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-10 10:47:38.245 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-05-10 10:47:38.277 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-05-10 10:47:38.523 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-10 10:47:39.187 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3c4059a
+2025-05-10 10:47:39.188 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-10 10:47:39.293 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-05-10 10:47:39.294 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-05-10 10:47:40.473 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-10 10:47:43.255 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-10 10:47:45.162 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-05-10 10:47:45.163 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-05-10 10:47:45.170 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-05-10 10:47:45.171 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-05-10 10:47:45.551 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil构造函数被调用
+2025-05-10 10:47:45.553 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始初始化FaceRecognitionUtil...
+2025-05-10 10:47:45.553 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试加载OpenCV本地库...
+2025-05-10 10:47:45.559 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功加载OpenCV core本地库
+2025-05-10 10:47:45.559 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始加载Haar级联分类器模型文件
+2025-05-10 10:47:45.559 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt2.xml
+2025-05-10 10:47:45.560 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /haarcascade_frontalface_alt2.xml
+2025-05-10 10:47:45.560 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt.xml
+2025-05-10 10:47:45.560 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功从路径加载模型: /models/haarcascade_frontalface_alt.xml
+2025-05-10 10:47:45.560 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 从临时文件加载Haar级联分类器: C:\Users\37602\AppData\Local\Temp\haarcascade_187613338633456385.xml
+2025-05-10 10:47:45.566 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器模型文件提取完成: C:\Users\37602\AppData\Local\Temp\haarcascade_187613338633456385.xml
+2025-05-10 10:47:46.794 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器加载成功
+2025-05-10 10:47:46.795 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始创建LBPH人脸识别器
+2025-05-10 10:47:46.918 [main] INFO  c.e.auth.util.FaceRecognitionUtil - LBPH人脸识别器创建成功
+2025-05-10 10:47:46.918 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil初始化完成
+2025-05-10 10:47:47.060 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-05-10 10:47:47.117 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-10 10:47:47.179 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-05-10 10:47:47.181 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-05-10 10:47:47.182 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-05-10 10:47:47.248 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\template\uploads/
+2025-05-10 10:47:47.370 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-05-10 10:47:47.393 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-05-10 10:47:47.394 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-05-10 10:47:47.395 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@78dc9e09]]
+2025-05-10 10:47:47.395 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-05-10 10:47:47.400 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 10.96 seconds (process running for 11.495)
+2025-05-10 10:47:50.565 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-10 10:47:50.565 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-05-10 10:47:50.568 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
+2025-05-10 10:47:52.213 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-10 10:47:52.213 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9170877575391643
+2025-05-10 10:47:52.213 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.8793320573346458
+2025-05-10 10:47:52.213 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 2 个匹配的用户
+2025-05-10 10:47:52.213 [http-nio-8081-exec-1] INFO  c.e.a.c.FaceRecognitionController - 检测到多个匹配用户，去重前: 2个，去重后: 2个
+2025-05-10 10:48:14.386 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-10 10:48:14.386 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9059747355563277
+2025-05-10 10:48:14.387 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.8781200345356914
+2025-05-10 10:48:14.387 [http-nio-8081-exec-3] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 2 个匹配的用户
+2025-05-10 10:48:14.387 [http-nio-8081-exec-3] INFO  c.e.a.c.FaceRecognitionController - 检测到多个匹配用户，去重前: 2个，去重后: 2个
+2025-05-10 10:48:18.479 [http-nio-8081-exec-5] ERROR c.e.a.s.i.FaceRecognitionServiceImpl - 提取人脸特征失败，未检测到人脸或检测到多个人脸
+2025-05-10 10:48:28.129 [http-nio-8081-exec-4] ERROR c.e.a.s.i.FaceRecognitionServiceImpl - 提取人脸特征失败，未检测到人脸或检测到多个人脸
+2025-05-10 10:48:47.390 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]
+2025-05-10 10:59:20.002 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-10 10:59:20.003 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9144334337352902
+2025-05-10 10:59:20.003 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.8825444951742872
+2025-05-10 10:59:20.003 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 2 个匹配的用户
+2025-05-10 10:59:20.003 [http-nio-8081-exec-8] INFO  c.e.a.c.FaceRecognitionController - 检测到多个匹配用户，去重前: 2个，去重后: 2个
+2025-05-10 10:59:31.079 [http-nio-8081-exec-6] ERROR c.e.a.s.i.FaceRecognitionServiceImpl - 提取人脸特征失败，未检测到人脸或检测到多个人脸
+2025-05-10 11:02:35.991 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-10 11:02:35.991 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.8143764289651434
+2025-05-10 11:02:35.991 [http-nio-8081-exec-10] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 1 个匹配的用户
+2025-05-10 11:02:37.365 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 11:02:37.365 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 11:02:37.366 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-10 11:02:37.366 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 11:06:16.528 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 11:06:16.528 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 11:06:16.529 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-10 11:06:16.529 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 11:06:38.358 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 11:06:38.358 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 11:06:38.359 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-10 11:06:38.359 [http-nio-8081-exec-3] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 11:07:22.570 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-05-10 11:07:22.571 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@78dc9e09]]
+2025-05-10 11:07:22.571 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-05-10 11:07:22.591 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-10 11:07:22.611 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-10 11:07:27.541 [main] INFO  com.example.auth.AuthApplication - Starting AuthApplication using Java 17.0.12 with PID 20696 (C:\Users\37602\Desktop\template\Manage_supervision\backend\target\classes started by 37602 in C:\Users\37602\Desktop\template)
+2025-05-10 11:07:27.542 [main] INFO  com.example.auth.AuthApplication - No active profile set, falling back to 1 default profile: "default"
+2025-05-10 11:07:28.049 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-05-10 11:07:28.148 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 92 ms. Found 20 JPA repository interfaces.
+2025-05-10 11:07:28.516 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http)
+2025-05-10 11:07:28.525 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-05-10 11:07:28.526 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-10 11:07:28.526 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
+2025-05-10 11:07:28.578 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-10 11:07:28.578 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1006 ms
+2025-05-10 11:07:28.693 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-05-10 11:07:28.758 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-05-10 11:07:28.800 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-05-10 11:07:29.018 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-10 11:07:29.584 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@f3876ef
+2025-05-10 11:07:29.585 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-10 11:07:29.679 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-05-10 11:07:29.680 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-05-10 11:07:30.527 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-05-10 11:07:34.270 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-05-10 11:07:35.749 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket客户端入站通道拦截器
+2025-05-10 11:07:35.750 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket客户端入站通道拦截器配置完成
+2025-05-10 11:07:35.758 [main] INFO  c.e.auth.config.WebSocketConfig - 配置WebSocket消息代理
+2025-05-10 11:07:35.758 [main] INFO  c.e.auth.config.WebSocketConfig - WebSocket消息代理配置完成
+2025-05-10 11:07:36.080 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil构造函数被调用
+2025-05-10 11:07:36.080 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始初始化FaceRecognitionUtil...
+2025-05-10 11:07:36.080 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试加载OpenCV本地库...
+2025-05-10 11:07:36.089 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功加载OpenCV core本地库
+2025-05-10 11:07:36.089 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始加载Haar级联分类器模型文件
+2025-05-10 11:07:36.090 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt2.xml
+2025-05-10 11:07:36.090 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /haarcascade_frontalface_alt2.xml
+2025-05-10 11:07:36.090 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 尝试从路径加载人脸检测模型: /models/haarcascade_frontalface_alt.xml
+2025-05-10 11:07:36.091 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 成功从路径加载模型: /models/haarcascade_frontalface_alt.xml
+2025-05-10 11:07:36.091 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 从临时文件加载Haar级联分类器: C:\Users\37602\AppData\Local\Temp\haarcascade_9548708650195702498.xml
+2025-05-10 11:07:36.096 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器模型文件提取完成: C:\Users\37602\AppData\Local\Temp\haarcascade_9548708650195702498.xml
+2025-05-10 11:07:37.252 [main] INFO  c.e.auth.util.FaceRecognitionUtil - Haar级联分类器加载成功
+2025-05-10 11:07:37.252 [main] INFO  c.e.auth.util.FaceRecognitionUtil - 开始创建LBPH人脸识别器
+2025-05-10 11:07:37.363 [main] INFO  c.e.auth.util.FaceRecognitionUtil - LBPH人脸识别器创建成功
+2025-05-10 11:07:37.363 [main] INFO  c.e.auth.util.FaceRecognitionUtil - FaceRecognitionUtil初始化完成
+2025-05-10 11:07:37.500 [main] INFO  c.e.auth.config.WebSocketConfig - 注册WebSocket端点: /ws
+2025-05-10 11:07:37.545 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-05-10 11:07:37.590 [main] INFO  com.example.auth.config.WebConfig - 配置拦截器，验证用户权限
+2025-05-10 11:07:37.593 [main] INFO  com.example.auth.config.WebConfig - 配置CORS，允许前端访问
+2025-05-10 11:07:37.594 [main] INFO  com.example.auth.config.WebConfig - CORS配置完成，允许所有来源访问
+2025-05-10 11:07:37.655 [main] INFO  com.example.auth.config.WebConfig - 配置资源映射: /uploads/** -> file:C:\Users\37602\Desktop\template\uploads/
+2025-05-10 11:07:37.766 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-05-10 11:07:37.782 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path ''
+2025-05-10 11:07:37.783 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-05-10 11:07:37.784 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@25e62716]]
+2025-05-10 11:07:37.784 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-05-10 11:07:37.789 [main] INFO  com.example.auth.AuthApplication - Started AuthApplication in 10.62 seconds (process running for 11.19)
+2025-05-10 11:07:38.961 [http-nio-8081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-10 11:07:38.962 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-05-10 11:07:38.963 [http-nio-8081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-05-10 11:07:39.391 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 11:07:39.391 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 11:07:39.507 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-10 11:07:39.507 [http-nio-8081-exec-4] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 11:07:54.853 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 成功提取人脸特征，特征长度: 10000 字节
+2025-05-10 11:07:55.478 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-10 11:07:55.479 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.9259726312181702
+2025-05-10 11:07:55.479 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.8832953305828525
+2025-05-10 11:07:55.479 [http-nio-8081-exec-8] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 2 个匹配的用户
+2025-05-10 11:07:55.479 [http-nio-8081-exec-8] INFO  c.e.a.c.FaceRecognitionController - 检测到多个匹配用户，去重前: 2个，去重后: 2个
+2025-05-10 11:08:09.947 [http-nio-8081-exec-10] WARN  c.e.a.s.i.FaceRecognitionServiceImpl - 提取人脸特征失败：未检测到人脸
+2025-05-10 11:08:09.947 [http-nio-8081-exec-10] WARN  c.e.a.c.FaceRecognitionController - 未检测到人脸
+2025-05-10 11:08:37.765 [MessageBroker-8] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 1 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(1)-CONNECTED(1)-DISCONNECT(1)], stompBrokerRelay[null], inboundChannel[pool size = 24, active threads = 0, queued tasks = 0, completed tasks = 24], outboundChannel[pool size = 3, active threads = 0, queued tasks = 0, completed tasks = 3], sockJsScheduler[pool size = 14, active threads = 1, queued tasks = 1, completed tasks = 12]
+2025-05-10 11:10:01.349 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 成功提取人脸特征，特征长度: 10000 字节
+2025-05-10 11:10:02.011 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 开始人脸比对，已注册用户数量: 2
+2025-05-10 11:10:02.012 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 4, 相似度: 0.8874156884602328
+2025-05-10 11:10:02.012 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 人脸匹配成功，用户ID: 2, 相似度: 0.8767553842401381
+2025-05-10 11:10:02.012 [http-nio-8081-exec-1] INFO  c.e.a.s.i.FaceRecognitionServiceImpl - 找到 2 个匹配的用户
+2025-05-10 11:10:02.012 [http-nio-8081-exec-1] INFO  c.e.a.c.FaceRecognitionController - 检测到多个匹配用户，去重前: 2个，去重后: 2个
+2025-05-10 11:10:04.687 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 收到STOMP CONNECT命令
+2025-05-10 11:10:04.689 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从WebSocket连接中提取到JWT Token: eyJhbGciOi...
+2025-05-10 11:10:04.689 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - 从JWT Token提取的用户ID: 2
+2025-05-10 11:10:04.689 [http-nio-8081-exec-8] INFO  c.e.auth.config.WebSocketConfig - WebSocket连接成功设置用户ID为Principal: 2
+2025-05-10 11:22:14.857 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-05-10 11:22:14.857 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@25e62716]]
+2025-05-10 11:22:14.857 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-05-10 11:22:14.877 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-10 11:22:14.883 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.

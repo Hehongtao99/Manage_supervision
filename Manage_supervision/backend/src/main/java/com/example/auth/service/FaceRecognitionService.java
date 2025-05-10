@@ -58,4 +58,12 @@ public interface FaceRecognitionService {
      * @return 是否已注册
      */
     boolean hasFaceRegistered(Long userId);
+    
+    /**
+     * 从Base64编码的图像中提取人脸特征
+     * @param base64Image Base64编码的图像
+     * @return 人脸特征字节数组，如果未检测到人脸则返回null
+     * @throws Exception 如果提取过程中发生错误
+     */
+    byte[] extractFaceFeaturesFromBase64(String base64Image) throws Exception;
 } 

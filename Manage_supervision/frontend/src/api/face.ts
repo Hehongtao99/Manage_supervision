@@ -72,8 +72,23 @@ export const loginWithFaceBase64 = async (base64Image: string): Promise<any> => 
     })
     
     return response.data
-  } catch (error) {
+  } catch (error: any) {
     console.error('人脸登录失败:', error)
+    
+    // 增强错误处理，确保前端能获取到后端的详细错误信息
+    if (error.response && error.response.data) {
+      console.error('服务器返回的错误信息:', error.response.data)
+      // 将服务器的错误信息附加到错误对象上
+      error.serverMessage = error.response.data.message || '未知错误';
+      
+      // 如果是人脸检测失败的特定错误，设置特殊标志
+      if (error.response.data.message && 
+          (error.response.data.message.includes('未检测到人脸') || 
+           error.response.data.message.includes('未能检测到人脸'))) {
+        error.faceDetectionFailed = true;
+      }
+    }
+    
     throw error
   }
 }

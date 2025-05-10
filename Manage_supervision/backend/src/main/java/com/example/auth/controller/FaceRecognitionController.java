@@ -14,8 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -191,6 +193,23 @@ public class FaceRecognitionController {
                 ));
             }
             
+            // 先检查是否能够从图像中提取到人脸
+            byte[] faceFeatures = null;
+            try {
+                faceFeatures = faceRecognitionService.extractFaceFeaturesFromBase64(base64Image);
+                if (faceFeatures == null) {
+                    logger.warn("未检测到人脸");
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "message", "未能检测到人脸，请确保面部在摄像头范围内并有足够光线"
+                    ));
+                }
+            } catch (Exception e) {
+                logger.error("提取人脸特征失败", e);
+                return ResponseEntity.badRequest().body(Map.of(
+                    "message", "人脸特征提取失败: " + e.getMessage()
+                ));
+            }
+            
             // 获取匹配的用户ID列表
             List<Long> matchingUserIds = faceRecognitionService.findMatchingUsersByFaceWithBase64(base64Image);
             
@@ -207,7 +226,13 @@ public class FaceRecognitionController {
             } else {
                 // 如果有多个匹配的用户，返回用户列表供选择
                 List<Map<String, Object>> userList = new ArrayList<>();
-                for (Long userId : matchingUserIds) {
+                // 使用Set去重，避免重复的用户ID
+                Set<Long> uniqueUserIds = new HashSet<>(matchingUserIds);
+                
+                logger.info("检测到多个匹配用户，去重前: {}个，去重后: {}个", 
+                            matchingUserIds.size(), uniqueUserIds.size());
+                
+                for (Long userId : uniqueUserIds) {
                     User user = userService.findById(userId);
                     if (user != null && !"inactive".equals(user.getStatus())) {
                         Map<String, Object> userInfo = new HashMap<>();
