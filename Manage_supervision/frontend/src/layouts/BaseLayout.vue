@@ -87,13 +87,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useChatStore } from '../stores/chat'
+import { chatEvents } from '../stores/chat'
 import SideMenu from '../components/SideMenu.vue'
 import Breadcrumb from '../components/Breadcrumb.vue'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
 import {
   Fold,
   Expand,
@@ -170,10 +171,28 @@ const handleLogout = () => {
   })
 }
 
+// 请求系统通知权限
+const requestNotificationPermission = async () => {
+  if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+    try {
+      await Notification.requestPermission();
+      console.log('通知权限状态:', Notification.permission);
+    } catch (error) {
+      console.error('请求通知权限失败:', error);
+    }
+  }
+};
+
 // 初始化聊天服务
 onMounted(async () => {
   if (userStore.isLoggedIn) {
     await chatStore.initChat()
+    
+    // 请求通知权限
+    await requestNotificationPermission()
+    
+    // 监听新消息通知
+    setupMessageNotifications()
   }
 })
 
@@ -181,10 +200,105 @@ onMounted(async () => {
 watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
   if (isLoggedIn) {
     await chatStore.initChat()
+    
+    // 监听新消息通知
+    setupMessageNotifications()
   } else {
     chatStore.clearChatData()
   }
 })
+
+// 设置消息通知
+const setupMessageNotifications = () => {
+  // 使用聊天事件总线监听新消息
+  const unsubscribeMessageReceived = chatEvents.on('messageReceived', (message) => {
+    // 只有教师才弹出消息提醒
+    if (userStore.isSupervisor) {
+      showMessageNotification(message)
+    }
+  })
+  
+  // 组件卸载时取消监听
+  onUnmounted(() => {
+    if (unsubscribeMessageReceived) {
+      unsubscribeMessageReceived()
+    }
+  })
+}
+
+// 显示消息通知
+const showMessageNotification = (message) => {
+  // 不显示自己发送的消息通知
+  if (message.senderId === userStore.userId) return
+  
+  // 获取发送者信息
+  let senderInfo = message.senderName || '未知用户'
+  
+  // 处理消息内容，如果是文件消息则显示特殊提示
+  let messageContent = message.content || ''
+  if (message.fileUrl) {
+    const fileType = message.fileType || '文件'
+    messageContent = `[${fileType}] ${message.fileName || ''} ${messageContent}`
+  }
+  
+  // 播放通知声音
+  playNotificationSound()
+  
+  // 创建Element Plus通知
+  const notification = ElNotification({
+    title: `新消息：来自 ${senderInfo}`,
+    message: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
+    type: 'info',
+    duration: 7000,
+    position: 'top-right',
+    showClose: true,
+    customClass: 'chat-notification',
+    onClick: () => {
+      // 点击通知时导航到聊天页面
+      navigateToChat()
+      // 自动设置当前活跃对话
+      chatStore.setActiveConversation(message.conversationId)
+      // 关闭通知
+      notification.close()
+    }
+  })
+  
+  // 如果支持系统通知，也发送系统通知
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const systemNotification = new Notification(`来自 ${senderInfo} 的新消息`, {
+        body: messageContent,
+        icon: '/favicon.ico', // 确保图标路径正确
+        badge: '/favicon.ico',
+        tag: `chat-${message.conversationId}`, // 使用tag避免同一会话的通知堆积
+        renotify: true // 即使有相同tag的通知，也会再次通知
+      })
+      
+      systemNotification.onclick = () => {
+        window.focus() // 聚焦浏览器窗口
+        navigateToChat()
+        chatStore.setActiveConversation(message.conversationId)
+        systemNotification.close()
+      }
+    } catch (error) {
+      console.error('创建系统通知失败:', error)
+    }
+  }
+}
+
+// 播放通知声音
+const playNotificationSound = () => {
+  try {
+    const audio = new Audio('/notification.mp3') // 使用项目中的通知声音文件
+    audio.volume = 0.5 // 设置音量 (0.0 到 1.0)
+    audio.play().catch(error => {
+      // 大多数浏览器要求用户交互后才能自动播放音频
+      console.warn('无法播放通知声音:', error)
+    })
+  } catch (error) {
+    console.error('播放通知声音失败:', error)
+  }
+}
 </script>
 
 <style scoped>

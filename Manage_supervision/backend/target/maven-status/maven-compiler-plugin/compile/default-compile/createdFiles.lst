@@ -2,6 +2,7 @@ com\example\auth\model\dto\RoleDTO.class
 com\example\auth\service\ChatService.class
 com\example\auth\model\dto\ActivityDTO.class
 com\example\auth\model\dto\UserDTO.class
+com\example\auth\controller\StudentCourseController.class
 com\example\auth\model\dto\ConversationDTO$UserSummaryDTO.class
 com\example\auth\model\dto\SupervisorDashboardDTO$ActivityItem.class
 com\example\auth\service\UserService.class

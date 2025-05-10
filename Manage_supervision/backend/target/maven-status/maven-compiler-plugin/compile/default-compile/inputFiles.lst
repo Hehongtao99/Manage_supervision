@@ -16,6 +16,7 @@ C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\exa
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\annotation\RequireRole.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\entity\Subject.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\dto\TeacherWithStudentsDTO.java
+C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\controller\StudentCourseController.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\util\UserNumberGenerator.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\util\PasswordUtils.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\entity\TeacherStudentRelation.java

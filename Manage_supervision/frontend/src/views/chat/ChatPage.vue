@@ -1,40 +1,48 @@
 <template>
-  <div class="chat-page">
-    <div class="chat-container">
-      <div class="chat-sidebar">
-        <div class="sidebar-header">
-          <h2>消息</h2>
-          <el-dropdown v-if="isSupervisor" @command="handleCommand">
-            <el-button type="primary" size="small">
-              新建聊天 <el-icon><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="showStudentList">选择学生</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-dropdown v-else @command="handleCommand">
-            <el-button type="primary" size="small">
-              新建聊天 <el-icon><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="showSupervisorList">选择导师</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <ChatList 
-          :loading="loadingConversations"
-          @select="handleSelectConversation"
-        />
+  <div class="chat-page-wrapper">
+    <!-- 完全独立于BaseLayout的聊天页面 -->
+    <div class="chat-page">
+      <!-- 添加返回按钮 -->
+      <div class="back-button" @click="goBack">
+        <el-button type="text" :icon="ArrowLeft">返回</el-button>
       </div>
-      <div class="chat-main">
-        <ChatWindow 
-          :conversation-id="activeConversationId"
-          @message-sent="handleMessageSent"
-        />
+
+      <div class="chat-container">
+        <div class="chat-sidebar">
+          <div class="sidebar-header">
+            <h2>消息</h2>
+            <el-dropdown v-if="isSupervisor" @command="handleCommand">
+              <el-button type="primary" size="small">
+                新建聊天 <el-icon><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="showStudentList">选择学生</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-dropdown v-else @command="handleCommand">
+              <el-button type="primary" size="small">
+                新建聊天 <el-icon><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="showSupervisorList">选择导师</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+          <ChatList 
+            :loading="loadingConversations"
+            @select="handleSelectConversation"
+          />
+        </div>
+        <div class="chat-main">
+          <ChatWindow 
+            :conversation-id="activeConversationId"
+            @message-sent="handleMessageSent"
+          />
+        </div>
       </div>
     </div>
 
@@ -109,10 +117,12 @@ import { useUserStore } from '../../stores/user';
 import { useChatStore } from '../../stores/chat';
 import ChatList from '../../components/chat/ChatList.vue';
 import ChatWindow from '../../components/chat/ChatWindow.vue';
-import { ArrowDown, Search } from '@element-plus/icons-vue';
+import { ArrowDown, Search, ArrowLeft } from '@element-plus/icons-vue';
 import axios from '../../utils/axios';
 import { getSupervisors } from '../../api/supervisor';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const userStore = useUserStore();
 const chatStore = useChatStore();
 
@@ -277,6 +287,11 @@ const handleMessageSent = () => {
   // 这里可以添加任何消息发送后的逻辑
 };
 
+// 返回上一页
+const goBack = () => {
+  router.back();
+};
+
 // 初始化
 onMounted(async () => {
   // 初始化聊天服务
@@ -285,14 +300,45 @@ onMounted(async () => {
   // 加载会话列表
   await chatStore.loadConversations();
   
-  // 如果有会话，选择第一个
-  if (chatStore.conversations.length > 0) {
+  // 检查URL中是否有会话ID参数
+  const route = router.currentRoute.value;
+  const conversationIdParam = route.query.conversationId;
+  
+  if (conversationIdParam) {
+    // 如果URL中有会话ID，则选择该会话
+    const conversationId = parseInt(conversationIdParam as string, 10);
+    if (!isNaN(conversationId)) {
+      activeConversationId.value = conversationId;
+      
+      // 检查该会话是否已加载到聊天存储中
+      if (!chatStore.conversations.some(c => c.id === conversationId)) {
+        // 如果会话不在列表中，尝试加载该特定会话
+        try {
+          await chatStore.loadConversationById(conversationId);
+        } catch (error) {
+          console.error('Failed to load conversation by ID:', error);
+        }
+      }
+    }
+  } else if (chatStore.conversations.length > 0) {
+    // 如果没有指定会话ID且有会话，选择第一个会话
     activeConversationId.value = chatStore.conversations[0].id;
   }
 });
 </script>
 
 <style scoped>
+.chat-page-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+}
+
 .chat-page {
   height: 100vh;
   max-height: 100vh;
@@ -304,6 +350,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
+  background-color: #f0f2f5;
 }
 
 .chat-container {
@@ -312,6 +359,7 @@ onMounted(async () => {
   max-height: 100vh;
   overflow: hidden !important;
   flex: 1;
+  width: 100%;
 }
 
 .chat-sidebar {
@@ -345,5 +393,22 @@ onMounted(async () => {
   flex-direction: column;
   height: 100%;
   position: relative;
+}
+
+.back-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2000;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 5px 15px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 </style> 

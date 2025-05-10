@@ -635,6 +635,42 @@ class ChatService {
     // 停止轮询
     this.stopPolling();
   }
+
+  /**
+   * 判断聊天服务是否已初始化
+   */
+  isInitialized() {
+    return this.client !== null || this.pollingInterval !== undefined;
+  }
+
+  /**
+   * 获取连接状态
+   */
+  getConnectionStatus() {
+    if (this.connected) {
+      return 'connected';
+    } else if (this.connecting) {
+      return 'connecting';
+    } else if (this.pollingInterval) {
+      return 'polling';
+    } else {
+      return 'disconnected';
+    }
+  }
+
+  /**
+   * 尝试重新连接WebSocket
+   */
+  async reconnect() {
+    if (this.connecting) return;
+    
+    // 断开现有连接
+    this.disconnect();
+    
+    // 强制重新初始化
+    console.log('尝试重新连接WebSocket...');
+    return this.init();
+  }
 }
 
 // 导出单例

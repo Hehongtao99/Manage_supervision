@@ -452,45 +452,82 @@ export const useChatStore = defineStore('chat', {
       chatService.disconnect();
     },
     
-    // 根据ID获取单个会话
+    // 获取单个会话
     async fetchConversation(conversationId: number) {
-      this.error = null;
-      
       try {
-        // 检查缓存中是否有该会话
-        let conversation = this.conversations.find(c => c.id === conversationId);
+        const conversation = await chatService.getConversationById(conversationId);
         
-        // 如果缓存中没有，从服务器请求
-        if (!conversation) {
-          await this.loadConversations();
-          conversation = this.conversations.find(c => c.id === conversationId);
-          
-          // 如果还是没有找到，则直接请求该会话
-          if (!conversation) {
-            // 通过API获取会话详情
-            const response = await chatService.getConversationById(conversationId);
-            if (response) {
-              conversation = response;
-              // 将会话添加到列表中
-              const exists = this.conversations.some(c => c.id === conversation.id);
-              if (!exists) {
-                this.conversations.push(conversation);
-              }
-            }
-          }
+        // 将会话添加或更新到列表中
+        const existingIndex = this.conversations.findIndex(c => c.id === conversation.id);
+        if (existingIndex === -1) {
+          this.conversations.push(conversation);
+        } else {
+          this.conversations[existingIndex] = conversation;
         }
         
-        // 如果找到会话，加载消息
+        return conversation;
+      } catch (error) {
+        console.error('获取会话失败:', error);
+        return null;
+      }
+    },
+    
+    // 加载指定ID的会话，并预加载消息
+    async loadConversationById(conversationId: number) {
+      try {
+        // 获取会话详情
+        const conversation = await this.fetchConversation(conversationId);
+        
         if (conversation) {
+          // 加载会话的消息
           await this.loadMessagesForConversation(conversationId);
           return conversation;
         }
-        
         return null;
       } catch (error) {
-        console.error('获取会话失败:', error);
-        this.error = '获取会话失败';
-        throw error;
+        console.error('加载指定ID的会话失败:', error);
+        this.error = '加载指定ID的会话失败';
+        return null;
+      }
+    },
+    
+    // 检查聊天服务状态
+    async checkChatServiceStatus() {
+      try {
+        // 检查聊天服务是否已初始化
+        if (!chatService.isInitialized()) {
+          console.log('聊天服务未初始化，尝试初始化...');
+          await this.initChat();
+        }
+        
+        // 获取会话列表，测试API连接性
+        console.log('测试API连接 - 获取会话列表');
+        const conversations = await chatService.getConversations();
+        console.log('会话列表获取成功, 共 ' + conversations.length + ' 个会话');
+        
+        // 检查WebSocket连接状态
+        const wsStatus = chatService.getConnectionStatus();
+        console.log('WebSocket连接状态:', wsStatus);
+        
+        // 如果WebSocket连接已断开，尝试重连
+        if (wsStatus === 'disconnected') {
+          console.log('WebSocket连接已断开，尝试重连...');
+          await chatService.reconnect();
+          console.log('WebSocket重连完成');
+        }
+        
+        return {
+          apiConnected: true,
+          wsStatus,
+          conversationsCount: conversations.length
+        };
+      } catch (error) {
+        console.error('聊天服务状态检查失败:', error);
+        return {
+          apiConnected: false,
+          wsStatus: 'error',
+          error: error instanceof Error ? error.message : String(error)
+        };
       }
     }
   }
