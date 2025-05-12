@@ -23,6 +23,36 @@ export const registerFace = async (faceImage: File): Promise<boolean> => {
 }
 
 /**
+ * 注册用户多特征人脸（文件上传方式）
+ * @param faceImage 人脸图像文件
+ * @param featureType 特征类型
+ * @param description 特征描述
+ */
+export const registerMultiFace = async (
+  faceImage: File, 
+  featureType: string, 
+  description: string
+): Promise<boolean> => {
+  try {
+    const formData = new FormData()
+    formData.append('faceImage', faceImage)
+    formData.append('featureType', featureType)
+    formData.append('description', description)
+    
+    const response = await axios.post('/api/face/register/multi', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    
+    return response.status === 200
+  } catch (error) {
+    console.error('注册多特征人脸失败:', error)
+    throw error
+  }
+}
+
+/**
  * 注册用户人脸（Base64方式）
  * @param base64Image Base64编码的图像
  */
@@ -35,6 +65,31 @@ export const registerFaceWithBase64 = async (base64Image: string): Promise<boole
     return response.status === 200
   } catch (error) {
     console.error('注册人脸失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 注册用户多特征人脸（Base64方式）
+ * @param base64Image Base64编码的图像
+ * @param featureType 特征类型
+ * @param description 特征描述
+ */
+export const registerMultiFaceWithBase64 = async (
+  base64Image: string,
+  featureType: string,
+  description: string
+): Promise<boolean> => {
+  try {
+    const response = await axios.post('/api/face/register/base64/multi', {
+      faceImage: base64Image,
+      featureType: featureType,
+      description: description
+    })
+    
+    return response.status === 200
+  } catch (error) {
+    console.error('注册多特征人脸失败:', error)
     throw error
   }
 }
@@ -94,6 +149,43 @@ export const loginWithFaceBase64 = async (base64Image: string): Promise<any> => 
 }
 
 /**
+ * 增强人脸登录（多特征匹配，Base64方式）
+ * @param base64Image Base64编码的图像
+ * @param matchStrategy 匹配策略：best(最佳匹配), vote(投票), average(平均)
+ */
+export const enhancedLoginWithFace = async (
+  base64Image: string, 
+  matchStrategy: string = 'best'
+): Promise<any> => {
+  try {
+    const response = await axios.post('/api/face/login/enhanced', {
+      faceImage: base64Image,
+      matchStrategy: matchStrategy
+    })
+    
+    return response.data
+  } catch (error: any) {
+    console.error('增强人脸登录失败:', error)
+    
+    // 增强错误处理，确保前端能获取到后端的详细错误信息
+    if (error.response && error.response.data) {
+      console.error('服务器返回的错误信息:', error.response.data)
+      // 将服务器的错误信息附加到错误对象上
+      error.serverMessage = error.response.data.message || '未知错误';
+      
+      // 如果是人脸检测失败的特定错误，设置特殊标志
+      if (error.response.data.message && 
+          (error.response.data.message.includes('未检测到人脸') || 
+           error.response.data.message.includes('未能检测到人脸'))) {
+        error.faceDetectionFailed = true;
+      }
+    }
+    
+    throw error
+  }
+}
+
+/**
  * 选择特定用户登录（人脸识别匹配多个用户时使用）
  * @param userId 选择的用户ID
  */
@@ -111,7 +203,21 @@ export const loginSelectedUser = async (userId: number): Promise<any> => {
 }
 
 /**
- * 删除用户人脸信息
+ * 获取用户已注册的人脸特征列表
+ */
+export const getUserFaceFeatures = async (): Promise<any> => {
+  try {
+    const response = await axios.get('/api/face/features')
+    
+    return response.data.features
+  } catch (error) {
+    console.error('获取用户人脸特征列表失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 删除用户所有人脸信息
  */
 export const deleteFace = async (): Promise<boolean> => {
   try {
@@ -125,11 +231,26 @@ export const deleteFace = async (): Promise<boolean> => {
 }
 
 /**
+ * 删除用户指定类型的人脸特征
+ * @param featureType 特征类型
+ */
+export const deleteUserFaceFeature = async (featureType: string): Promise<boolean> => {
+  try {
+    const response = await axios.delete(`/api/face/feature/${featureType}`)
+    
+    return response.status === 200
+  } catch (error) {
+    console.error('删除人脸特征失败:', error)
+    throw error
+  }
+}
+
+/**
  * 检查用户是否已注册人脸
  */
 export const checkFaceStatus = async (): Promise<boolean> => {
   try {
-    const response = await axios.get('/api/face/status')
+    const response = await axios.get('/api/face/check')
     
     return response.data.hasFaceRegistered
   } catch (error) {

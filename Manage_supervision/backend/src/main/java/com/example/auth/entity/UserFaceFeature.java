@@ -21,6 +21,12 @@ public class UserFaceFeature {
     @Column(name = "face_image", columnDefinition = "MEDIUMBLOB")
     private byte[] faceImage;
 
+    @Column(name = "feature_type", length = 50)
+    private String featureType = "primary"; // 默认为主要特征
+
+    @Column(name = "description", length = 255)
+    private String description;
+
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
@@ -55,6 +61,14 @@ public class UserFaceFeature {
         return faceImage;
     }
 
+    public String getFeatureType() {
+        return featureType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -78,6 +92,14 @@ public class UserFaceFeature {
 
     public void setFaceImage(byte[] faceImage) {
         this.faceImage = faceImage;
+    }
+
+    public void setFeatureType(String featureType) {
+        this.featureType = featureType;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setCreateTime(LocalDateTime createTime) {
