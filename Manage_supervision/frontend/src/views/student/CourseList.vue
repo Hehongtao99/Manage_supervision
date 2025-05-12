@@ -244,6 +244,15 @@
                 <span>支付宝</span>
               </div>
             </div>
+            <div class="payment-method-tip" v-if="!orderForm.paymentMethod">
+              <el-alert
+                title="请选择一种支付方式"
+                type="warning"
+                :closable="false"
+                show-icon
+                size="small"
+              />
+            </div>
           </el-form-item>
         </el-form>
         
@@ -264,8 +273,29 @@
       @closed="handlePaymentDialogClosed"
     >
       <div class="payment-dialog-content">
+        <!-- 添加支付方式选择区域 -->
+        <div class="payment-methods">
+          <h3>请选择支付方式</h3>
+          <div class="payment-method-buttons">
+            <div 
+              class="payment-method-btn" 
+              :class="{ active: currentPaymentMethodValue === 'wechat' }"
+              @click="selectPaymentMethodForExistingOrder('wechat')"
+            >
+              <span>微信支付</span>
+            </div>
+            <div 
+              class="payment-method-btn" 
+              :class="{ active: currentPaymentMethodValue === 'alipay' }"
+              @click="selectPaymentMethodForExistingOrder('alipay')"
+            >
+              <span>支付宝</span>
+            </div>
+          </div>
+        </div>
+        
         <div class="qr-code-container">
-          <div v-if="currentPaymentMethod === 'wechat'" class="qr-code-image wechat-qr">
+          <div v-if="currentPaymentMethodValue === 'wechat'" class="qr-code-image wechat-qr">
             <div class="qr-inner">
               <QRCode
                 :value="getPaymentQrValue"
@@ -276,7 +306,7 @@
               <span class="qr-logo-text">微信</span>
             </div>
           </div>
-          <div v-else-if="currentPaymentMethod === 'alipay'" class="qr-code-image alipay-qr">
+          <div v-else-if="currentPaymentMethodValue === 'alipay'" class="qr-code-image alipay-qr">
             <div class="qr-inner">
               <QRCode
                 :value="getPaymentQrValue"
@@ -295,8 +325,11 @@
         
         <div class="payment-info">
           <p>订单金额: <span class="highlight-price">¥{{ currentOrderAmount }}</span></p>
-          <p class="payment-tip">请使用{{ currentPaymentMethod === 'wechat' ? '微信' : '支付宝' }}扫码支付</p>
-          <p class="payment-tip">支付后请点击"确认支付"按钮</p>
+          <div v-if="currentPaymentMethodValue">
+            <p class="payment-tip">请使用{{ currentPaymentMethodValue === 'wechat' ? '微信' : '支付宝' }}扫码支付</p>
+            <p class="payment-tip">支付后请点击"确认支付"按钮</p>
+          </div>
+          <p v-else class="payment-tip warning-tip">请先选择支付方式</p>
         </div>
         
         <div class="payment-actions">
@@ -309,11 +342,14 @@
     <!-- 取消支付确认对话框 -->
     <el-dialog
       v-model="cancelPaymentDialogVisible"
-      title="取消支付"
+      title="取消订单"
       width="400px"
       destroy-on-close
     >
-      <p>确定要取消此订单的支付吗？</p>
+      <div class="cancel-order-content">
+        <p>确定要取消此订单吗？</p>
+        <p class="warning-text">注意：取消订单后，相应的收入将被扣除。</p>
+      </div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="cancelPaymentDialogVisible = false">返回</el-button>
@@ -329,7 +365,7 @@ import { ref, onMounted, computed, watch, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Picture, User, Collection, ChatDotRound, Money, Clock, Calendar, ShoppingCart } from '@element-plus/icons-vue'
 import { getAllApprovedCourses, CourseDTO, startChatWithTeacher, getApprovedCoursesPaged, PageParams, PageResult } from '../../api/courses'
-import { createOrder, cancelOrder } from '../../api/order'
+import { createOrder, cancelOrder, directCancelOrder } from '../../api/order'
 import { useChatStore } from '../../stores/chat'
 import { useRouter } from 'vue-router'
 import QRCode from 'qrcode.vue'
@@ -361,7 +397,7 @@ const orderForm = ref({
   hours: 1,
   message: '',
   totalAmount: 0,
-  paymentMethod: 'wechat' // 默认选择微信支付
+  paymentMethod: '' // 默认不选择支付方式，需要用户主动选择
 })
 const submitLoading = ref(false)
 
@@ -371,12 +407,13 @@ const currentOrderId = ref<number | null>(null)
 const currentOrderAmount = ref<string>('0.00')
 const cancelPaymentDialogVisible = ref(false)
 const cancelLoading = ref(false)
+const currentPaymentMethodValue = ref('') // 添加新的ref变量
 
 // 获取支付对话框标题
 const getPaymentDialogTitle = computed(() => {
-  if(currentPaymentMethod.value === 'wechat') {
+  if(currentPaymentMethodValue.value === 'wechat') {
     return '微信支付';
-  } else if(currentPaymentMethod.value === 'alipay') {
+  } else if(currentPaymentMethodValue.value === 'alipay') {
     return '支付宝支付';
   } else {
     return '请选择支付方式';
@@ -581,7 +618,7 @@ const showOrderDialog = () => {
     hours: 1,
     message: '',
     totalAmount: totalAmount, // 格式化初始总价
-    paymentMethod: 'wechat' // 默认选择微信支付
+    paymentMethod: '' // 默认不选择支付方式，需要用户主动选择
   }
   
   console.log('初始化订单:', {
@@ -666,7 +703,7 @@ const submitOrder = async () => {
     
     if (result.success) {
       // 保存当前支付方式，用于二维码页面显示
-      currentPaymentMethod.value = orderForm.value.paymentMethod
+      currentPaymentMethodValue.value = orderForm.value.paymentMethod
       
       // 保存当前订单金额
       currentOrderAmount.value = formattedTotal.value
@@ -692,38 +729,38 @@ const submitOrder = async () => {
 
 // 处理取消支付
 const handleCancelPayment = () => {
-  cancelPaymentDialogVisible.value = true
+  cancelPaymentDialogVisible.value = true;
 }
 
 // 确认取消支付
 const confirmCancelPayment = async () => {
-  if (!currentOrderId.value) return
+  if (!currentOrderId.value) return;
   
-  cancelLoading.value = true
+  cancelLoading.value = true;
   try {
-    const result = await cancelOrder(currentOrderId.value)
+    const result = await directCancelOrder(currentOrderId.value);
     
     if (result.success) {
-      ElMessage.success('订单已取消')
+      ElMessage.success('订单已取消，相应收入已扣除');
       
       // 关闭所有相关对话框
-      cancelPaymentDialogVisible.value = false
-      paymentDialogVisible.value = false
+      cancelPaymentDialogVisible.value = false;
+      paymentDialogVisible.value = false;
       
       // 重置订单ID和相关状态
-      currentOrderId.value = null
-      currentPaymentMethod.value = null
+      currentOrderId.value = null;
+      currentPaymentMethodValue.value = '';
       
       // 可选: 跳转到订单列表
-      router.push('/orders')
+      router.push('/orders');
     } else {
-      ElMessage.error(result.message || '取消订单失败')
+      ElMessage.error(result.message || '取消订单失败');
     }
   } catch (error) {
-    console.error('取消订单失败:', error)
-    ElMessage.error('取消订单失败，请稍后再试')
+    console.error('取消订单失败:', error);
+    ElMessage.error('取消订单失败，请稍后再试');
   } finally {
-    cancelLoading.value = false
+    cancelLoading.value = false;
   }
 }
 
@@ -738,7 +775,7 @@ const handleConfirmPayment = async () => {
     
     // 重置支付状态
     currentOrderId.value = null
-    currentPaymentMethod.value = null
+    currentPaymentMethodValue.value = '';
     
     // 跳转到订单列表页面
     router.push('/orders')
@@ -759,29 +796,23 @@ const handlePaymentDialogClosed = () => {
 
 // 处理支付方式选择
 const selectPaymentMethod = (method: string) => {
-  orderForm.value.paymentMethod = method
-  calculateTotal(orderForm.value.hours)
+  if (orderForm.value) {
+    orderForm.value.paymentMethod = method;
+  }
+}
+
+// 为已创建的订单选择支付方式
+const selectPaymentMethodForExistingOrder = (method: string) => {
+  console.log(`选择支付方式: ${method}`);
+  currentPaymentMethodValue.value = method;
 }
 
 // 获取支付二维码值
 const getPaymentQrValue = computed(() => {
-  if (!currentOrderId.value || !currentPaymentMethod.value) {
-    return 'https://example.com/error'
-  }
+  if (!currentOrderId.value || !currentPaymentMethodValue.value) return '';
   
-  // 创建包含订单信息的支付二维码值
-  const paymentType = currentPaymentMethod.value
-  const orderId = currentOrderId.value
-  const amount = currentOrderAmount.value
-  
-  // 在实际应用中，这里应该返回真实的支付URL或订单信息
-  // 这里仅作模拟示例
-  return `https://example.com/pay?id=${orderId}&type=${paymentType}&amount=${amount}`
-})
-
-// 新增的 currentPaymentMethod 和 currentPaymentQrValue 变量
-const currentPaymentMethod = ref<string | null>(null)
-const currentPaymentQrValue = ref<string | null>(null)
+  return `order:${currentOrderId.value}:${currentPaymentMethodValue.value}`;
+});
 
 // 处理页码变化
 const handlePageChange = (newPage: number) => {
@@ -793,6 +824,11 @@ const handleSizeChange = (newSize: number) => {
   pageParams.size = newSize;
   pageParams.page = 1; // 重置到第一页
 };
+
+// 在组件挂载时获取课程数据
+onMounted(() => {
+  fetchCourses();
+});
 </script>
 
 <style scoped>
@@ -1242,6 +1278,11 @@ const handleSizeChange = (newSize: number) => {
   margin: 8px 0;
 }
 
+.warning-tip {
+  color: #E6A23C;
+  font-weight: bold;
+}
+
 .payment-actions {
   display: flex;
   justify-content: center;
@@ -1253,6 +1294,7 @@ const handleSizeChange = (newSize: number) => {
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 .payment-method-btn {
@@ -1261,15 +1303,26 @@ const handleSizeChange = (newSize: number) => {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
 }
 
 .payment-method-btn:hover {
   background-color: #f5f7fa;
+  border-color: #409EFF;
 }
 
-.active {
-  background-color: #f5f7fa;
+.payment-method-btn.active {
+  background-color: #ecf5ff;
   border-color: #409EFF;
+  color: #409EFF;
+  font-weight: bold;
+}
+
+.payment-method-tip {
+  margin-top: 5px;
 }
 
 /* 添加分页容器样式 */
@@ -1294,5 +1347,26 @@ const handleSizeChange = (newSize: number) => {
   .search-input {
     width: 100%;
   }
+}
+
+.payment-methods {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.payment-methods h3 {
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #333;
+}
+
+.cancel-order-content {
+  padding: 20px;
+}
+
+.warning-text {
+  color: #E6A23C;
+  font-weight: bold;
+  margin-top: 10px;
 }
 </style> 

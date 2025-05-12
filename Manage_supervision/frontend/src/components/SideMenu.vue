@@ -62,12 +62,6 @@
 
     <!-- 督导员菜单 -->
     <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
 
       <el-menu-item index="/supervisor/course-applications" @click="handleRoute('/supervisor/course-applications')">
         <el-icon><Document /></el-icon>

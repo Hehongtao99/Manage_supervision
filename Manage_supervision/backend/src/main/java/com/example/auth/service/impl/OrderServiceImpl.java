@@ -10,6 +10,7 @@ import com.example.auth.model.dto.OrderDTO;
 import com.example.auth.model.entity.CourseApplication;
 import com.example.auth.model.entity.Order;
 import com.example.auth.model.entity.User;
+import com.example.auth.service.IncomeRecordService;
 import com.example.auth.service.OrderService;
 import com.example.auth.model.dto.PageResult;
 import org.slf4j.Logger;
@@ -41,6 +42,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     
     @Autowired
     private CourseApplicationMapper courseApplicationMapper;
+    
+    @Autowired
+    private IncomeRecordService incomeRecordService;
     
     @Override
     @Transactional
@@ -81,6 +85,19 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         // 保存订单
         int rows = orderMapper.insert(order);
         if (rows > 0) {
+            // 记录教师收入
+            String remark = "订单创建: " + orderNumber + ", 课程ID: " + courseId;
+            boolean recordResult = incomeRecordService.addOrderIncome(
+                teacherId,
+                order.getId(),
+                totalAmount,
+                remark
+            );
+            
+            if (!recordResult) {
+                logger.error("添加订单收入记录失败: 教师ID={}, 订单ID={}, 金额={}", teacherId, order.getId(), totalAmount);
+            }
+            
             logger.info("订单创建成功: ID={}, 订单号={}", order.getId(), orderNumber);
             return order.getId();
         } else {
@@ -201,17 +218,36 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     public boolean completeOrder(Long orderId, Long teacherId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null || !order.getTeacherId().equals(teacherId)) {
+            logger.error("完成订单失败: 订单不存在或教师无权操作");
             return false;
         }
         
         // 只有已接受的订单可以完成
         if (!"ACCEPTED".equals(order.getStatus())) {
+            logger.error("完成订单失败: 订单状态不是已接受");
             return false;
         }
         
         order.setStatus("COMPLETED");
         order.setUpdateTime(LocalDateTime.now());
         
+        // 记录教师收入
+        BigDecimal incomeAmount = order.getTotalAmount();
+        
+        // 添加订单收入记录
+        String remark = "完成订单，订单ID: " + orderId;
+        boolean recordResult = incomeRecordService.addOrderIncome(
+            teacherId, 
+            orderId, 
+            incomeAmount, 
+            remark
+        );
+        
+        if (!recordResult) {
+            logger.error("添加订单收入记录失败: 教师ID={}, 订单ID={}, 金额={}", teacherId, orderId, incomeAmount);
+        }
+        
+        logger.info("教师ID={}完成了订单ID={}，添加收入: {}", teacherId, orderId, incomeAmount);
         return orderMapper.updateById(order) > 0;
     }
     
@@ -234,7 +270,23 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setStatus("CANCELED");
         order.setUpdateTime(LocalDateTime.now());
         
-        logger.info("教师ID={}同意了订单ID={}的退款申请", teacherId, orderId);
+        // 记录教师收入减少
+        BigDecimal refundAmount = order.getTotalAmount();
+        
+        // 添加退款扣除记录
+        String remark = "同意退款，订单ID: " + orderId;
+        boolean recordResult = incomeRecordService.addRefundDeduction(
+            teacherId, 
+            orderId, 
+            refundAmount, 
+            remark
+        );
+        
+        if (!recordResult) {
+            logger.error("添加退款扣除记录失败: 教师ID={}, 订单ID={}, 金额={}", teacherId, orderId, refundAmount);
+        }
+        
+        logger.info("教师ID={}同意了订单ID={}的退款申请，扣除教师收入: {}", teacherId, orderId, refundAmount);
         return orderMapper.updateById(order) > 0;
     }
     
@@ -354,7 +406,24 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setAdminDecision(adminDecision);
         order.setUpdateTime(LocalDateTime.now());
         
-        logger.info("管理员ID={}批准了订单ID={}的申诉, 决定: {}", adminId, orderId, adminDecision);
+        // 记录教师收入减少
+        Long teacherId = order.getTeacherId();
+        BigDecimal refundAmount = order.getTotalAmount();
+        
+        // 添加申诉扣除记录
+        String remark = "申诉通过，订单ID: " + orderId + ", 管理员决定: " + adminDecision;
+        boolean recordResult = incomeRecordService.addAppealDeduction(
+            teacherId, 
+            orderId, 
+            refundAmount, 
+            remark
+        );
+        
+        if (!recordResult) {
+            logger.error("添加申诉扣除记录失败: 教师ID={}, 订单ID={}, 金额={}", teacherId, orderId, refundAmount);
+        }
+        
+        logger.info("管理员ID={}批准了订单ID={}的申诉, 决定: {}, 扣除教师收入: {}", adminId, orderId, adminDecision, refundAmount);
         return orderMapper.updateById(order) > 0;
     }
     

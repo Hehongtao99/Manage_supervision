@@ -95,7 +95,14 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
             if (images != null && !images.isEmpty()) {
                 List<String> imagePaths = saveImages(images);
                 try {
-                    application.setImagePaths(objectMapper.writeValueAsString(imagePaths));
+                    // 确保imagePaths不为空，否则写入空数组字符串
+                    if (imagePaths != null && !imagePaths.isEmpty()) {
+                        String imagePathsJson = objectMapper.writeValueAsString(imagePaths);
+                        logger.debug("图片路径JSON: {}", imagePathsJson);
+                        application.setImagePaths(imagePathsJson);
+                    } else {
+                        application.setImagePaths("[]");
+                    }
                 } catch (JsonProcessingException e) {
                     logger.error("图片路径转JSON失败", e);
                     application.setImagePaths("[]");
@@ -202,7 +209,7 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
                 return false;
             }
             
-            // 更新申请信息
+            // 更新字段
             application.setTitle(title);
             application.setSubject(subject);
             
@@ -216,24 +223,34 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
             application.setDescription(description);
             application.setWorkTimeStart(workTimeStart);
             application.setWorkTimeEnd(workTimeEnd);
-            application.setStatus("PENDING");
-            application.setRejectionReason(null);
+            application.setStatus("PENDING"); // 重置为待审核状态
+            application.setRejectionReason(null); // 清除拒绝理由
             application.setUpdateTime(LocalDateTime.now());
             
             // 处理图片上传
             if (images != null && !images.isEmpty()) {
                 List<String> imagePaths = saveImages(images);
                 try {
-                    application.setImagePaths(objectMapper.writeValueAsString(imagePaths));
+                    // 确保imagePaths不为空，否则保留原有图片或写入空数组字符串
+                    if (imagePaths != null && !imagePaths.isEmpty()) {
+                        String imagePathsJson = objectMapper.writeValueAsString(imagePaths);
+                        logger.debug("重新提交 - 图片路径JSON: {}", imagePathsJson);
+                        application.setImagePaths(imagePathsJson);
+                    } else if (application.getImagePaths() == null || application.getImagePaths().isEmpty()) {
+                        application.setImagePaths("[]");
+                    }
                 } catch (JsonProcessingException e) {
                     logger.error("图片路径转JSON失败", e);
-                    application.setImagePaths("[]");
+                    if (application.getImagePaths() == null || application.getImagePaths().isEmpty()) {
+                        application.setImagePaths("[]");
+                    }
                 }
             }
-            // 如果没有上传新图片，保留原有图片
+            // 注意：如果没有上传新图片，保留原有图片路径
             
+            // 更新申请
             courseApplicationMapper.updateById(application);
-            logger.info("课程申请重新提交成功");
+            logger.info("课程申请重新提交成功, ID: {}", application.getId());
             
             return true;
         } catch (Exception e) {
@@ -301,11 +318,31 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         
         // 处理图片路径 - 将JSON字符串转换为List
         List<String> imagePaths = new ArrayList<>();
-        if (application.getImagePaths() != null && !application.getImagePaths().isEmpty()) {
+        if (application.getImagePaths() != null && !application.getImagePaths().isEmpty() && !application.getImagePaths().equals("[]")) {
             try {
-                imagePaths = objectMapper.readValue(application.getImagePaths(), new TypeReference<List<String>>() {});
+                // 调试日志
+                logger.debug("解析图片路径JSON: {}", application.getImagePaths());
+                
+                // 检查是否已经是标准的JSON数组格式
+                if (application.getImagePaths().startsWith("[") && application.getImagePaths().endsWith("]")) {
+                    imagePaths = objectMapper.readValue(application.getImagePaths(), new TypeReference<List<String>>() {});
+                } else {
+                    // 尝试处理可能是以逗号分隔的字符串
+                    String[] paths = application.getImagePaths().split(",");
+                    for (String path : paths) {
+                        if (path != null && !path.trim().isEmpty()) {
+                            imagePaths.add(path.trim());
+                        }
+                    }
+                }
+                
+                logger.debug("解析后的图片路径列表: {}", imagePaths);
             } catch (Exception e) {
-                logger.error("解析图片路径JSON失败", e);
+                logger.error("解析图片路径JSON失败: {}", application.getImagePaths(), e);
+                // 尝试备用方案 - 作为单一路径处理
+                if (!application.getImagePaths().isEmpty()) {
+                    imagePaths.add(application.getImagePaths());
+                }
             }
         }
         dto.setImagePaths(imagePaths);

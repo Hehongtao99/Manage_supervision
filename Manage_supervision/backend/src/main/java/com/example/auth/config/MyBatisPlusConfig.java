@@ -7,25 +7,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * MyBatis-Plus配置类
+ * MyBatisPlus配置类
  */
 @Configuration
-public class MybatisPlusConfig {
+public class MyBatisPlusConfig {
     
     /**
-     * 配置MyBatis-Plus插件
+     * 配置MyBatisPlus分页插件
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        
-        // 添加分页插件
-        PaginationInnerInterceptor paginationInnerInterceptor = new PaginationInnerInterceptor();
-        paginationInnerInterceptor.setDbType(DbType.MYSQL);
-        paginationInnerInterceptor.setOverflow(true);
-        
-        interceptor.addInnerInterceptor(paginationInnerInterceptor);
-        
+        // 添加分页插件，使用MySQL方言
+        PaginationInnerInterceptor paginationInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);
+        // 设置最大单页限制数量，默认500条，-1不受限制
+        paginationInterceptor.setMaxLimit(1000L);
+        // 开启count优化，只有当total>0才会执行分页查询（可选）
+        paginationInterceptor.setOptimizeJoin(true);
+        interceptor.addInnerInterceptor(paginationInterceptor);
         return interceptor;
     }
 } 

@@ -1,72 +1,59 @@
 package com.example.auth.model.dto;
 
-import java.io.Serializable;
-import java.util.Collections;
+import lombok.Data;
 import java.util.List;
 
 /**
- * 通用分页结果类
- * @param <T> 数据类型
+ * 分页结果DTO
  */
-public class PageResult<T> implements Serializable {
+@Data
+public class PageResult<T> {
     
-    private List<T> records = Collections.emptyList(); // 记录列表
-    private long total = 0;                           // 总记录数
-    private long size = 10;                           // 每页显示条数
-    private long current = 1;                         // 当前页
-    private long pages = 0;                           // 总页数
+    /**
+     * 当前页数据
+     */
+    private List<T> records;
     
+    /**
+     * 总记录数
+     */
+    private Long total;
+    
+    /**
+     * 每页大小
+     */
+    private Long size;
+    
+    /**
+     * 当前页码
+     */
+    private Long current;
+    
+    /**
+     * 总页数
+     */
+    private Long pages;
+    
+    /**
+     * 默认构造函数
+     */
     public PageResult() {
     }
     
-    public List<T> getRecords() {
-        return records;
-    }
-    
-    public void setRecords(List<T> records) {
-        this.records = records;
-    }
-    
-    public long getTotal() {
-        return total;
-    }
-    
-    public void setTotal(long total) {
-        this.total = total;
-    }
-    
-    public long getSize() {
-        return size;
-    }
-    
-    public void setSize(long size) {
-        this.size = size;
-    }
-    
-    public long getCurrent() {
-        return current;
-    }
-    
-    public void setCurrent(long current) {
-        this.current = current;
-    }
-    
-    public long getPages() {
-        return pages;
-    }
-    
-    public void setPages(long pages) {
-        this.pages = pages;
-    }
-    
     /**
-     * 计算总页数
+     * 构造函数
+     * 
+     * @param records 当前页数据
+     * @param total 总记录数
+     * @param size 每页大小
+     * @param current 当前页码
+     * @param pages 总页数
      */
-    public void calculatePages() {
-        if (this.size > 0) {
-            this.pages = (this.total + this.size - 1) / this.size;
-        } else {
-            this.pages = 0;
-        }
+    public PageResult(List<T> records, Long total, Long size, Long current, Long pages) {
+        this.records = records;
+        this.total = total;
+        this.size = size;
+        this.current = current;
+        this.pages = pages;
     }
 } 

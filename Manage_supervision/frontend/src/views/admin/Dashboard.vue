@@ -213,10 +213,9 @@ onMounted(async () => {
   fetchDashboardData()
 })
 
-// 清理事件监听器
+// 不需要手动清理 vue-echarts 实例
 onUnmounted(() => {
-  if (pieChart) pieChart.dispose()
-  if (lineChart) lineChart.dispose()
+  // 移除原有的清理代码
 })
 </script>
 

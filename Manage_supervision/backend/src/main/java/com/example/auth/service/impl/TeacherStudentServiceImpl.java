@@ -3,19 +3,13 @@ package com.example.auth.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.auth.model.dto.PageResponse;
-import com.example.auth.model.dto.TeacherStudentCourseDTO;
-import com.example.auth.model.dto.TeacherStudentDTO;
-import com.example.auth.model.dto.TeacherWithStudentsDTO;
-import com.example.auth.model.dto.UserDTO;
-import com.example.auth.model.entity.Role;
-import com.example.auth.model.entity.TeacherStudentRelation;
-import com.example.auth.model.entity.User;
-import com.example.auth.model.entity.Order;
+import com.example.auth.mapper.OrderMapper;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.TeacherStudentMapper;
 import com.example.auth.mapper.UserMapper;
-import com.example.auth.mapper.OrderMapper;
+import com.example.auth.mapper.CourseApplicationMapper;
+import com.example.auth.model.dto.*;
+import com.example.auth.model.entity.*;
 import com.example.auth.service.TeacherStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +37,9 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
 
     @Autowired
     private OrderMapper orderMapper;
+
+    @Autowired
+    private CourseApplicationMapper courseApplicationMapper;
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -274,6 +271,8 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
     
     @Override
     public List<TeacherStudentCourseDTO> getStudentsWithCoursesByTeacher(Long teacherId) {
+        System.out.println("开始获取教师(ID:" + teacherId + ")下的学生和课程信息");
+        
         // 查询该教师的订单，只获取学生ID
         LambdaQueryWrapper<Order> studentIdQueryWrapper = new LambdaQueryWrapper<>();
         studentIdQueryWrapper.eq(Order::getTeacherId, teacherId)
@@ -282,7 +281,10 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         
         List<Order> studentOrders = orderMapper.selectList(studentIdQueryWrapper);
         
+        System.out.println("查询到的学生订单数量: " + studentOrders.size());
+        
         if (studentOrders.isEmpty()) {
+            System.out.println("没有找到该教师下的学生订单，返回空列表");
             return new ArrayList<>();
         }
         
@@ -292,10 +294,19 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
                                             .distinct()
                                             .collect(Collectors.toList());
         
+        System.out.println("学生ID列表: " + studentIds);
+        
         // 获取学生详细信息
         LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
         userWrapper.in(User::getId, studentIds);
         List<User> students = userMapper.selectList(userWrapper);
+        
+        System.out.println("查询到的学生数量: " + students.size());
+        if (!students.isEmpty()) {
+            System.out.println("第一个学生信息示例: ID=" + students.get(0).getId() + 
+                            ", 姓名=" + students.get(0).getRealName() + 
+                            ", 学号=" + students.get(0).getUserNumber());
+        }
         
         Map<Long, TeacherStudentCourseDTO> studentDtoMap = new HashMap<>();
         
@@ -318,14 +329,37 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         
         // 获取每个学生购买的所有课程
         for (Long studentId : studentIds) {
-            LambdaQueryWrapper<Order> studentOrderWrapper = new LambdaQueryWrapper<>();
-            studentOrderWrapper.eq(Order::getTeacherId, teacherId)
-                              .eq(Order::getStudentId, studentId);
-            List<Order> studentCourseOrders = orderMapper.selectList(studentOrderWrapper);
+            // 使用新的方法直接获取关联了课程信息的订单
+            List<Order> studentCourseOrders = orderMapper.findOrdersByTeacherAndStudentId(teacherId, studentId);
+            
+            System.out.println("学生(ID:" + studentId + ")的订单数量: " + studentCourseOrders.size());
             
             TeacherStudentCourseDTO studentDto = studentDtoMap.get(studentId);
             if (studentDto != null) {
                 for (Order order : studentCourseOrders) {
+                    System.out.println("  订单信息: ID=" + order.getId() + 
+                                    ", 课程ID=" + order.getCourseId() + 
+                                    ", 课程标题=" + order.getCourseTitle() + 
+                                    ", 状态=" + order.getStatus());
+                    
+                    // 如果订单的课程标题为空，尝试查询课程表获取标题
+                    if (order.getCourseTitle() == null && order.getCourseId() != null) {
+                        try {
+                            CourseApplication courseApp = courseApplicationMapper.selectById(order.getCourseId());
+                            if (courseApp != null) {
+                                order.setCourseTitle(courseApp.getTitle());
+                                order.setCourseSubject(courseApp.getSubject());
+                                System.out.println("  从课程表获取标题: " + courseApp.getTitle());
+                            } else {
+                                order.setCourseTitle("未知课程");
+                                System.out.println("  未找到课程信息, 设置为'未知课程'");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("  查询课程信息出错: " + e.getMessage());
+                            order.setCourseTitle("未知课程");
+                        }
+                    }
+                    
                     TeacherStudentCourseDTO.StudentCourseInfo courseInfo = new TeacherStudentCourseDTO.StudentCourseInfo();
                     courseInfo.setOrderId(order.getId());
                     courseInfo.setCourseId(order.getCourseId());
@@ -339,10 +373,14 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
                     
                     studentDto.getCourses().add(courseInfo);
                 }
+            } else {
+                System.out.println("  未找到学生(ID:" + studentId + ")的DTO对象");
             }
         }
         
-        return new ArrayList<>(studentDtoMap.values());
+        List<TeacherStudentCourseDTO> result = new ArrayList<>(studentDtoMap.values());
+        System.out.println("返回结果学生数量: " + result.size());
+        return result;
     }
 
     private UserDTO convertToUserDTO(User user) {

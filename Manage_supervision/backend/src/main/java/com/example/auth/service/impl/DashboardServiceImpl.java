@@ -211,16 +211,33 @@ public class DashboardServiceImpl implements DashboardService {
     
     @Override
     public Map<String, Object> getStudentLearningRecords(Long studentId) {
-        // 获取学生的所有已完成订单
-        List<Order> completedOrders = orderMapper.findCompletedOrdersByStudentId(studentId);
+        System.out.println("获取学习记录：学生ID = " + studentId);
+        
+        // 获取学生的所有订单，不限制状态
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getStudentId, studentId)
+               .orderByDesc(Order::getCreateTime);
+        List<Order> orders = orderMapper.selectList(wrapper);
+        
+        System.out.println("查询到订单数量: " + orders.size());
         
         // 按课程名称分组统计学习时长
         Map<String, Integer> courseHoursMap = new HashMap<>();
         
-        for (Order order : completedOrders) {
-            // 使用非数据库字段courseTitle，这是在OrderMapper.xml中通过JOIN查询填充的
-            String courseTitle = order.getCourseTitle() != null ? order.getCourseTitle() : "未知课程";
-            Integer hours = order.getHours() != null ? order.getHours() : 0;
+        for (Order order : orders) {
+            // 获取课程标题，如果不存在则查询课程应用表
+            String courseTitle = null;
+            if (order.getCourseId() != null) {
+                CourseApplication courseApp = courseApplicationMapper.selectById(order.getCourseId());
+                courseTitle = courseApp != null ? courseApp.getTitle() : "未知课程";
+            } else {
+                courseTitle = "未知课程";
+            }
+            
+            // 使用订单的hours字段，如果为空则默认为1
+            Integer hours = order.getHours() != null ? order.getHours() : 1;
+            
+            System.out.println("订单ID: " + order.getId() + ", 课程: " + courseTitle + ", 状态: " + order.getStatus() + ", 学时: " + hours);
             
             // 累加该课程的学习时长
             courseHoursMap.put(courseTitle, courseHoursMap.getOrDefault(courseTitle, 0) + hours);
@@ -234,23 +251,30 @@ public class DashboardServiceImpl implements DashboardService {
             courseHours.add(courseHoursMap.get(courseName));
         }
         
+        int totalHours = courseHours.stream().mapToInt(Integer::intValue).sum();
+        
+        System.out.println("总课程数: " + courseNames.size() + ", 总学时: " + totalHours);
+        
         Map<String, Object> result = new HashMap<>();
         result.put("courseNames", courseNames);
         result.put("courseHours", courseHours);
         result.put("totalCourses", courseNames.size());
-        result.put("totalHours", courseHours.stream().mapToInt(Integer::intValue).sum());
+        result.put("totalHours", totalHours);
         
         return result;
     }
     
     @Override
     public Map<String, Object> getStudentLearningTrend(Long studentId) {
-        // 获取学生的所有已完成订单
+        System.out.println("获取学习趋势：学生ID = " + studentId);
+        
+        // 获取学生的所有订单，不限制状态
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Order::getStudentId, studentId)
-               .eq(Order::getStatus, "COMPLETED")
                .orderByAsc(Order::getCreateTime);
-        List<Order> completedOrders = orderMapper.selectList(wrapper);
+        List<Order> orders = orderMapper.selectList(wrapper);
+        
+        System.out.println("查询到订单数量: " + orders.size());
         
         // 按月份统计学习时长
         Map<String, Integer> monthlyHoursMap = new LinkedHashMap<>();
@@ -265,13 +289,19 @@ public class DashboardServiceImpl implements DashboardService {
         }
         
         // 统计每月的学习时长
-        for (Order order : completedOrders) {
-            if (order.getCreateTime() != null && order.getHours() != null) {
+        for (Order order : orders) {
+            if (order.getCreateTime() != null) {
                 String monthKey = order.getCreateTime().format(formatter);
+                
+                // 获取学时，如果为空则默认为1
+                Integer hours = order.getHours() != null ? order.getHours() : 1;
+                
+                System.out.println("订单ID: " + order.getId() + ", 创建时间: " + order.getCreateTime() + 
+                                 ", 月份: " + monthKey + ", 学时: " + hours);
                 
                 // 只统计最近6个月的数据
                 if (monthlyHoursMap.containsKey(monthKey)) {
-                    monthlyHoursMap.put(monthKey, monthlyHoursMap.get(monthKey) + order.getHours());
+                    monthlyHoursMap.put(monthKey, monthlyHoursMap.get(monthKey) + hours);
                 }
             }
         }
@@ -282,6 +312,7 @@ public class DashboardServiceImpl implements DashboardService {
         
         for (String month : months) {
             hours.add(monthlyHoursMap.get(month));
+            System.out.println("月份: " + month + ", 学时: " + monthlyHoursMap.get(month));
         }
         
         Map<String, Object> result = new HashMap<>();

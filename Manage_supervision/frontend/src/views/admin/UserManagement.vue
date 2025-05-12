@@ -459,7 +459,9 @@ const handleSubmit = async () => {
           await axios.post('/api/admin/users', formData)
           ElMessage.success('添加用户成功')
         } else {
-          await axios.put(`/api/admin/users/${formData.id}`, formData)
+          // 编辑用户时移除 password 字段
+          const { password, ...updateData } = formData;
+          await axios.put(`/api/admin/users/${formData.id}`, updateData)
           ElMessage.success('编辑用户成功')
         }
         dialogVisible.value = false

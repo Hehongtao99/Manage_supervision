@@ -75,15 +75,19 @@
                   <el-table-column prop="courseTitle" label="课程名称" min-width="180">
                     <template #default="scope">
                       <el-tooltip
-                        :content="scope.row.courseTitle"
+                        :content="scope.row.courseTitle || '未知课程'"
                         placement="top"
                         :show-after="1000"
                       >
-                        <span class="course-title">{{ scope.row.courseTitle }}</span>
+                        <span class="course-title">{{ scope.row.courseTitle || '未知课程' }}</span>
                       </el-tooltip>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="courseSubject" label="学科" width="100"></el-table-column>
+                  <el-table-column prop="courseSubject" label="学科" width="100">
+                    <template #default="scope">
+                      {{ scope.row.courseSubject || '未知' }}
+                    </template>
+                  </el-table-column>
                   <el-table-column prop="hours" label="课时" width="80"></el-table-column>
                   <el-table-column prop="price" label="单价" width="100">
                     <template #default="scope">
@@ -122,6 +126,7 @@ import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import axios from 'axios';
+import { orderStatusMap } from '../../api/order';
 
 export default {
   name: 'CourseStudentManagement',
@@ -167,30 +172,22 @@ export default {
 
     // 格式化订单状态文本
     const getStatusText = (status) => {
-      const statusMap = {
-        'PENDING': '待处理',
-        'ACCEPTED': '已接受',
-        'REJECTED': '已拒绝',
-        'CANCELED': '已取消',
-        'COMPLETED': '已完成',
-        'REFUND_REQUESTED': '退款申请中',
-        'REFUND_APPROVED': '已退款',
-        'REFUND_REJECTED': '退款被拒'
-      };
-      return statusMap[status] || status;
+      return orderStatusMap[status] || status;
     };
 
     // 获取订单状态对应的标签类型
     const getStatusType = (status) => {
       const typeMap = {
-        'PENDING': 'warning',
+        'PENDING': 'success',
         'ACCEPTED': 'success',
         'REJECTED': 'danger',
         'CANCELED': 'info',
         'COMPLETED': 'success',
-        'REFUND_REQUESTED': 'warning',
-        'REFUND_APPROVED': 'info',
-        'REFUND_REJECTED': 'danger'
+        'REFUND_PENDING': 'warning',
+        'REFUND_REJECTED': 'danger',
+        'APPEALING': 'warning',
+        'APPEAL_APPROVED': 'success',
+        'APPEAL_REJECTED': 'danger'
       };
       return typeMap[status] || '';
     };

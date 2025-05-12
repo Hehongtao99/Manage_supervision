@@ -113,6 +113,7 @@ import {
 } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { ElMessage } from 'element-plus'
+import { Refresh, Collection, Timer } from '@element-plus/icons-vue'
 
 // 注册 ECharts 组件
 use([

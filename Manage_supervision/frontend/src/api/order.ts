@@ -315,4 +315,17 @@ export const rejectAppeal = async (orderId: number, adminDecision: string) => {
     console.error('拒绝申诉失败:', error)
     throw error
   }
+}
+
+/**
+ * 直接取消未完成支付的订单
+ */
+export const directCancelOrder = async (orderId: number) => {
+  try {
+    const response = await axios.post(`/api/student/orders/${orderId}/cancel`)
+    return response.data
+  } catch (error) {
+    console.error('取消订单失败:', error)
+    throw error
+  }
 } 

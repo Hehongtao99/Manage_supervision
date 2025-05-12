@@ -4,7 +4,6 @@ import com.example.auth.annotation.RequireRole;
 import com.example.auth.model.dto.CourseApplicationDTO;
 import com.example.auth.model.dto.PageResult;
 import com.example.auth.service.CourseApplicationService;
-import com.example.auth.service.ChatService;
 import com.example.auth.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

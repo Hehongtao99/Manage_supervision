@@ -55,12 +55,20 @@
             <el-table-column label="操作" width="120">
               <template #default="scope">
                 <el-button
-                  v-if="scope.row.status === 'PENDING' || scope.row.status === 'REFUND_REJECTED'"
+                  v-if="scope.row.status === 'PENDING'"
                   type="warning"
                   size="small"
                   @click.stop="handleCancelOrder(scope.row)"
                 >
                   申请退款
+                </el-button>
+                <el-button
+                  v-if="scope.row.status === 'REFUND_REJECTED'"
+                  type="danger"
+                  size="small"
+                  @click.stop="handleAppealOrder(scope.row)"
+                >
+                  申诉
                 </el-button>
               </template>
             </el-table-column>
@@ -134,11 +142,18 @@
         
         <div class="detail-footer">
           <el-button 
-            v-if="currentOrder.status === 'PENDING' || currentOrder.status === 'REFUND_REJECTED'"
+            v-if="currentOrder.status === 'PENDING'"
             type="warning" 
             @click="handleCancelOrder(currentOrder)"
           >
             申请退款
+          </el-button>
+          <el-button 
+            v-if="currentOrder.status === 'REFUND_REJECTED'"
+            type="danger" 
+            @click="handleAppealOrder(currentOrder)"
+          >
+            申诉
           </el-button>
           <el-button 
             type="primary" 
@@ -179,6 +194,45 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 申诉退款确认对话框 -->
+    <el-dialog
+      v-model="appealDialogVisible"
+      title="申诉退款"
+      width="400px"
+      destroy-on-close
+      @closed="handleAppealDialogClosed"
+    >
+      <div class="appeal-form">
+        <el-alert
+          title="您的申诉将被提交给平台管理员审核"
+          type="info"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 15px;"
+        >
+          <p>管理员将综合您和教师的意见做出最终决定</p>
+        </el-alert>
+        <el-form label-width="80px">
+          <el-form-item label="申诉理由" required>
+            <el-input 
+              v-model="appealReason" 
+              type="textarea" 
+              :rows="4" 
+              placeholder="请输入申诉理由，详细说明您认为应该退款的原因（必填）"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="appealDialogVisible = false">返回</el-button>
+          <el-button type="danger" @click="confirmAppealOrder" :loading="appealLoading">
+            确认申诉
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -186,7 +240,7 @@
 import { ref, onMounted, computed, nextTick, shallowRef } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-import { getStudentOrders, cancelOrder, OrderDTO, orderStatusMap } from '../../api/order'
+import { getStudentOrders, cancelOrder, appealRefund, OrderDTO, orderStatusMap } from '../../api/order'
 import { startChatWithTeacher } from '../../api/courses'
 import { useRouter } from 'vue-router'
 
@@ -197,10 +251,14 @@ const statusFilter = ref('')
 const detailDialogVisible = ref(false)
 const currentOrder = ref<OrderDTO | null>(null)
 const cancelDialogVisible = ref(false)
+const appealDialogVisible = ref(false)
 const orderToCancel = ref<OrderDTO | null>(null)
+const orderToAppeal = ref<OrderDTO | null>(null)
 const cancelLoading = ref(false)
+const appealLoading = ref(false)
 // 使用普通的ref而不是shallowRef
 const refundReason = ref('')
+const appealReason = ref('')
 const router = useRouter()
 
 // 计算过滤后的订单
@@ -246,6 +304,12 @@ const getStatusType = (status: string) => {
       return 'danger'
     case 'CANCELED':
       return 'info'
+    case 'APPEALING':
+      return 'warning'
+    case 'APPEAL_APPROVED':
+      return 'success'
+    case 'APPEAL_REJECTED':
+      return 'danger'
     default:
       return 'info'
   }
@@ -332,6 +396,81 @@ const confirmCancelOrder = async () => {
   }
 }
 
+// 申诉退款
+const handleAppealOrder = (order: OrderDTO) => {
+  try {
+    // 设置当前要申诉的订单
+    orderToAppeal.value = order
+    
+    // 重置申诉理由
+    appealReason.value = ''
+    
+    // 确保状态更新完成后再打开对话框
+    nextTick(() => {
+      // 重置加载状态
+      appealLoading.value = false
+      // 打开申诉对话框
+      appealDialogVisible.value = true
+    })
+  } catch (error) {
+    console.error('打开申诉对话框失败:', error)
+    ElMessage.error('操作失败，请稍后再试')
+  }
+}
+
+// 确认申诉退款
+const confirmAppealOrder = async () => {
+  try {
+    // 验证订单存在
+    if (!orderToAppeal.value) {
+      ElMessage.warning('未选择订单')
+      return
+    }
+    
+    // 验证申诉理由是否填写
+    if (!appealReason.value || !appealReason.value.trim()) {
+      ElMessage.warning('请输入申诉理由')
+      return
+    }
+
+    // 设置加载状态
+    appealLoading.value = true
+    
+    // 提交申诉
+    const result = await appealRefund(orderToAppeal.value.id, appealReason.value)
+    
+    if (result.success) {
+      ElMessage.success(result.message || '申诉已提交')
+      
+      // 更新订单状态
+      if (orderToAppeal.value) {
+        const index = orders.value.findIndex(o => o.id === orderToAppeal.value?.id)
+        if (index !== -1) {
+          orders.value[index].status = 'APPEALING'
+          // 更新状态文本
+          orders.value[index].statusText = '申诉中'
+          // 在前端保存申诉理由
+          orders.value[index].appealReason = appealReason.value
+        }
+      }
+      
+      // 关闭对话框
+      appealDialogVisible.value = false
+      // 如果从详情页打开，也关闭详情对话框
+      if (detailDialogVisible.value) {
+        detailDialogVisible.value = false
+      }
+    } else {
+      ElMessage.error(result.message || '申诉提交失败')
+    }
+  } catch (error) {
+    console.error('申诉退款失败:', error)
+    ElMessage.error('申诉提交失败，请稍后再试')
+  } finally {
+    appealLoading.value = false
+  }
+}
+
 // 联系教师
 const handleContactTeacher = async (teacherId: number) => {
   if (!teacherId) {
@@ -378,6 +517,14 @@ const handleCancelDialogClosed = () => {
   cancelLoading.value = false
   // 完全重新创建一个对象，避免引用问题
   refundReason.value = ''
+}
+
+// 处理申诉对话框关闭
+const handleAppealDialogClosed = () => {
+  // 重置相关状态
+  appealLoading.value = false
+  // 重置申诉理由
+  appealReason.value = ''
 }
 </script>
 
@@ -450,7 +597,7 @@ const handleCancelDialogClosed = () => {
   font-weight: bold;
 }
 
-.message, .reject-reason {
+.message, .reject-reason, .refund-reason {
   border-left: 3px solid #e6a23c;
   padding-left: 10px;
   margin-top: 20px;
@@ -467,7 +614,7 @@ const handleCancelDialogClosed = () => {
   gap: 10px;
 }
 
-.refund-form {
+.refund-form, .appeal-form {
   padding: 20px;
 }
 

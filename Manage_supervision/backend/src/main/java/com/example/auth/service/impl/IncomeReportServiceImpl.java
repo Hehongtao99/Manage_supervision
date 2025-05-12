@@ -1,10 +1,12 @@
 package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.auth.mapper.IncomeRecordMapper;
 import com.example.auth.mapper.OrderMapper;
 import com.example.auth.model.dto.TeacherCourseIncomeDTO;
 import com.example.auth.model.dto.TeacherIncomeStatsDTO;
 import com.example.auth.model.dto.TeacherIncomeTrendDTO;
+import com.example.auth.model.entity.IncomeRecord;
 import com.example.auth.model.entity.Order;
 import com.example.auth.service.CourseApplicationService;
 import com.example.auth.service.IncomeReportService;
@@ -27,6 +29,9 @@ public class IncomeReportServiceImpl implements IncomeReportService {
 
     @Autowired
     private OrderMapper orderMapper;
+    
+    @Autowired
+    private IncomeRecordMapper incomeRecordMapper;
 
     @Autowired
     private CourseApplicationService courseApplicationService;
@@ -90,14 +95,13 @@ public class IncomeReportServiceImpl implements IncomeReportService {
                 }
         }
 
-        // 查询指定时间段内的订单
-        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Order::getTeacherId, teacherId)
-                .ge(Order::getCreateTime, startDate)
-                .le(Order::getCreateTime, endDate)
-                .in(Order::getStatus, Arrays.asList("COMPLETED", "ACCEPTED", "PENDING")); // 包含更多订单状态
+        // 查询指定时间段内的收入记录
+        LambdaQueryWrapper<IncomeRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IncomeRecord::getTeacherId, teacherId)
+                .ge(IncomeRecord::getCreateTime, startDate)
+                .le(IncomeRecord::getCreateTime, endDate);
 
-        List<Order> orders = orderMapper.selectList(queryWrapper);
+        List<IncomeRecord> records = incomeRecordMapper.selectList(queryWrapper);
 
         // 统计每日/每月收入
         Map<String, Double> incomeByDate = new HashMap<>();
@@ -108,18 +112,18 @@ public class IncomeReportServiceImpl implements IncomeReportService {
         }
 
         // 累计收入
-        for (Order order : orders) {
+        for (IncomeRecord record : records) {
             String dateKey;
             if ("year".equals(period)) {
-                dateKey = order.getCreateTime().format(formatter);
+                dateKey = record.getCreateTime().format(formatter);
             } else {
-                dateKey = order.getCreateTime().format(formatter);
+                dateKey = record.getCreateTime().format(formatter);
             }
 
             if (incomeByDate.containsKey(dateKey)) {
                 double currentAmount = incomeByDate.get(dateKey);
-                double orderAmount = order.getTotalAmount().doubleValue();
-                incomeByDate.put(dateKey, currentAmount + orderAmount);
+                double recordAmount = record.getAmount().doubleValue();
+                incomeByDate.put(dateKey, currentAmount + recordAmount);
             }
         }
 
@@ -160,25 +164,28 @@ public class IncomeReportServiceImpl implements IncomeReportService {
                 startDate = endDate.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         }
 
-        // 查询指定时间段内的订单
-        LambdaQueryWrapper<Order> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Order::getTeacherId, teacherId)
-                .ge(Order::getCreateTime, startDate)
-                .le(Order::getCreateTime, endDate)
-                .in(Order::getStatus, Arrays.asList("COMPLETED", "ACCEPTED", "PENDING")); // 包含更多订单状态
+        // 查询指定时间段内的收入记录
+        LambdaQueryWrapper<IncomeRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IncomeRecord::getTeacherId, teacherId)
+                .ge(IncomeRecord::getCreateTime, startDate)
+                .le(IncomeRecord::getCreateTime, endDate);
 
-        List<Order> orders = orderMapper.selectList(queryWrapper);
+        List<IncomeRecord> records = incomeRecordMapper.selectList(queryWrapper);
 
         // 按课程ID分组统计收入
         Map<Long, Double> incomeByCourseName = new HashMap<>();
         Map<Long, String> courseNames = new HashMap<>();
 
-        for (Order order : orders) {
+        for (IncomeRecord record : records) {
+            // 获取关联的订单信息，以获取课程ID
+            Order order = orderMapper.selectById(record.getOrderId());
+            if (order == null) continue;
+            
             Long courseId = order.getCourseId();
-            double orderAmount = order.getTotalAmount().doubleValue();
+            double recordAmount = record.getAmount().doubleValue();
             
             // 累加课程收入
-            incomeByCourseName.put(courseId, incomeByCourseName.getOrDefault(courseId, 0.0) + orderAmount);
+            incomeByCourseName.put(courseId, incomeByCourseName.getOrDefault(courseId, 0.0) + recordAmount);
             
             // 保存课程名称
             if (!courseNames.containsKey(courseId)) {
@@ -224,37 +231,34 @@ public class IncomeReportServiceImpl implements IncomeReportService {
         LocalDateTime lastMonthEnd = now.withDayOfMonth(1).minusDays(1).withHour(23).withMinute(59).withSecond(59);
 
         // 1. 计算总收入
-        LambdaQueryWrapper<Order> totalQueryWrapper = new LambdaQueryWrapper<>();
-        totalQueryWrapper.eq(Order::getTeacherId, teacherId)
-                .in(Order::getStatus, Arrays.asList("COMPLETED", "ACCEPTED", "PENDING")); // 包含更多订单状态
+        LambdaQueryWrapper<IncomeRecord> totalQueryWrapper = new LambdaQueryWrapper<>();
+        totalQueryWrapper.eq(IncomeRecord::getTeacherId, teacherId);
 
-        List<Order> allOrders = orderMapper.selectList(totalQueryWrapper);
-        double totalIncome = allOrders.stream()
-                .mapToDouble(order -> order.getTotalAmount().doubleValue())
+        List<IncomeRecord> allRecords = incomeRecordMapper.selectList(totalQueryWrapper);
+        double totalIncome = allRecords.stream()
+                .mapToDouble(record -> record.getAmount().doubleValue())
                 .sum();
 
         // 2. 计算当月收入
-        LambdaQueryWrapper<Order> thisMonthQueryWrapper = new LambdaQueryWrapper<>();
-        thisMonthQueryWrapper.eq(Order::getTeacherId, teacherId)
-                .ge(Order::getCreateTime, thisMonthStart)
-                .le(Order::getCreateTime, now)
-                .in(Order::getStatus, Arrays.asList("COMPLETED", "ACCEPTED", "PENDING")); // 包含更多订单状态
+        LambdaQueryWrapper<IncomeRecord> thisMonthQueryWrapper = new LambdaQueryWrapper<>();
+        thisMonthQueryWrapper.eq(IncomeRecord::getTeacherId, teacherId)
+                .ge(IncomeRecord::getCreateTime, thisMonthStart)
+                .le(IncomeRecord::getCreateTime, now);
 
-        List<Order> thisMonthOrders = orderMapper.selectList(thisMonthQueryWrapper);
-        double thisMonthIncome = thisMonthOrders.stream()
-                .mapToDouble(order -> order.getTotalAmount().doubleValue())
+        List<IncomeRecord> thisMonthRecords = incomeRecordMapper.selectList(thisMonthQueryWrapper);
+        double thisMonthIncome = thisMonthRecords.stream()
+                .mapToDouble(record -> record.getAmount().doubleValue())
                 .sum();
 
         // 3. 计算上月收入
-        LambdaQueryWrapper<Order> lastMonthQueryWrapper = new LambdaQueryWrapper<>();
-        lastMonthQueryWrapper.eq(Order::getTeacherId, teacherId)
-                .ge(Order::getCreateTime, lastMonthStart)
-                .le(Order::getCreateTime, lastMonthEnd)
-                .in(Order::getStatus, Arrays.asList("COMPLETED", "ACCEPTED", "PENDING")); // 包含更多订单状态
+        LambdaQueryWrapper<IncomeRecord> lastMonthQueryWrapper = new LambdaQueryWrapper<>();
+        lastMonthQueryWrapper.eq(IncomeRecord::getTeacherId, teacherId)
+                .ge(IncomeRecord::getCreateTime, lastMonthStart)
+                .le(IncomeRecord::getCreateTime, lastMonthEnd);
 
-        List<Order> lastMonthOrders = orderMapper.selectList(lastMonthQueryWrapper);
-        double lastMonthIncome = lastMonthOrders.stream()
-                .mapToDouble(order -> order.getTotalAmount().doubleValue())
+        List<IncomeRecord> lastMonthRecords = incomeRecordMapper.selectList(lastMonthQueryWrapper);
+        double lastMonthIncome = lastMonthRecords.stream()
+                .mapToDouble(record -> record.getAmount().doubleValue())
                 .sum();
 
         // 4. 获取课程收入分布（当月）
