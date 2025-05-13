@@ -95,7 +95,7 @@
             <el-avatar v-else :size="64" :src="defaultAvatar" />
           </div>
           <div class="user-info">
-            <div class="user-name">{{ user.realName || user.username }}</div>
+            <div class="user-name">{{ user.nickname || user.username }}</div>
             <div class="user-role">{{ getUserRoleText(user.roles) }}</div>
             <div class="user-number" v-if="user.userNumber">{{ user.userNumber }}</div>
           </div>
@@ -852,6 +852,9 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 10px;
   margin-bottom: 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .user-card {
