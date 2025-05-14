@@ -221,7 +221,7 @@ export const getUserFaceFeatures = async (): Promise<any> => {
  */
 export const deleteFace = async (): Promise<boolean> => {
   try {
-    const response = await axios.delete('/api/face/delete')
+    const response = await axios.delete('/api/face/feature/primary')
     
     return response.status === 200
   } catch (error) {
