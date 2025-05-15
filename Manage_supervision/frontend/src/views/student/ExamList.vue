@@ -87,6 +87,20 @@
             >
               查看结果
             </el-button>
+            <!-- 已提交但成绩未发布的提示 -->
+            <el-tooltip
+              v-if="['SUBMITTED', 'PENDING_PUBLISH'].includes(scope.row.studentStatus)"
+              content="成绩尚未发布，暂时无法查看结果"
+              placement="top"
+            >
+              <el-button
+                type="info"
+                size="small"
+                disabled
+              >
+                待发布
+              </el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -140,6 +154,16 @@ const fetchExams = async () => {
       status: statusFilter.value,
       sort: 'startTime,desc'
     });
+    
+    // 获取考试列表后，在前端进行二次排序（从新到旧）
+    const data = response.data;
+    if (data && data.code === 200 && data.data && Array.isArray(data.data.content)) {
+      // 对考试列表进行本地排序
+      data.data.content.sort((a, b) => {
+        // 按照startTime从新到旧排序
+        return new Date(b.startTime) - new Date(a.startTime);
+      });
+    }
     
     console.log('考试列表API响应:', response.data);
     
@@ -304,7 +328,8 @@ const canContinueExam = (exam: any) => {
 
 // 判断是否可以查看结果
 const canViewResult = (exam: any) => {
-  return ['SUBMITTED', 'PENDING_PUBLISH', 'PUBLISHED'].includes(exam.studentStatus);
+  // 只有已发布成绩的考试才可以查看结果
+  return exam.studentStatus === 'PUBLISHED';
 };
 
 // 跳转到考试页面
@@ -375,11 +400,21 @@ const createTestData = async () => {
 const fetchRawData = async () => {
   try {
     loading.value = true;
-    await getStudentExamsRaw({
+    const response = await getStudentExamsRaw({
       page: currentPage.value - 1,
       size: pageSize.value,
-      status: statusFilter.value
+      status: statusFilter.value,
+      // 注意：后端硬编码了排序为startTime DESC，因此此处排序参数无效
+      sort: 'startTime,desc'
     });
+    
+    // 原始数据输出后，打印排序结果
+    console.log('考试列表按startTime排序结果:', 
+      response.data && response.data.data && response.data.data.content ?
+      response.data.data.content.map(item => ({ id: item.id, title: item.title, startTime: item.startTime })) :
+      '无数据'
+    );
+    
     ElMessage.success('原始数据已在控制台输出');
   } catch (error) {
     console.error('获取原始数据失败', error);

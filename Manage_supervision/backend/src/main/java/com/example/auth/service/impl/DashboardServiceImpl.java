@@ -1,41 +1,25 @@
 package com.example.auth.service.impl;
 
 import com.example.auth.dto.DashboardStats;
-import com.example.auth.dto.StudentProjectProgressDTO;
-import com.example.auth.entity.Project;
-import com.example.auth.entity.Role;
-import com.example.auth.entity.Task;
-import com.example.auth.entity.User;
-import com.example.auth.repository.ProjectRepository;
-import com.example.auth.repository.RoleRepository;
-import com.example.auth.repository.TaskRepository;
-import com.example.auth.repository.UserRepository;
-import com.example.auth.repository.ExamRepository;
-import com.example.auth.repository.ExamStudentRepository;
-import com.example.auth.service.DashboardService;
 import com.example.auth.dto.TeacherDashboardStatsDTO;
-import com.example.auth.entity.ExamStudent;
 import com.example.auth.entity.Exam;
+import com.example.auth.entity.ExamStudent;
+import com.example.auth.entity.Role;
+import com.example.auth.entity.User;
+import com.example.auth.repository.*;
+import com.example.auth.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.TreeMap;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Set;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
@@ -57,6 +41,9 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Autowired
     private ExamStudentRepository examStudentRepository;
+
+    @Autowired
+    private TeacherStudentRepository teacherStudentRepository;
 
     private DashboardStats.SystemInfo getSystemInfo() {
         DashboardStats.SystemInfo systemInfo = new DashboardStats.SystemInfo();
@@ -136,18 +123,18 @@ public class DashboardServiceImpl implements DashboardService {
     public TeacherDashboardStatsDTO getTeacherDashboardStats(Long teacherId) {
         TeacherDashboardStatsDTO stats = new TeacherDashboardStatsDTO();
 
-        // 1. 获取该教师创建的所有考试 ID
-        List<Long> examIds = examRepository.findExamIdsByCreatorId(teacherId);
-
+        // 获取教师对象
+        User teacher = userRepository.findById(teacherId).orElse(null);
+        
+        // 计算教师管理的学生数量（基于教师-学生关系，而不是基于考试）
         long studentCount = 0;
-        if (!examIds.isEmpty()) {
-            // 2. 查找这些考试关联的所有唯一学生ID
-            Set<Long> studentIds = examStudentRepository.findDistinctStudentIdsByExamIdIn(examIds);
-            studentCount = studentIds.size();
+        if (teacher != null) {
+            List<User> students = teacherStudentRepository.findActiveStudentsByTeacher(teacher);
+            studentCount = students.size();
         }
         stats.setStudentCount(studentCount);
 
-        // 3. 获取该教师发布的考试数量
+        // 获取该教师发布的考试数量
         long examCount = examRepository.countByCreatorId(teacherId);
         stats.setExamCount(examCount);
 

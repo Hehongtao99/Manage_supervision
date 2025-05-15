@@ -103,6 +103,7 @@ export const getStudentExams = async (params: {
   page?: number;
   size?: number;
   status?: string;
+  sort?: string;
 }) => {
   return await axios.get('/api/student/exams', { params });
 };
@@ -142,6 +143,7 @@ export const getStudentExamsRaw = async (params: {
   page?: number;
   size?: number;
   status?: string;
+  sort?: string;
 }) => {
   const response = await axios.get('/api/student/exams', { params });
   console.log('原始响应对象:', response);

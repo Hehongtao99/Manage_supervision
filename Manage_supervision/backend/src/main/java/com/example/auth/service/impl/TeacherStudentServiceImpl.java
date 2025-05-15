@@ -124,6 +124,7 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
     public boolean assignStudentsToTeacher(Long teacherId, List<Long> studentIds) {
         Optional<User> optionalTeacher = userRepository.findById(teacherId);
         if (!optionalTeacher.isPresent()) {
+            System.out.println("教师不存在: " + teacherId);
             return false;
         }
         
@@ -131,18 +132,41 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         List<User> students = userRepository.findAllById(studentIds);
         
         if (students.isEmpty() || students.size() != studentIds.size()) {
+            System.out.println("找不到所有学生: 要求分配 " + studentIds.size() + " 个学生，但只找到 " + students.size() + " 个");
             return false;
         }
         
+        System.out.println("开始分配学生给教师 " + teacher.getRealName() + " (ID: " + teacher.getId() + ")");
+        
         for (User student : students) {
+            System.out.println("处理学生: " + student.getRealName() + " (ID: " + student.getId() + ")");
+            
             // 检查该学生是否已分配给教师
-            if (!teacherStudentRepository.existsByTeacherAndStudent(teacher, student)) {
+            Optional<TeacherStudentRelation> existingRelation = 
+                    teacherStudentRepository.findByTeacherAndStudent(teacher, student);
+            
+            if (existingRelation.isPresent()) {
+                // 如果关系存在但状态为inactive，则更新为active
+                TeacherStudentRelation relation = existingRelation.get();
+                System.out.println("已存在教师-学生关系, 状态: " + relation.getStatus());
+                
+                if (!"active".equals(relation.getStatus())) {
+                    relation.setStatus("active");
+                    relation.setAssignTime(LocalDateTime.now());
+                    teacherStudentRepository.save(relation);
+                    System.out.println("已更新教师-学生关系状态为active");
+                } else {
+                    System.out.println("教师-学生关系已经是active状态，无需更新");
+                }
+            } else {
+                // 如果关系不存在，则创建新关系
                 TeacherStudentRelation relation = new TeacherStudentRelation();
                 relation.setTeacher(teacher);
                 relation.setStudent(student);
                 relation.setStatus("active");
                 relation.setAssignTime(LocalDateTime.now());
                 teacherStudentRepository.save(relation);
+                System.out.println("已创建新的教师-学生关系");
             }
         }
         
