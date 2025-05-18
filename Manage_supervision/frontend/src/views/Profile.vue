@@ -327,6 +327,7 @@ const rules = {
   ]
 }
 
+// 密码修改表单验证规则
 const passwordRules = {
   currentPassword: [
     { required: true, message: '请输入当前密码', trigger: 'blur' },
@@ -339,12 +340,11 @@ const passwordRules = {
   confirmPassword: [
     { required: true, message: '请确认新密码', trigger: 'blur' },
     {
-      validator: (rule: any, value: string, callback: Function) => {
+      validator: (rule, value, callback) => {
         if (value !== passwordForm.newPassword) {
-          callback(new Error('两次输入的密码不一致'))
-        } else {
-          callback()
+          return new Error('两次输入的密码不一致')
         }
+        return true
       },
       trigger: 'blur'
     }
@@ -559,27 +559,32 @@ const handleSave = async () => {
 const handleChangePassword = async () => {
   if (!passwordFormRef.value) return
 
-  await passwordFormRef.value.validate(async (valid) => {
-    if (valid) {
-      passwordLoading.value = true
-      try {
-        const data: UpdatePasswordRequest = {
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword
-        }
-        await userStore.changePassword(data)
-        ElMessage.success('密码修改成功')
-        passwordForm.currentPassword = ''
-        passwordForm.newPassword = ''
-        passwordForm.confirmPassword = ''
-        passwordFormRef.value.clearValidate()
-      } catch (error: any) {
-        ElMessage.error(error.response?.data?.message || '修改密码失败')
-      } finally {
-        passwordLoading.value = false
-      }
+  try {
+    await passwordFormRef.value.validate()
+    
+    // 验证通过后执行
+    passwordLoading.value = true
+    const data: UpdatePasswordRequest = {
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword
     }
-  })
+    
+    await userStore.changePassword(data)
+    ElMessage.success('密码修改成功')
+    
+    // 清空表单
+    passwordForm.currentPassword = ''
+    passwordForm.newPassword = ''
+    passwordForm.confirmPassword = ''
+    passwordFormRef.value.clearValidate()
+  } catch (error: any) {
+    // 验证失败或API调用失败
+    if (error.response) {
+      ElMessage.error(error.response?.data?.message || '修改密码失败')
+    }
+  } finally {
+    passwordLoading.value = false
+  }
 }
 
 // 头像上传相关
