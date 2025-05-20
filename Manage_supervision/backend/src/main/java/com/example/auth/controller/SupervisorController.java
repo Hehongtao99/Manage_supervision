@@ -1,8 +1,8 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
-import com.example.auth.model.dto.StudentDTO;
-import com.example.auth.model.dto.StudentDetailDTO;
+import com.example.auth.model.dto.RunnerDTO;
+import com.example.auth.model.dto.RunnerDetailDTO;
 import com.example.auth.model.dto.UserDTO;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
@@ -32,110 +32,110 @@ public class SupervisorController {
     private JwtUtil jwtUtil;
 
     /**
-     * Get all students list
+     * Get all runners list
      */
-    @GetMapping("/students")
+    @GetMapping("/runners")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getAllStudents() {
-        logger.info("Supervisor requested all students list");
+    public ResponseEntity<?> getAllRunners() {
+        logger.info("Supervisor requested all runners list");
         try {
-            List<StudentDTO> students = userService.getAllStudents();
-            return ResponseEntity.ok(students);
+            List<RunnerDTO> runners = userService.getAllRunners();
+            return ResponseEntity.ok(runners);
         } catch (Exception e) {
-            logger.error("Failed to get students list", e);
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get students list: " + e.getMessage()));
+            logger.error("Failed to get runners list", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get runners list: " + e.getMessage()));
         }
     }
 
     /**
-     * Get students assigned to supervisor
+     * Get runners assigned to supervisor
      */
-    @GetMapping("/students/assigned")
+    @GetMapping("/runners/assigned")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getAssignedStudents(@RequestHeader("Authorization") String auth) {
+    public ResponseEntity<?> getAssignedRunners(@RequestHeader("Authorization") String auth) {
         try {
             String token = auth.replace("Bearer ", "");
             Long supervisorId = jwtUtil.getUserIdFromToken(token);
-            logger.info("Supervisor requested their assigned students list, ID: {}", supervisorId);
+            logger.info("Supervisor requested their assigned runners list, ID: {}", supervisorId);
             
-            List<UserDTO> students = userService.getStudentsByTeacher(supervisorId);
-            if (!students.isEmpty()) {
-                logger.info("学生数据示例: id={}, name={}, userNumber={}", 
-                            students.get(0).getId(), 
-                            students.get(0).getRealName(), 
-                            students.get(0).getUserNumber());
+            List<UserDTO> runners = userService.getRunnersBySupervisor(supervisorId);
+            if (!runners.isEmpty()) {
+                logger.info("跑步爱好者数据示例: id={}, name={}, userNumber={}", 
+                            runners.get(0).getId(), 
+                            runners.get(0).getRealName(), 
+                            runners.get(0).getUserNumber());
             } else {
-                logger.info("未找到分配给督导员ID: {}的学生", supervisorId);
+                logger.info("未找到分配给管理员ID: {}的跑步爱好者", supervisorId);
             }
-            return ResponseEntity.ok(students);
+            return ResponseEntity.ok(runners);
         } catch (Exception e) {
-            logger.error("Failed to get assigned students list", e);
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get assigned students list: " + e.getMessage()));
+            logger.error("Failed to get assigned runners list", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get assigned runners list: " + e.getMessage()));
         }
     }
 
     /**
-     * Get student details
+     * Get runner details
      */
-    @GetMapping("/students/{id}")
+    @GetMapping("/runners/{id}")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> getStudentDetails(@PathVariable Long id) {
-        logger.info("Supervisor requested student details, ID: {}", id);
+    public ResponseEntity<?> getRunnerDetails(@PathVariable Long id) {
+        logger.info("Supervisor requested runner details, ID: {}", id);
         try {
-            StudentDetailDTO student = userService.getStudentDetails(id);
-            return ResponseEntity.ok(student);
+            RunnerDetailDTO runner = userService.getRunnerDetails(id);
+            return ResponseEntity.ok(runner);
         } catch (Exception e) {
-            logger.error("Failed to get student details", e);
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get student details: " + e.getMessage()));
+            logger.error("Failed to get runner details", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to get runner details: " + e.getMessage()));
         }
     }
 
     /**
-     * Update student status
+     * Update runner status
      */
-    @PutMapping("/students/{id}/status")
+    @PutMapping("/runners/{id}/status")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> updateStudentStatus(@PathVariable Long id, @RequestBody Map<String, String> statusData) {
+    public ResponseEntity<?> updateRunnerStatus(@PathVariable Long id, @RequestBody Map<String, String> statusData) {
         String status = statusData.get("status");
-        logger.info("Supervisor requested to update student status, ID: {}, New status: {}", id, status);
+        logger.info("Supervisor requested to update runner status, ID: {}, New status: {}", id, status);
         
         if (status == null || (!status.equals("active") && !status.equals("inactive"))) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid status value, must be 'active' or 'inactive'"));
         }
         
         try {
-            boolean success = userService.updateStudentStatus(id, status);
+            boolean success = userService.updateRunnerStatus(id, status);
             if (success) {
                 return ResponseEntity.ok(Map.of(
-                    "message", "Student status has been updated to: " + status,
+                    "message", "Runner status has been updated to: " + status,
                     "status", status
                 ));
             } else {
-                return ResponseEntity.badRequest().body(Map.of("message", "Failed to update student status, student may not exist"));
+                return ResponseEntity.badRequest().body(Map.of("message", "Failed to update runner status, runner may not exist"));
             }
         } catch (Exception e) {
-            logger.error("Failed to update student status", e);
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to update student status: " + e.getMessage()));
+            logger.error("Failed to update runner status", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to update runner status: " + e.getMessage()));
         }
     }
 
     /**
-     * Delete student
+     * Delete runner
      */
-    @DeleteMapping("/students/{id}")
+    @DeleteMapping("/runners/{id}")
     @RequireRole("SUPERVISOR")
-    public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
-        logger.info("Supervisor requested to delete student, ID: {}", id);
+    public ResponseEntity<?> deleteRunner(@PathVariable Long id) {
+        logger.info("Supervisor requested to delete runner, ID: {}", id);
         try {
-            boolean success = userService.deleteStudent(id);
+            boolean success = userService.deleteRunner(id);
             if (success) {
-                return ResponseEntity.ok(Map.of("message", "Student has been successfully deleted"));
+                return ResponseEntity.ok(Map.of("message", "Runner has been successfully deleted"));
             } else {
-                return ResponseEntity.badRequest().body(Map.of("message", "Failed to delete student, student may not exist"));
+                return ResponseEntity.badRequest().body(Map.of("message", "Failed to delete runner, runner may not exist"));
             }
         } catch (Exception e) {
-            logger.error("Failed to delete student", e);
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to delete student: " + e.getMessage()));
+            logger.error("Failed to delete runner", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "Failed to delete runner: " + e.getMessage()));
         }
     }
 }

@@ -1,11 +1,15 @@
 package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.mapper.RunningRecordMapper;
+import com.example.auth.mapper.UserMapper;
+import com.example.auth.model.dto.PageResponse;
 import com.example.auth.model.dto.request.RunningRecordRequest;
 import com.example.auth.model.dto.response.RunningRecordResponse;
 import com.example.auth.model.dto.response.RunningStatsResponse;
 import com.example.auth.model.entity.RunningRecord;
+import com.example.auth.model.entity.User;
 import com.example.auth.service.RunningRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +34,9 @@ public class RunningRecordServiceImpl implements RunningRecordService {
 
     @Autowired
     private RunningRecordMapper runningRecordMapper;
+    
+    @Autowired
+    private UserMapper userMapper;
     
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -224,5 +232,156 @@ public class RunningRecordServiceImpl implements RunningRecordService {
         }
         
         return response;
+    }
+    
+    @Override
+    public PageResponse<Map<String, Object>> getAllUserRunningRecords(
+            int page, int size, String username, String startDate, String endDate) {
+        // 构建查询条件
+        Page<RunningRecord> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<RunningRecord> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 添加日期过滤条件
+        if (startDate != null && !startDate.isEmpty()) {
+            LocalDate start = LocalDate.parse(startDate, DATE_FORMATTER);
+            queryWrapper.ge(RunningRecord::getRecordDate, start);
+        }
+        
+        if (endDate != null && !endDate.isEmpty()) {
+            LocalDate end = LocalDate.parse(endDate, DATE_FORMATTER);
+            queryWrapper.le(RunningRecord::getRecordDate, end);
+        }
+        
+        // 按日期倒序排序
+        queryWrapper.orderByDesc(RunningRecord::getRecordDate);
+        
+        // 执行分页查询
+        Page<RunningRecord> recordPage = runningRecordMapper.selectPage(pageParam, queryWrapper);
+        
+        System.out.println("查询到的跑步记录总数: " + recordPage.getTotal());
+        System.out.println("当前页记录数: " + recordPage.getRecords().size());
+        
+        // 获取用户ID列表
+        Set<Long> userIds = recordPage.getRecords().stream()
+                .map(RunningRecord::getUserId)
+                .collect(Collectors.toSet());
+        
+        System.out.println("涉及用户数: " + userIds.size());
+        
+        // 批量查询用户信息
+        Map<Long, User> userMap = new HashMap<>();
+        if (!userIds.isEmpty()) {
+            LambdaQueryWrapper<User> userQueryWrapper = new LambdaQueryWrapper<>();
+            userQueryWrapper.in(User::getId, userIds);
+            
+            // 如果有用户名过滤条件，添加过滤
+            if (username != null && !username.isEmpty()) {
+                userQueryWrapper.like(User::getUsername, username);
+            }
+            
+            List<User> users = userMapper.selectList(userQueryWrapper);
+            System.out.println("找到的用户数: " + users.size());
+            userMap = users.stream()
+                    .collect(Collectors.toMap(User::getId, user -> user));
+        }
+        
+        // 构建响应数据
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (RunningRecord record : recordPage.getRecords()) {
+            User user = userMap.get(record.getUserId());
+            // 如果有用户名过滤且该记录的用户不在过滤结果中，跳过
+            if (username != null && !username.isEmpty() && user == null) {
+                continue;
+            }
+            
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", record.getId());
+            map.put("userId", record.getUserId());
+            map.put("username", user != null ? user.getUsername() : "未知用户");
+            map.put("nickname", user != null ? user.getNickname() : "未知用户");
+            map.put("realName", user != null ? user.getRealName() : "未知用户");
+            map.put("distance", record.getDistance());
+            map.put("duration", record.getDuration());
+            map.put("pace", record.getPace());
+            map.put("recordDate", record.getRecordDate().format(DATE_FORMATTER));
+            map.put("createTime", record.getCreateTime().format(FORMATTER));
+            
+            records.add(map);
+        }
+        
+        System.out.println("最终构建的记录数: " + records.size());
+        
+        // 创建分页响应对象
+        PageResponse<Map<String, Object>> response = new PageResponse<>(
+            records,
+            recordPage.getTotal(),
+            (int)recordPage.getCurrent(), 
+            (int)recordPage.getSize()
+        );
+        
+        return response;
+    }
+    
+    @Override
+    public Map<String, Object> getRunningStatistics() {
+        Map<String, Object> statistics = new HashMap<>();
+        
+        // 获取所有跑步记录总数
+        LambdaQueryWrapper<RunningRecord> countWrapper = new LambdaQueryWrapper<>();
+        long totalRecords = runningRecordMapper.selectCount(countWrapper);
+        statistics.put("totalRecords", totalRecords);
+        
+        // 获取有跑步记录的用户数量
+        LambdaQueryWrapper<RunningRecord> distinctUserWrapper = new LambdaQueryWrapper<>();
+        List<RunningRecord> allRecords = runningRecordMapper.selectList(distinctUserWrapper);
+        long activeUsers = allRecords.stream()
+                .map(RunningRecord::getUserId)
+                .distinct()
+                .count();
+        statistics.put("activeUsers", activeUsers);
+        
+        // 获取本周新增的跑步记录数
+        LocalDate now = LocalDate.now();
+        LocalDate startOfWeek = now.with(DayOfWeek.MONDAY);
+        LambdaQueryWrapper<RunningRecord> thisWeekWrapper = new LambdaQueryWrapper<>();
+        thisWeekWrapper.ge(RunningRecord::getRecordDate, startOfWeek);
+        long thisWeekRecords = runningRecordMapper.selectCount(thisWeekWrapper);
+        statistics.put("thisWeekRecords", thisWeekRecords);
+        
+        // 获取本月新增的跑步记录数
+        LocalDate startOfMonth = now.withDayOfMonth(1);
+        LambdaQueryWrapper<RunningRecord> thisMonthWrapper = new LambdaQueryWrapper<>();
+        thisMonthWrapper.ge(RunningRecord::getRecordDate, startOfMonth);
+        long thisMonthRecords = runningRecordMapper.selectCount(thisMonthWrapper);
+        statistics.put("thisMonthRecords", thisMonthRecords);
+        
+        // 计算总跑步距离
+        BigDecimal totalDistance = allRecords.stream()
+                .map(RunningRecord::getDistance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        statistics.put("totalDistance", totalDistance);
+        
+        // 返回最近跑步记录的日期
+        List<RunningRecord> latestRecords = allRecords.stream()
+                .sorted(Comparator.comparing(RunningRecord::getRecordDate).reversed())
+                .limit(1)
+                .collect(Collectors.toList());
+        
+        if (!latestRecords.isEmpty()) {
+            LocalDate latestDate = latestRecords.get(0).getRecordDate();
+            statistics.put("latestRecordDate", latestDate.format(DATE_FORMATTER));
+            
+            // 添加距离最新记录的天数
+            long daysSinceLatestRecord = ChronoUnit.DAYS.between(latestDate, now);
+            statistics.put("daysSinceLatestRecord", daysSinceLatestRecord);
+        }
+        
+        return statistics;
+    }
+    
+    @Override
+    public boolean deleteRecord(Long recordId) {
+        int result = runningRecordMapper.deleteById(recordId);
+        return result > 0;
     }
 } 

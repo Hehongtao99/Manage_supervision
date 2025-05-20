@@ -187,6 +187,13 @@ watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
 })
 </script>
 
+<script lang="ts">
+// 添加默认导出
+export default {
+  name: 'BaseLayout'
+}
+</script>
+
 <style scoped>
 .app-wrapper {
   position: relative;

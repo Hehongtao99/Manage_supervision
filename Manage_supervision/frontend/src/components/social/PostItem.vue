@@ -275,8 +275,16 @@ const hasRunningRecord = computed(() => {
 // 处理点赞
 const handleLike = async () => {
   try {
-    await toggleLike(props.post.id)
-    emit('refresh')
+    const response = await toggleLike(props.post.id)
+    // 不再触发整页刷新，而是直接更新当前帖子的点赞状态
+    // 后端返回true表示点赞成功，false表示取消点赞成功
+    const isLiked = response.data.data
+    props.post.liked = isLiked
+    if (isLiked) {
+      props.post.likeCount += 1
+    } else {
+      props.post.likeCount -= 1
+    }
   } catch (error) {
     ElMessage.error('操作失败，请重试')
     console.error(error)
