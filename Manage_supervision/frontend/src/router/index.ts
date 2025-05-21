@@ -127,6 +127,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'advertisements',
+        name: 'AdvertisementManagement',
+        component: () => import('../views/admin/AdvertisementManagement.vue'),
+        meta: { 
+          title: '广告申请管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'regions',
+        name: 'RegionManagement',
+        component: () => import('../views/admin/RegionManagement.vue'),
+        meta: { 
+          title: '区域管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },

@@ -46,6 +46,20 @@
           <span>学生管理</span>
         </el-menu-item>
       </el-sub-menu>
+      
+      <el-menu-item index="/admin/advertisements" @click="handleRoute('/admin/advertisements')">
+        <el-icon><Picture /></el-icon>
+        <template #title>
+          <span>广告申请管理</span>
+        </template>
+      </el-menu-item>
+      
+      <el-menu-item index="/admin/regions" @click="handleRoute('/admin/regions')">
+        <el-icon><LocationInformation /></el-icon>
+        <template #title>
+          <span>区域管理</span>
+        </template>
+      </el-menu-item>
     </template>
 
     <!-- 督导员菜单 -->
@@ -106,7 +120,9 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Picture,
+  LocationInformation
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{
