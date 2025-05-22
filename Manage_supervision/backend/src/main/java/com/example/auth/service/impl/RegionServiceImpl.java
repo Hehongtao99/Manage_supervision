@@ -1,169 +1,202 @@
 package com.example.auth.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.auth.mapper.RegionMapper;
 import com.example.auth.model.dto.RegionDTO;
 import com.example.auth.model.entity.Region;
+import com.example.auth.service.MinioService;
 import com.example.auth.service.RegionService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * 省市区街道服务实现类
+ */
 @Service
-public class RegionServiceImpl implements RegionService {
+public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> implements RegionService {
 
+    @Value("${file.upload.path:uploads}")
+    private String uploadPath;
+    
+    @Value("${file.access.path:http://localhost:8081/uploads/}")
+    private String accessPath;
+    
     @Autowired
-    private RegionMapper regionMapper;
-    
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    
-    @Override
-    public List<RegionDTO> getRegionTree() {
-        // 获取所有省级区域
-        List<Region> provinces = regionMapper.findProvinces();
-        
-        // 转换为DTO并构建树形结构
-        return provinces.stream()
-                .map(this::buildRegionTree)
-                .collect(Collectors.toList());
-    }
-    
+    private MinioService minioService;
+
     /**
-     * 递归构建区域树
+     * 递归获取树形结构的区域数据
      */
-    private RegionDTO buildRegionTree(Region region) {
-        RegionDTO dto = convertToDTO(region);
+    @Override
+    public List<RegionDTO> getRegionTree(Long parentId) {
+        // 获取第一级数据
+        List<Region> regions = baseMapper.findByParentId(parentId);
+        List<RegionDTO> result = regions.stream().map(this::convertToDTO).collect(Collectors.toList());
         
-        // 查询子区域
-        List<Region> children = regionMapper.findByParentId(region.getId());
-        if (children != null && !children.isEmpty()) {
-            List<RegionDTO> childrenDTOs = children.stream()
-                    .map(this::buildRegionTree)
-                    .collect(Collectors.toList());
-            dto.setChildren(childrenDTOs);
+        // 递归加载子节点
+        for (RegionDTO dto : result) {
+            if (dto.getHasChildren()) {
+                dto.setChildren(getRegionTree(dto.getId()));
+            } else {
+                dto.setChildren(new ArrayList<>());
+            }
         }
+        
+        return result;
+    }
+
+    /**
+     * 获取子区域列表
+     */
+    @Override
+    public List<RegionDTO> getRegionList(Long parentId) {
+        List<Region> regions = baseMapper.findByParentId(parentId);
+        return regions.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    /**
+     * 保存区域信息
+     */
+    @Override
+    @Transactional
+    public RegionDTO saveRegion(RegionDTO regionDTO) {
+        // 检查编码是否已存在
+        int count = baseMapper.countByCode(regionDTO.getCode(), regionDTO.getId());
+        if (count > 0) {
+            throw new RuntimeException("区域编码已存在");
+        }
+        
+        Region region = new Region();
+        BeanUtils.copyProperties(regionDTO, region);
+        
+        // 如果不是街道级别，清除经纬度和图片信息
+        if (region.getLevel() != null && region.getLevel() != 4) {
+            region.setLongitude(null);
+            region.setLatitude(null);
+            region.setImageUrl(null);
+        }
+        
+        LocalDateTime now = LocalDateTime.now();
+        if (region.getId() == null) {
+            // 新增
+            region.setCreateTime(now);
+            region.setUpdateTime(now);
+            baseMapper.insert(region);
+        } else {
+            // 修改
+            region.setUpdateTime(now);
+            baseMapper.updateById(region);
+        }
+        
+        RegionDTO result = convertToDTO(region);
+        result.setHasChildren(false); // 新增的节点肯定没有子节点
+        return result;
+    }
+
+    /**
+     * 根据ID查询区域
+     */
+    @Override
+    public RegionDTO getRegionById(Long id) {
+        Region region = baseMapper.selectById(id);
+        if (region == null) {
+            return null;
+        }
+        
+        RegionDTO dto = convertToDTO(region);
+        // 检查是否有子节点
+        int childCount = baseMapper.countChildrenById(id);
+        dto.setHasChildren(childCount > 0);
         
         return dto;
     }
-    
-    @Override
-    public List<RegionDTO> getRegionsByParentId(Long parentId) {
-        List<Region> regions = regionMapper.findByParentId(parentId);
-        return regions.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public RegionDTO getRegionById(Long id) {
-        Region region = regionMapper.selectById(id);
-        if (region != null) {
-            return convertToDTO(region);
-        }
-        return null;
-    }
-    
-    @Override
-    @Transactional
-    public RegionDTO addRegion(Region region) {
-        // 设置创建和更新时间
-        LocalDateTime now = LocalDateTime.now();
-        region.setCreateTime(now);
-        region.setUpdateTime(now);
-        
-        // 设置默认排序号
-        if (region.getSortOrder() == null) {
-            region.setSortOrder(0);
-        }
-        
-        // 保存区域
-        regionMapper.insert(region);
-        
-        return convertToDTO(region);
-    }
-    
-    @Override
-    @Transactional
-    public RegionDTO updateRegion(Long id, Region region) {
-        Region existingRegion = regionMapper.selectById(id);
-        if (existingRegion != null) {
-            // 更新区域信息
-            existingRegion.setName(region.getName());
-            existingRegion.setCode(region.getCode());
-            existingRegion.setLevel(region.getLevel());
-            existingRegion.setSortOrder(region.getSortOrder());
-            existingRegion.setUpdateTime(LocalDateTime.now());
-            
-            // 更新区域
-            regionMapper.updateById(existingRegion);
-            
-            return convertToDTO(existingRegion);
-        }
-        return null;
-    }
-    
+
+    /**
+     * 删除区域（如果有子区域则不允许删除）
+     */
     @Override
     @Transactional
     public boolean deleteRegion(Long id) {
-        // 检查是否有子区域
-        int childrenCount = regionMapper.countChildren(id);
-        if (childrenCount > 0) {
-            // 有子区域，不能删除
-            return false;
+        // 检查是否有子节点
+        int childCount = baseMapper.countChildrenById(id);
+        if (childCount > 0) {
+            throw new RuntimeException("该区域下有子区域，不能删除");
         }
         
-        // 删除区域
-        regionMapper.deleteById(id);
-        return true;
+        // 执行删除操作
+        return baseMapper.deleteById(id) > 0;
     }
-    
+
+    /**
+     * 上传街道图片
+     */
     @Override
-    public String getFullAddressPath(Long provinceId, Long cityId, Long districtId, Long streetId) {
-        StringBuilder fullAddress = new StringBuilder();
-        
-        // 添加省级名称
-        if (provinceId != null) {
-            Region province = regionMapper.selectById(provinceId);
-            if (province != null) {
-                fullAddress.append(province.getName());
-            }
+    public String uploadStreetImage(MultipartFile file, Long streetId) {
+        // 检查街道是否存在
+        Region street = baseMapper.selectById(streetId);
+        if (street == null) {
+            throw new RuntimeException("街道不存在");
         }
         
-        // 添加市级名称
-        if (cityId != null) {
-            Region city = regionMapper.selectById(cityId);
-            if (city != null) {
-                fullAddress.append(city.getName());
-            }
+        // 检查是否是街道级别
+        if (street.getLevel() != 4) {
+            throw new RuntimeException("只有街道级别才能上传图片");
         }
         
-        // 添加区/县级名称
-        if (districtId != null) {
-            Region district = regionMapper.selectById(districtId);
-            if (district != null) {
-                fullAddress.append(district.getName());
-            }
+        try {
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String newFileName = UUID.randomUUID().toString() + extension;
+            String dateDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            
+            // 构建MinIO对象名称
+            String objectName = "region_images/" + dateDir + "/" + newFileName;
+            
+            // 上传到MinIO
+            String imageUrl = minioService.uploadFile(file, objectName);
+            
+            // 更新街道图片URL
+            street.setImageUrl(imageUrl);
+            street.setUpdateTime(LocalDateTime.now());
+            baseMapper.updateById(street);
+            
+            return imageUrl;
+        } catch (Exception e) {
+            throw new RuntimeException("上传图片失败: " + e.getMessage());
         }
-        
-        // 添加街道/乡镇名称
-        if (streetId != null) {
-            Region street = regionMapper.selectById(streetId);
-            if (street != null) {
-                fullAddress.append(street.getName());
-            }
-        }
-        
-        return fullAddress.toString();
+    }
+
+    /**
+     * 获取完整的区域路径（从省到当前级别）
+     */
+    @Override
+    public List<RegionDTO> getRegionPath(Long id) {
+        List<Region> path = baseMapper.findPath(id);
+        return path.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
     
     /**
-     * 将Region实体转换为DTO
+     * 将实体转换为DTO
      */
     private RegionDTO convertToDTO(Region region) {
         if (region == null) {
@@ -171,25 +204,11 @@ public class RegionServiceImpl implements RegionService {
         }
         
         RegionDTO dto = new RegionDTO();
-        dto.setId(region.getId());
-        dto.setParentId(region.getParentId());
-        dto.setName(region.getName());
-        dto.setCode(region.getCode());
-        dto.setLevel(region.getLevel());
-        dto.setSortOrder(region.getSortOrder());
+        BeanUtils.copyProperties(region, dto);
         
-        // 格式化时间
-        if (region.getCreateTime() != null) {
-            dto.setCreateTime(region.getCreateTime().format(formatter));
-        }
-        
-        if (region.getUpdateTime() != null) {
-            dto.setUpdateTime(region.getUpdateTime().format(formatter));
-        }
-        
-        // 设置前端选择器需要的属性
-        dto.setValue(region.getId().toString());
-        dto.setLabel(region.getName());
+        // 确保布尔值字段以布尔类型返回
+        dto.setIsStreet(region.getIsStreet() != null ? region.getIsStreet() : region.getLevel() == 4);
+        dto.setHasChildren(region.getHasChildren() != null ? region.getHasChildren() : false);
         
         return dto;
     }

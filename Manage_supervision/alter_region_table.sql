@@ -1,0 +1,11 @@
+-- 修改region表的image_url字段长度，从255增加到1024
+ALTER TABLE region MODIFY COLUMN image_url VARCHAR(1024) COMMENT '图片URL, 仅街道级别有'; 
+
+-- 添加广告申请表的省市区字段
+ALTER TABLE advertisement_applications 
+ADD COLUMN province_id BIGINT DEFAULT NULL COMMENT '省份ID',
+ADD COLUMN city_id BIGINT DEFAULT NULL COMMENT '城市ID',
+ADD COLUMN district_id BIGINT DEFAULT NULL COMMENT '区县ID',
+ADD COLUMN street_id BIGINT DEFAULT NULL COMMENT '街道ID',
+ADD COLUMN longitude DOUBLE DEFAULT NULL COMMENT '经度',
+ADD COLUMN latitude DOUBLE DEFAULT NULL COMMENT '纬度'; 

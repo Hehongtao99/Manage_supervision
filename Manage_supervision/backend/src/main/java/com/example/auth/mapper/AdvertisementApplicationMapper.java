@@ -47,7 +47,7 @@ public interface AdvertisementApplicationMapper extends BaseMapper<Advertisement
             "ORDER BY a.create_time DESC" +
             "</script>")
     IPage<AdvertisementApplication> findByConditions(
-            Page<AdvertisementApplication> page,
+            IPage<AdvertisementApplication> page,
             @Param("applicationNumber") String applicationNumber,
             @Param("area") String area,
             @Param("location") String location,

@@ -1,16 +1,15 @@
 <!--
-  省市区街道管理页面 - 降级版本，使用表格代替树形结构
+  省市区街道管理页面 - 树状结构版本
 -->
 <template>
-  <div class="region-management">
+  <div class="region-tree-management">
     <el-card class="main-card">
       <template #header>
         <div class="card-header">
-          <h3>省市区街道管理</h3>
+          <h3>区域管理</h3>
           <div class="buttons">
             <el-button type="primary" @click="handleAddTopLevel">新增省份</el-button>
             <el-button v-if="currentParentId" type="default" @click="goBack">返回上级</el-button>
-            <el-button type="success" @click="switchToTreeView">切换到树状视图</el-button>
           </div>
         </div>
       </template>
@@ -28,62 +27,157 @@
         </el-breadcrumb>
       </div>
       
-      <!-- 使用表格替代树形结构展示 -->
-      <el-table 
-        v-loading="loading" 
-        :data="regionList" 
-        style="width: 100%; margin-top: 20px;" 
-        border
-      >
-        <el-table-column prop="name" label="名称" width="180" />
-        <el-table-column prop="code" label="编码" width="120" />
-        <el-table-column label="级别" width="100">
-          <template #default="scope">
-            {{ getLevelText(scope.row.level) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column v-if="showGeoFields" prop="longitude" label="经度" width="120" />
-        <el-table-column v-if="showGeoFields" prop="latitude" label="纬度" width="120" />
-        <el-table-column label="操作" fixed="right" width="250">
-          <template #default="scope">
-            <el-button 
-              v-if="scope.row.hasChildren || scope.row.level < 4" 
-              type="primary" 
-              link 
-              @click="handleViewChildren(scope.row)"
-            >
-              查看子区域
-            </el-button>
-            <el-button 
-              v-if="scope.row.level < 4" 
-              type="success" 
-              link 
-              @click="handleAddChild(scope.row)"
-            >
-              新增
-            </el-button>
-            <el-button type="primary" link @click="handleEdit(scope.row)">
-              编辑
-            </el-button>
-            <el-button type="danger" link @click="handleDelete(scope.row)">
-              删除
-            </el-button>
-            <el-button 
-              v-if="scope.row.level === 4" 
-              type="info" 
-              link 
-              @click="showUploadDialog(scope.row)"
-            >
-              上传图片
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      
-      <!-- 当前无区域数据的提示 -->
-      <div v-if="regionList.length === 0 && !loading" class="empty-tip">
-        <el-empty description="暂无区域数据" />
+      <div class="main-content">
+        <!-- 左侧树状列表 -->
+        <div class="tree-container">
+          <el-tree
+            v-loading="loading"
+            ref="treeRef"
+            :data="treeData"
+            node-key="id"
+            :props="{ 
+              label: 'name',
+              children: 'children'
+            }"
+            :expand-on-click-node="false"
+            highlight-current
+            :default-expanded-keys="defaultExpandedKeys"
+            @node-click="handleNodeClick"
+          >
+            <template #default="{ node, data }">
+              <span class="custom-tree-node">
+                <span>{{ data.name }} 
+                  <el-tag size="small">{{ getLevelText(data.level) }}</el-tag>
+                  <el-tag size="small" type="info">{{ data.code }}</el-tag>
+                </span>
+                <span class="node-actions">
+                  <el-button
+                    v-if="data.level < 4"
+                    type="success"
+                    link
+                    @click="handleAddChild(data)"
+                  >
+                    新增
+                  </el-button>
+                  <el-button
+                    type="primary"
+                    link
+                    @click="handleEdit(data)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    type="danger"
+                    link
+                    @click="handleDelete(data)"
+                  >
+                    删除
+                  </el-button>
+                  <el-button 
+                    v-if="data.level === 4" 
+                    type="info" 
+                    link 
+                    @click="showUploadDialog(data)"
+                  >
+                    上传图片
+                  </el-button>
+                </span>
+              </span>
+            </template>
+          </el-tree>
+          
+          <!-- 当前无区域数据的提示 -->
+          <div v-if="treeData.length === 0 && !loading" class="empty-tip">
+            <el-empty description="暂无区域数据" />
+          </div>
+        </div>
+        
+        <!-- 右侧预览区 - 只有点击街道级别才会显示 -->
+        <div v-if="selectedNode && selectedNode.level === 4" class="preview-container">
+          <el-card class="preview-card">
+            <template #header>
+              <div class="preview-header">
+                <span class="preview-title">{{ selectedNode.name }} 详情</span>
+              </div>
+            </template>
+            
+            <div class="preview-content">
+              <div class="preview-item">
+                <span class="preview-label">名称：</span>
+                <span class="preview-value">{{ selectedNode.name }}</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">编码：</span>
+                <span class="preview-value">{{ selectedNode.code }}</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">级别：</span>
+                <span class="preview-value">街道</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">经度：</span>
+                <span class="preview-value">{{ selectedNode.longitude || '暂无' }}</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">纬度：</span>
+                <span class="preview-value">{{ selectedNode.latitude || '暂无' }}</span>
+              </div>
+              
+              <!-- 图片预览区 -->
+              <div class="image-preview" v-if="selectedNode.imageUrl">
+                <h4>街道图片：</h4>
+                <el-image 
+                  :src="selectedNode.imageUrl"
+                  fit="cover"
+                  :preview-src-list="[selectedNode.imageUrl]"
+                  preview-teleported
+                  :initial-index="0"
+                  referrer-policy="no-referrer"
+                  crossorigin="anonymous"
+                >
+                  <template #error>
+                    <div class="image-error">
+                      <el-icon><icon-picture /></el-icon>
+                      <span>图片加载失败，请检查图片链接</span>
+                      <el-button size="small" type="primary" @click="openImageInNewTab(selectedNode.imageUrl)">
+                        在新窗口打开
+                      </el-button>
+                    </div>
+                  </template>
+                  <template #placeholder>
+                    <div class="image-loading">
+                      <el-icon class="is-loading"><loading /></el-icon>
+                      <span>加载中...</span>
+                    </div>
+                  </template>
+                </el-image>
+              </div>
+              
+              <div class="no-image" v-else>
+                <el-empty description="暂无图片" :image-size="100">
+                  <template #description>
+                    <p>暂无街道图片，请点击"上传图片"按钮上传</p>
+                  </template>
+                  <el-button type="primary" @click="showUploadDialog(selectedNode)">
+                    上传图片
+                  </el-button>
+                </el-empty>
+              </div>
+              
+              <!-- 经纬度地图标记点 -->
+              <div class="map-link" v-if="selectedNode.longitude && selectedNode.latitude">
+                <el-link 
+                  :href="`https://maps.google.com/?q=${selectedNode.latitude},${selectedNode.longitude}`" 
+                  target="_blank" 
+                  type="primary"
+                >
+                  <el-icon><location /></el-icon>
+                  在地图中查看位置
+                </el-link>
+              </div>
+            </div>
+          </el-card>
+        </div>
       </div>
     </el-card>
     
@@ -172,6 +266,7 @@
         :limit="1"
         :on-change="handleFileChange"
         :file-list="fileList"
+        :show-file-list="false"
       >
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">
@@ -183,10 +278,29 @@
           </div>
         </template>
       </el-upload>
+      
+      <!-- 添加图片预览区域 -->
+      <div v-if="imagePreview" class="upload-preview">
+        <h4>图片预览：</h4>
+        <div class="preview-image-container">
+          <el-image 
+            :src="imagePreview" 
+            style="max-width: 100%; max-height: 200px" 
+            fit="contain"
+          />
+          <div class="preview-info">
+            <span>{{ uploadFileName }}</span>
+            <el-button type="danger" size="small" @click="cancelPreview" circle>
+              <el-icon><delete /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </div>
+      
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="cancelUpload">取消</el-button>
-          <el-button type="primary" @click="submitUpload">上传</el-button>
+          <el-button type="primary" @click="submitUpload" :disabled="!uploadFile">上传</el-button>
         </span>
       </template>
     </el-dialog>
@@ -196,22 +310,27 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
-import { UploadFilled } from '@element-plus/icons-vue'
+import { UploadFilled, Picture as IconPicture, Location, Delete, Loading } from '@element-plus/icons-vue'
 import axios from '../../utils/axios'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 区域列表数据
-const regionList = ref([])
+// 树形数据
+const treeData = ref([])
 const loading = ref(false)
 const currentParentId = ref(null)
 const breadcrumbs = ref([])
+const treeRef = ref(null)
+const defaultExpandedKeys = ref([]) // 默认展开的节点
+
+// 选中的节点（用于右侧预览）
+const selectedNode = ref(null)
 
 // 是否显示经纬度字段（只对街道级别显示）
 const showGeoFields = computed(() => {
-  if (!regionList.value || regionList.value.length === 0) return false
-  return regionList.value.some(item => item.level === 4)
+  if (!treeData.value || treeData.value.length === 0) return false
+  return treeData.value.some(item => item.level === 4)
 })
 
 // 选中的区域（用于上传图片等操作）
@@ -267,43 +386,52 @@ const rules = {
 const uploadDialogVisible = ref(false)
 const fileList = ref([])
 const uploadFile = ref(null)
+const imagePreview = ref('') // 图片预览URL
+const uploadFileName = ref('') // 上传文件名
 
 // 初始化
 onMounted(() => {
-  loadRegionList(null)
+  loadRegionTree()
 })
 
-// 加载区域列表（根据父ID）
-const loadRegionList = async (parentId) => {
+// 加载区域树
+const loadRegionTree = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/regions/list', {
-      params: { parentId }
-    })
+    const response = await axios.get('/api/regions/tree')
+    treeData.value = (response.data || []).map(item => processTreeNode(item))
     
-    // 简单数据处理，不使用复杂的递归结构
-    regionList.value = (response.data || []).map(item => ({
-      ...item,
-      level: Number(item.level || 1),
-      sortOrder: Number(item.sortOrder || 0),
-      hasChildren: Boolean(item.hasChildren)
-    }))
+    // 设置默认展开的节点（只展开第一级节点）
+    defaultExpandedKeys.value = treeData.value.map(node => node.id)
     
-    currentParentId.value = parentId
-    
-    // 如果有父级，加载面包屑
-    if (parentId) {
-      loadBreadcrumbs(parentId)
-    } else {
-      breadcrumbs.value = []
-    }
+    currentParentId.value = null
+    breadcrumbs.value = []
   } catch (error) {
-    console.error('加载区域列表失败', error)
-    ElMessage.error('加载区域列表失败')
-    regionList.value = []
+    console.error('加载区域树失败', error)
+    ElMessage.error('加载区域树失败')
+    treeData.value = []
   } finally {
     loading.value = false
   }
+}
+
+// 处理树节点数据
+const processTreeNode = (node) => {
+  // 处理数字和布尔值类型
+  const processedNode = {
+    ...node,
+    level: Number(node.level || 1),
+    sortOrder: Number(node.sortOrder || 0),
+    hasChildren: Boolean(node.hasChildren),
+    isStreet: Boolean(node.isStreet)
+  }
+  
+  // 如果有子节点，递归处理
+  if (node.children && node.children.length > 0) {
+    processedNode.children = node.children.map(child => processTreeNode(child))
+  }
+  
+  return processedNode
 }
 
 // 加载面包屑导航数据
@@ -323,13 +451,43 @@ const loadBreadcrumbs = async (id) => {
 
 // 返回根级
 const goToRoot = () => {
-  loadRegionList(null)
+  loadRegionTree()
 }
 
 // 通过面包屑导航
 const goToBreadcrumb = (index) => {
   if (index >= 0 && index < breadcrumbs.value.length) {
-    loadRegionList(breadcrumbs.value[index].id)
+    const id = breadcrumbs.value[index].id
+    loadTreeForParent(id)
+  }
+}
+
+// 加载指定父节点的树
+const loadTreeForParent = async (parentId) => {
+  loading.value = true
+  try {
+    const response = await axios.get('/api/regions/tree', {
+      params: { parentId }
+    })
+    treeData.value = (response.data || []).map(item => processTreeNode(item))
+    
+    // 设置默认展开的节点（只展开当前加载的节点）
+    defaultExpandedKeys.value = treeData.value.map(node => node.id)
+    
+    currentParentId.value = parentId
+    
+    // 加载面包屑
+    if (parentId) {
+      await loadBreadcrumbs(parentId)
+    } else {
+      breadcrumbs.value = []
+    }
+  } catch (error) {
+    console.error('加载区域树失败', error)
+    ElMessage.error('加载区域树失败')
+    treeData.value = []
+  } finally {
+    loading.value = false
   }
 }
 
@@ -343,17 +501,12 @@ const goBack = () => {
       // 否则返回到上一级面包屑指向的区域
       const parentIndex = breadcrumbs.value.length - 2
       if (parentIndex >= 0) {
-        loadRegionList(breadcrumbs.value[parentIndex].id)
+        loadTreeForParent(breadcrumbs.value[parentIndex].id)
       }
     }
   } else {
     goToRoot()
   }
-}
-
-// 查看子区域
-const handleViewChildren = (row) => {
-  loadRegionList(row.id)
 }
 
 // 新增顶级区域
@@ -439,8 +592,12 @@ const handleDelete = (data) => {
       await axios.delete(`/api/regions/${data.id}`)
       ElMessage.success('删除成功')
       
-      // 刷新当前列表
-      loadRegionList(currentParentId.value)
+      // 刷新树状数据
+      if (currentParentId.value) {
+        loadTreeForParent(currentParentId.value)
+      } else {
+        loadRegionTree()
+      }
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
         ElMessage.error(error.response.data.message)
@@ -451,11 +608,6 @@ const handleDelete = (data) => {
   }).catch(() => {
     // 取消删除
   })
-}
-
-// 切换到树状视图
-const switchToTreeView = () => {
-  router.push('/admin/region-tree')
 }
 
 // 提交表单
@@ -491,8 +643,12 @@ const submitForm = async () => {
         ElMessage.success(isEdit.value ? '更新成功' : '新增成功')
         dialogVisible.value = false
         
-        // 刷新当前列表
-        loadRegionList(currentParentId.value)
+        // 刷新树状数据
+        if (currentParentId.value) {
+          loadTreeForParent(currentParentId.value)
+        } else {
+          loadRegionTree()
+        }
       } catch (error) {
         console.error('保存失败', error)
         if (error.response && error.response.data && error.response.data.message) {
@@ -521,12 +677,15 @@ const showUploadDialog = (row) => {
 // 处理文件变更
 const handleFileChange = (file) => {
   uploadFile.value = file.raw
+  uploadFileName.value = file.name
   
   // 验证文件类型
   const isImage = file.raw.type.startsWith('image/')
   if (!isImage) {
     ElMessage.error('只能上传图片文件!')
     fileList.value = []
+    uploadFile.value = null
+    imagePreview.value = ''
     return
   }
   
@@ -535,15 +694,30 @@ const handleFileChange = (file) => {
   if (!isLt10M) {
     ElMessage.error('图片大小不能超过 10MB!')
     fileList.value = []
+    uploadFile.value = null
+    imagePreview.value = ''
     return
   }
+  
+  // 生成预览URL
+  imagePreview.value = URL.createObjectURL(file.raw)
+}
+
+// 取消预览
+const cancelPreview = () => {
+  if (imagePreview.value) {
+    URL.revokeObjectURL(imagePreview.value)
+  }
+  imagePreview.value = ''
+  uploadFile.value = null
+  uploadFileName.value = ''
+  fileList.value = []
 }
 
 // 取消上传
 const cancelUpload = () => {
   uploadDialogVisible.value = false
-  fileList.value = []
-  uploadFile.value = null
+  cancelPreview()
   selectedRegion.value = null
 }
 
@@ -564,7 +738,7 @@ const submitUpload = async () => {
     const formData = new FormData()
     formData.append('file', uploadFile.value)
     
-    await axios.post(
+    const response = await axios.post(
       `/api/regions/${selectedRegion.value.id}/image`,
       formData,
       {
@@ -577,8 +751,17 @@ const submitUpload = async () => {
     ElMessage.success('上传成功')
     uploadDialogVisible.value = false
     
-    // 刷新当前列表
-    loadRegionList(currentParentId.value)
+    // 如果当前选中的预览节点就是上传的节点，同步更新图片URL
+    if (selectedNode.value && selectedNode.value.id === selectedRegion.value.id) {
+      selectedNode.value.imageUrl = response.data
+    }
+    
+    // 刷新树状数据
+    if (currentParentId.value) {
+      loadTreeForParent(currentParentId.value)
+    } else {
+      loadRegionTree()
+    }
   } catch (error) {
     console.error('上传失败', error)
     if (error.response && error.response.data && error.response.data.message) {
@@ -607,10 +790,26 @@ const getLevelText = (level) => {
     default: return '未知'
   }
 }
+
+// 处理节点点击事件
+const handleNodeClick = (data) => {
+  // 只有点击街道级别才设置选中的节点，用于右侧预览
+  if (data.level === 4) {
+    selectedNode.value = { ...data }
+  } else {
+    selectedNode.value = null
+  }
+}
+
+const openImageInNewTab = (url) => {
+  if (url) {
+    window.open(url, '_blank');
+  }
+}
 </script>
 
 <style scoped>
-.region-management {
+.region-tree-management {
   height: 100%;
 }
 
@@ -635,6 +834,33 @@ const getLevelText = (level) => {
   margin-bottom: 10px;
 }
 
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tree-container {
+  flex: 1;
+  overflow: auto;
+  border-right: 1px solid #ebeef5;
+  padding-right: 10px;
+}
+
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+  width: 100%;
+}
+
+.node-actions {
+  margin-left: 20px;
+}
+
 .empty-tip {
   margin-top: 50px;
   text-align: center;
@@ -649,5 +875,133 @@ const getLevelText = (level) => {
   border: 1px solid #ebeef5;
   padding: 10px;
   border-radius: 4px;
+}
+
+.el-tag {
+  margin-left: 5px;
+}
+
+.preview-container {
+  width: 300px;
+  overflow: auto;
+  padding-left: 10px;
+}
+
+.preview-card {
+  height: 100%;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.preview-content {
+  padding: 10px 0;
+}
+
+.preview-item {
+  margin-bottom: 10px;
+  display: flex;
+}
+
+.preview-label {
+  font-weight: bold;
+  width: 60px;
+  color: #606266;
+}
+
+.preview-value {
+  flex: 1;
+  word-break: break-all;
+}
+
+.image-preview {
+  margin-top: 20px;
+}
+
+.image-preview h4 {
+  margin-bottom: 10px;
+  color: #606266;
+}
+
+.el-image {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  color: #909399;
+}
+
+.no-image {
+  margin-top: 20px;
+}
+
+.map-link {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.upload-preview {
+  margin-top: 20px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.upload-preview h4 {
+  margin-bottom: 10px;
+  color: #606266;
+}
+
+.preview-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
+  padding: 0 10px;
+}
+
+.image-info {
+  display: none; /* 隐藏图片信息 */
+}
+
+.image-url {
+  display: none; /* 隐藏图片URL */
+}
+
+.image-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  color: #909399;
+}
+
+.image-loading .el-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
 }
 </style> 

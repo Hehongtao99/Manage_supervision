@@ -54,8 +54,8 @@
         </template>
       </el-menu-item>
       
-      <el-menu-item index="/admin/regions" @click="handleRoute('/admin/regions')">
-        <el-icon><LocationInformation /></el-icon>
+      <el-menu-item index="/admin/region-tree" @click="handleRoute('/admin/region-tree')">
+        <el-icon><Location /></el-icon>
         <template #title>
           <span>区域管理</span>
         </template>
@@ -122,7 +122,7 @@ import {
   Folder,
   ChatDotRound,
   Picture,
-  LocationInformation
+  Location
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

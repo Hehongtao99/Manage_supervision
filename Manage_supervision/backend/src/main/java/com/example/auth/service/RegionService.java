@@ -2,60 +2,47 @@ package com.example.auth.service;
 
 import com.example.auth.model.dto.RegionDTO;
 import com.example.auth.model.entity.Region;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * 省市区街道服务接口
+ */
 public interface RegionService {
     
     /**
-     * 获取省市区树形结构
-     * @return 省市区树形结构
+     * 根据父ID查询子区域（树形结构）
      */
-    List<RegionDTO> getRegionTree();
+    List<RegionDTO> getRegionTree(Long parentId);
     
     /**
-     * 根据父ID获取子区域
-     * @param parentId 父ID
-     * @return 子区域列表
+     * 根据父ID查询子区域（列表结构）
      */
-    List<RegionDTO> getRegionsByParentId(Long parentId);
+    List<RegionDTO> getRegionList(Long parentId);
     
     /**
-     * 根据ID获取区域
-     * @param id 区域ID
-     * @return 区域信息
+     * 保存区域信息
+     */
+    RegionDTO saveRegion(RegionDTO regionDTO);
+    
+    /**
+     * 根据ID查询区域
      */
     RegionDTO getRegionById(Long id);
     
     /**
-     * 添加区域
-     * @param region 区域信息
-     * @return 添加后的区域信息
-     */
-    RegionDTO addRegion(Region region);
-    
-    /**
-     * 更新区域
-     * @param id 区域ID
-     * @param region 区域信息
-     * @return 更新后的区域信息
-     */
-    RegionDTO updateRegion(Long id, Region region);
-    
-    /**
-     * 删除区域
-     * @param id 区域ID
-     * @return 是否删除成功
+     * 删除区域（如果有子区域则不允许删除）
      */
     boolean deleteRegion(Long id);
     
     /**
-     * 根据区域编码获取完整的地址路径
-     * @param provinceId 省份ID
-     * @param cityId 城市ID
-     * @param districtId 区县ID
-     * @param streetId 街道ID
-     * @return 完整地址字符串，例如"广东省深圳市南山区科技园街道"
+     * 上传街道图片
      */
-    String getFullAddressPath(Long provinceId, Long cityId, Long districtId, Long streetId);
+    String uploadStreetImage(MultipartFile file, Long streetId);
+    
+    /**
+     * 获取完整的区域路径（从省到当前级别）
+     */
+    List<RegionDTO> getRegionPath(Long id);
 } 

@@ -21,7 +21,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private AuthInterceptor authInterceptor;
     
-    @Value("${app.upload.dir:uploads}")
+    @Value("${file.upload.path:uploads}")
     private String uploadDir;
 
     @Override
@@ -52,8 +52,8 @@ public class WebConfig implements WebMvcConfigurer {
         
         // 配置静态资源映射，将 /uploads/** 映射到实际的文件目录
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + uploadPath + "/");
+                .addResourceLocations("file:" + uploadPath + File.separator);
                 
-        logger.info("配置资源映射: /uploads/** -> file:{}/", uploadPath);
+        logger.info("配置资源映射: /uploads/** -> file:{}{}", uploadPath, File.separator);
     }
 } 

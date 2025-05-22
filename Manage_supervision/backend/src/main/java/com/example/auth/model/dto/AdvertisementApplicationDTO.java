@@ -48,33 +48,42 @@ public class AdvertisementApplicationDTO {
     // 备注
     private String remark;
     
-    // 省份ID
-    private Long provinceId;
-    
-    // 省份名称
-    private String provinceName;
-    
-    // 城市ID
-    private Long cityId;
-    
-    // 城市名称
-    private String cityName;
-    
-    // 区/县ID
-    private Long districtId;
-    
-    // 区/县名称
-    private String districtName;
-    
-    // 街道/乡镇ID
-    private Long streetId;
-    
-    // 街道/乡镇名称
-    private String streetName;
-    
     // 详细地址
     private String detailedAddress;
     
     // 完整地址
     private String fullAddress;
+    
+    // 经度
+    private Double longitude;
+    
+    // 纬度
+    private Double latitude;
+    
+    // 省份ID
+    private Long provinceId;
+    
+    // 城市ID
+    private Long cityId;
+    
+    // 区县ID
+    private Long districtId;
+    
+    // 街道ID
+    private Long streetId;
+    
+    // 省份名称
+    private String provinceName;
+    
+    // 城市名称
+    private String cityName;
+    
+    // 区县名称
+    private String districtName;
+    
+    // 街道名称
+    private String streetName;
+    
+    // 街道图片URL
+    private String streetImageUrl;
 } 

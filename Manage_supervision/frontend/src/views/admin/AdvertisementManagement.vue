@@ -112,69 +112,101 @@
     >
       <div class="dialog-content">
         <div class="region-tree-container">
-          <h4>选择区域</h4>
-          <el-tree
-            ref="regionTreeRef"
-            :data="regionOptions"
-            node-key="id"
-            :props="{
-              label: 'label',
-              children: 'children'
-            }"
-            highlight-current
-            :expand-on-click-node="false"
-            @node-click="handleRegionNodeClick"
-          ></el-tree>
-        </div>
-        
-        <el-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          label-width="100px"
-          label-position="right"
-          class="form-container"
-        >
-          <div class="selected-address">
-            <p v-if="selectedAddress">当前选择: <span class="address">{{ selectedAddress }}</span></p>
-            <p v-else class="no-address">尚未选择地址</p>
-          </div>
+          <h4><el-icon><Location /></el-icon> 省市区选择</h4>
+          <el-card shadow="hover" class="region-card">
+            <el-tree
+              :data="regionTreeData"
+              :props="regionTreeProps"
+              :load="loadRegionNode"
+              lazy
+              @node-click="handleRegionNodeClick"
+              highlight-current
+              node-key="id"
+              :default-expanded-keys="expandedKeys"
+              class="region-tree"
+              :expand-on-click-node="false"
+            />
+          </el-card>
 
-          <el-form-item label="区域" prop="area">
-            <el-input v-model="form.area" placeholder="请输入区域" />
-          </el-form-item>
+          <transition name="fade">
+            <div v-if="regionInfo.imageUrl" class="region-image">
+              <el-card shadow="hover" class="image-card">
+                <div class="image-title">街道图片</div>
+                <img :src="regionInfo.imageUrl" alt="街道图片" class="street-image" />
+              </el-card>
+            </div>
+          </transition>
           
-          <el-form-item label="详细地址" prop="detailedAddress">
-            <el-input v-model="form.detailedAddress" placeholder="请输入详细地址" />
-          </el-form-item>
-          
-          <el-form-item label="广告位置" prop="location">
-            <el-input v-model="form.location" placeholder="请输入广告位置" />
-          </el-form-item>
-          <el-form-item label="广告类型" prop="adType">
-            <el-select v-model="form.adType" placeholder="请选择广告设置类型" style="width: 100%">
-              <el-option label="墙体广告" value="墙体广告" />
-              <el-option label="立柱广告" value="立柱广告" />
-              <el-option label="LED显示屏" value="LED显示屏" />
-              <el-option label="灯箱广告" value="灯箱广告" />
-              <el-option label="其他" value="其他" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="广告性质" prop="adNature">
-            <el-select v-model="form.adNature" placeholder="请选择广告性质" style="width: 100%">
-              <el-option label="商业" value="商业" />
-              <el-option label="公益" value="公益" />
-              <el-option label="政府" value="政府" />
-              <el-option label="其他" value="其他" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="面积(㎡)" prop="size">
-            <el-input-number v-model="form.size" :min="0.1" :precision="2" :step="0.1" style="width: 100%" />
-          </el-form-item>
-          <el-form-item label="备注" prop="remark">
-            <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注信息" />
-          </el-form-item>
-        </el-form>
+          <transition name="fade">
+            <div v-if="regionInfo.longitude && regionInfo.latitude" class="region-location">
+              <el-card shadow="hover" class="location-card">
+                <div class="location-header">
+                  <el-icon class="location-icon"><MapLocation /></el-icon> 位置信息
+                </div>
+                <div class="location-info">
+                  <div class="location-item">
+                    <span class="location-label">经度：</span>
+                    <span class="location-value">{{ regionInfo.longitude }}</span>
+                  </div>
+                  <div class="location-item">
+                    <span class="location-label">纬度：</span>
+                    <span class="location-value">{{ regionInfo.latitude }}</span>
+                  </div>
+                </div>
+              </el-card>
+            </div>
+          </transition>
+        </div>
+
+        <div class="form-wrapper">
+          <el-form
+            ref="formRef"
+            :model="form"
+            :rules="rules"
+            label-width="100px"
+            label-position="right"
+            class="form-container"
+          >
+            <el-form-item label="区域" prop="area">
+              <el-input v-model="form.area" placeholder="区域" readonly />
+            </el-form-item>
+            <el-form-item label="详细地址" prop="detailedAddress">
+              <el-input v-model="form.detailedAddress" placeholder="请输入详细地址" />
+            </el-form-item>
+            <el-form-item label="广告位置" prop="location">
+              <el-input v-model="form.location" placeholder="请输入广告位置" />
+            </el-form-item>
+            <el-form-item label="广告类型" prop="adType">
+              <el-select v-model="form.adType" placeholder="请选择广告设置类型" style="width: 100%">
+                <el-option label="墙体广告" value="墙体广告" />
+                <el-option label="立柱广告" value="立柱广告" />
+                <el-option label="LED显示屏" value="LED显示屏" />
+                <el-option label="灯箱广告" value="灯箱广告" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="广告性质" prop="adNature">
+              <el-select v-model="form.adNature" placeholder="请选择广告性质" style="width: 100%">
+                <el-option label="商业" value="商业" />
+                <el-option label="公益" value="公益" />
+                <el-option label="政府" value="政府" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="面积(㎡)" prop="size">
+              <el-input-number v-model="form.size" :min="0.1" :precision="2" :step="0.1" style="width: 100%" />
+            </el-form-item>
+            <el-form-item label="经度" prop="longitude">
+              <el-input-number v-model="form.longitude" :precision="6" :step="0.000001" style="width: 100%" />
+            </el-form-item>
+            <el-form-item label="纬度" prop="latitude">
+              <el-input-number v-model="form.latitude" :precision="6" :step="0.000001" style="width: 100%" />
+            </el-form-item>
+            <el-form-item label="备注" prop="remark">
+              <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注信息" />
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
       <template #footer>
         <span class="dialog-footer">
@@ -193,21 +225,30 @@
       <el-descriptions :column="1" border>
         <el-descriptions-item label="申请编号">{{ currentItem.applicationNumber }}</el-descriptions-item>
         <el-descriptions-item label="区域">{{ currentItem.area }}</el-descriptions-item>
-        <el-descriptions-item label="行政区域">{{ getFullAddress(currentItem) }}</el-descriptions-item>
+        <el-descriptions-item label="省市区">
+          {{ currentItem.provinceName || '' }}
+          {{ currentItem.cityName || '' }}
+          {{ currentItem.districtName || '' }}
+          {{ currentItem.streetName || '' }}
+        </el-descriptions-item>
         <el-descriptions-item label="详细地址">{{ currentItem.detailedAddress || '无' }}</el-descriptions-item>
         <el-descriptions-item label="广告位置">{{ currentItem.location }}</el-descriptions-item>
         <el-descriptions-item label="广告设置类型">{{ currentItem.adType }}</el-descriptions-item>
         <el-descriptions-item label="广告性质">{{ currentItem.adNature }}</el-descriptions-item>
         <el-descriptions-item label="面积(㎡)">{{ currentItem.size }}</el-descriptions-item>
+        <el-descriptions-item label="经度">{{ currentItem.longitude || '未设置' }}</el-descriptions-item>
+        <el-descriptions-item label="纬度">{{ currentItem.latitude || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag :type="getStatusType(currentItem.status)">
             {{ getStatusText(currentItem.status) }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="申请人">{{ currentItem.applicantName }}</el-descriptions-item>
-        <el-descriptions-item label="联系电话">{{ currentItem.applicantPhone || '未提供' }}</el-descriptions-item>
         <el-descriptions-item label="申请时间">{{ currentItem.createTime }}</el-descriptions-item>
         <el-descriptions-item label="备注">{{ currentItem.remark || '无' }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentItem.streetImageUrl" label="街道图片">
+          <img :src="currentItem.streetImageUrl" class="street-detail-image" />
+        </el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <span class="dialog-footer">
@@ -252,6 +293,9 @@ import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import axios from '../../utils/axios'
 import { useUserStore } from '../../stores/user'
 
+// 添加图标组件导入
+import { Location, MapLocation } from '@element-plus/icons-vue'
+
 const userStore = useUserStore()
 const currentUser = userStore.user
 
@@ -287,12 +331,82 @@ const form = reactive({
   size: 1.0,
   remark: '',
   applicantId: currentUser.id,
+  detailedAddress: '',
+  longitude: null,
+  latitude: null,
   provinceId: null,
   cityId: null,
   districtId: null,
-  streetId: null,
-  detailedAddress: ''
+  streetId: null
 })
+
+// 地区选择相关
+const selectedRegion = reactive({
+  province: null,
+  city: null,
+  district: null,
+  street: null
+})
+
+const regionOptions = reactive({
+  provinces: [],
+  cities: [],
+  districts: [],
+  streets: []
+})
+
+const regionInfo = reactive({
+  longitude: null,
+  latitude: null,
+  imageUrl: null
+})
+
+// 添加级联选择器需要的数据
+const regionCascadeValue = ref([])
+const regionTreeData = ref([])
+const regionCascaderProps = reactive({
+  value: 'id',
+  label: 'name',
+  children: 'children',
+  checkStrictly: false,
+  expandTrigger: 'hover',
+  lazy: true,
+  lazyLoad: async (node, resolve) => {
+    if (node.level === 0) {
+      // 加载省份
+      try {
+        const response = await axios.get('/api/regions/children/0')
+        const provinces = response.data
+        resolve(provinces)
+      } catch (error) {
+        console.error('加载省份数据失败', error)
+        ElMessage.error('加载省份数据失败')
+        resolve([])
+      }
+    } else {
+      // 加载子节点
+      try {
+        const parentId = node.data.id
+        const response = await axios.get(`/api/regions/children/${parentId}`)
+        const children = response.data
+        resolve(children)
+      } catch (error) {
+        console.error('加载子节点数据失败', error)
+        ElMessage.error('加载子节点数据失败')
+        resolve([])
+      }
+    }
+  }
+})
+
+// 修改为树形结构需要的数据
+const regionTreeProps = reactive({
+  label: 'name',
+  children: 'children',
+  isLeaf: 'isLeaf'
+})
+
+const expandedKeys = ref([]) // 存储展开的节点ID
 
 // 表单验证规则
 const rules = {
@@ -316,12 +430,6 @@ const reviewForm = reactive({
   status: '',
   remark: ''
 })
-
-// 区域选择相关
-const regionOptions = ref([])
-const selectedRegions = ref([])
-const selectedAddress = ref('')
-const regionTreeRef = ref(null)
 
 // 状态格式化
 const getStatusText = (status: string) => {
@@ -390,6 +498,236 @@ const resetSearch = () => {
   handleSearch()
 }
 
+// 加载省份数据
+const loadProvinces = async () => {
+  try {
+    const response = await axios.get('/api/regions/children/0')
+    regionOptions.provinces = response.data
+  } catch (error) {
+    console.error('加载省份数据失败', error)
+    ElMessage.error('加载省份数据失败')
+  }
+}
+
+// 加载城市数据
+const loadCities = async (provinceId) => {
+  if (!provinceId) {
+    regionOptions.cities = []
+    return
+  }
+  try {
+    const response = await axios.get(`/api/regions/children/${provinceId}`)
+    regionOptions.cities = response.data
+  } catch (error) {
+    console.error('加载城市数据失败', error)
+    ElMessage.error('加载城市数据失败')
+  }
+}
+
+// 加载区县数据
+const loadDistricts = async (cityId) => {
+  if (!cityId) {
+    regionOptions.districts = []
+    return
+  }
+  try {
+    const response = await axios.get(`/api/regions/children/${cityId}`)
+    regionOptions.districts = response.data
+  } catch (error) {
+    console.error('加载区县数据失败', error)
+    ElMessage.error('加载区县数据失败')
+  }
+}
+
+// 加载街道数据
+const loadStreets = async (districtId) => {
+  if (!districtId) {
+    regionOptions.streets = []
+    return
+  }
+  try {
+    const response = await axios.get(`/api/regions/children/${districtId}`)
+    regionOptions.streets = response.data
+  } catch (error) {
+    console.error('加载街道数据失败', error)
+    ElMessage.error('加载街道数据失败')
+  }
+}
+
+// 加载街道详情
+const loadStreetDetail = async (streetId) => {
+  if (!streetId) {
+    regionInfo.longitude = null
+    regionInfo.latitude = null
+    regionInfo.imageUrl = null
+    return
+  }
+  try {
+    const response = await axios.get(`/api/regions/${streetId}`)
+    const streetData = response.data
+    regionInfo.longitude = streetData.longitude
+    regionInfo.latitude = streetData.latitude
+    regionInfo.imageUrl = streetData.imageUrl
+
+    // 将经纬度设置到表单
+    form.longitude = streetData.longitude
+    form.latitude = streetData.latitude
+  } catch (error) {
+    console.error('加载街道详情失败', error)
+    ElMessage.error('加载街道详情失败')
+  }
+}
+
+// 省份选择改变
+const handleProvinceChange = (provinceId) => {
+  selectedRegion.city = null
+  selectedRegion.district = null
+  selectedRegion.street = null
+  regionOptions.cities = []
+  regionOptions.districts = []
+  regionOptions.streets = []
+  form.provinceId = provinceId
+  // 清空区域
+  form.area = ''
+  form.detailedAddress = ''
+  // 加载城市数据
+  loadCities(provinceId)
+  // 获取省份名称
+  const province = regionOptions.provinces.find(p => p.id === provinceId)
+  if (province) {
+    updateAreaField()
+  }
+}
+
+// 城市选择改变
+const handleCityChange = (cityId) => {
+  selectedRegion.district = null
+  selectedRegion.street = null
+  regionOptions.districts = []
+  regionOptions.streets = []
+  form.cityId = cityId
+  // 加载区县数据
+  loadDistricts(cityId)
+  updateAreaField()
+}
+
+// 区县选择改变
+const handleDistrictChange = (districtId) => {
+  selectedRegion.street = null
+  regionOptions.streets = []
+  form.districtId = districtId
+  // 加载街道数据
+  loadStreets(districtId)
+  updateAreaField()
+}
+
+// 街道选择改变
+const handleStreetChange = (streetId) => {
+  form.streetId = streetId
+  // 加载街道详情
+  loadStreetDetail(streetId)
+  updateAreaField()
+}
+
+// 更新区域字段
+const updateAreaField = () => {
+  const provinceObj = regionOptions.provinces.find(p => p.id === selectedRegion.province)
+  const cityObj = regionOptions.cities.find(c => c.id === selectedRegion.city)
+  const districtObj = regionOptions.districts.find(d => d.id === selectedRegion.district)
+  const streetObj = regionOptions.streets.find(s => s.id === selectedRegion.street)
+
+  let area = ''
+  let address = ''
+
+  if (provinceObj) {
+    area += provinceObj.name
+    address += provinceObj.name
+  }
+  if (cityObj) {
+    area += cityObj.name
+    address += cityObj.name
+  }
+  if (districtObj) {
+    area += districtObj.name
+    address += districtObj.name
+  }
+  if (streetObj) {
+    area += streetObj.name
+    address += streetObj.name
+  }
+  form.area = area
+  form.detailedAddress = address
+}
+
+// 新增级联选择器变化处理方法
+const handleRegionChange = async (value) => {
+  if (!value || value.length === 0) {
+    // 清空选择
+    form.provinceId = null
+    form.cityId = null
+    form.districtId = null
+    form.streetId = null
+    form.area = ''
+    form.detailedAddress = ''
+    regionInfo.longitude = null
+    regionInfo.latitude = null
+    regionInfo.imageUrl = null
+    form.longitude = null
+    form.latitude = null
+    return
+  }
+
+  // 根据级联选择器的值设置表单字段
+  const level = value.length
+  let provinceId, cityId, districtId, streetId
+  let area = ''
+  let address = ''
+  
+  // 获取最后一个选中节点的详细信息
+  const lastNodeId = value[value.length - 1]
+  const response = await axios.get(`/api/regions/${lastNodeId}`)
+  const nodeData = response.data
+  
+  // 递归获取完整路径
+  const pathResponse = await axios.get(`/api/regions/${lastNodeId}/path`)
+  const pathData = pathResponse.data
+  
+  // 根据路径设置各级ID和名称
+  for (const node of pathData) {
+    if (node.level === 1) {
+      provinceId = node.id
+      area += node.name
+      address += node.name
+      form.provinceId = node.id
+    } else if (node.level === 2) {
+      cityId = node.id
+      area += node.name
+      address += node.name
+      form.cityId = node.id
+    } else if (node.level === 3) {
+      districtId = node.id
+      area += node.name
+      address += node.name
+      form.districtId = node.id
+    } else if (node.level === 4) {
+      streetId = node.id
+      area += node.name
+      address += node.name
+      form.streetId = node.id
+      
+      // 如果是街道级别，获取经纬度和图片
+      regionInfo.longitude = node.longitude
+      regionInfo.latitude = node.latitude
+      regionInfo.imageUrl = node.imageUrl
+      form.longitude = node.longitude ? node.longitude.valueOf() : null
+      form.latitude = node.latitude ? node.latitude.valueOf() : null
+    }
+  }
+  
+  form.area = area
+  form.detailedAddress = address
+}
+
 // 创建申请
 const handleCreate = () => {
   dialogType.value = 'create'
@@ -401,20 +739,34 @@ const handleCreate = () => {
   form.size = 1.0
   form.remark = ''
   form.applicantId = currentUser.id
+  form.detailedAddress = ''
+  form.longitude = null
+  form.latitude = null
   form.provinceId = null
   form.cityId = null
   form.districtId = null
   form.streetId = null
-  form.detailedAddress = ''
+
+  // 重置区域选择
+  selectedRegion.province = null
+  selectedRegion.city = null
+  selectedRegion.district = null
+  selectedRegion.street = null
   
-  // 清空选中状态
-  selectedAddress.value = ''
-  if (regionTreeRef.value) {
-    regionTreeRef.value.setCurrentKey(null)
-  }
+  // 重置级联选择器的值
+  regionCascadeValue.value = []
   
+  // 清空展开的节点
+  expandedKeys.value = []
+
+  // 重置区域信息
+  regionInfo.longitude = null
+  regionInfo.latitude = null
+  regionInfo.imageUrl = null
+
+  // 加载省份数据
+  loadProvinces()
   dialogVisible.value = true
-  
   // 下一帧重置表单验证
   setTimeout(() => {
     if (formRef.value) {
@@ -448,52 +800,39 @@ const submitForm = async () => {
 }
 
 // 查看详情
-const handleView = (row) => {
-  currentItem.value = { ...row }
-  viewDialogVisible.value = true
-}
-
-// 编辑广告申请（新增函数）
-const handleEdit = (row) => {
-  dialogType.value = 'edit'
-  form.id = row.id
-  form.area = row.area || ''
-  form.location = row.location || ''
-  form.adType = row.adType || ''
-  form.adNature = row.adNature || ''
-  form.size = row.size || 1.0
-  form.remark = row.remark || ''
-  form.applicantId = row.applicantId || currentUser.id
-  form.provinceId = row.provinceId || null
-  form.cityId = row.cityId || null
-  form.districtId = row.districtId || null
-  form.streetId = row.streetId || null
-  form.detailedAddress = row.detailedAddress || ''
-  
-  // 更新选中的地址
-  selectedAddress.value = row.fullAddress || getFullAddress(row) || ''
-  
-  // 尝试在树中找到对应的节点并设置为当前选中
-  setTimeout(() => {
-    if (regionTreeRef.value) {
-      // 按照详细程度依次尝试选中
-      if (row.streetId) {
-        regionTreeRef.value.setCurrentKey(row.streetId)
-      } else if (row.districtId) {
-        regionTreeRef.value.setCurrentKey(row.districtId)
-      } else if (row.cityId) {
-        regionTreeRef.value.setCurrentKey(row.cityId)
-      } else if (row.provinceId) {
-        regionTreeRef.value.setCurrentKey(row.provinceId)
-      }
+const handleView = async (row) => {
+  try {
+    // 获取广告详细信息
+    const response = await axios.get(`/api/advertisement/${row.id}`);
+    currentItem.value = response.data;
+    
+    // 确保经纬度是数字类型
+    if (currentItem.value.longitude) {
+      currentItem.value.longitude = Number(currentItem.value.longitude);
+    }
+    if (currentItem.value.latitude) {
+      currentItem.value.latitude = Number(currentItem.value.latitude);
     }
     
-    if (formRef.value) {
-      formRef.value.clearValidate()
+    // 显示详情对话框
+    viewDialogVisible.value = true;
+  } catch (error) {
+    console.error('获取广告详情失败', error);
+    ElMessage.error('获取广告详情失败');
+    
+    // 如果获取失败，使用原始行数据
+    currentItem.value = { ...row };
+    
+    // 确保经纬度是正确的类型
+    if (currentItem.value.longitude) {
+      currentItem.value.longitude = Number(currentItem.value.longitude);
     }
-  }, 300)
-  
-  dialogVisible.value = true
+    if (currentItem.value.latitude) {
+      currentItem.value.latitude = Number(currentItem.value.latitude);
+    }
+    
+    viewDialogVisible.value = true;
+  }
 }
 
 // 批准申请
@@ -503,6 +842,46 @@ const handleApprove = (row) => {
   reviewForm.status = 'approved'
   reviewForm.remark = ''
   reviewDialogVisible.value = true
+}
+
+// 编辑广告申请
+const handleEdit = async (row) => {
+  dialogType.value = 'edit'
+  form.id = row.id
+  form.area = row.area || ''
+  form.location = row.location || ''
+  form.adType = row.adType || ''
+  form.adNature = row.adNature || ''
+  form.size = row.size || 1.0
+  form.remark = row.remark || ''
+  form.applicantId = row.applicantId || currentUser.id
+  form.detailedAddress = row.detailedAddress || ''
+  form.longitude = row.longitude || null
+  form.latitude = row.latitude || null
+  form.provinceId = row.provinceId || null
+  form.cityId = row.cityId || null
+  form.districtId = row.districtId || null
+  form.streetId = row.streetId || null
+  
+  // 重置区域信息
+  regionInfo.longitude = row.longitude
+  regionInfo.latitude = row.latitude
+  regionInfo.imageUrl = row.streetImageUrl
+  
+  // 设置展开节点
+  expandedKeys.value = []
+  if (row.provinceId) expandedKeys.value.push(row.provinceId)
+  if (row.cityId) expandedKeys.value.push(row.cityId)
+  if (row.districtId) expandedKeys.value.push(row.districtId)
+  
+  dialogVisible.value = true
+  
+  // 下一帧重置表单验证
+  setTimeout(() => {
+    if (formRef.value) {
+      formRef.value.clearValidate()
+    }
+  }, 0)
 }
 
 // 拒绝申请
@@ -543,134 +922,148 @@ const handleCurrentChange = (val: number) => {
   loadAdvertisementList()
 }
 
-// 加载区域树
-const loadRegionTree = async () => {
+// 加载树节点数据
+const loadRegionNode = async (node, resolve) => {
+  const loading = ElMessage.info({
+    message: '正在加载地区数据...',
+    duration: 0,
+    showClose: false
+  })
+  
   try {
-    const response = await axios.get('/api/regions/tree')
-    regionOptions.value = response.data
+    let parentId = 0
+    if (node.level > 0) {
+      parentId = node.data.id
+    }
+    
+    const response = await axios.get(`/api/regions/children/${parentId}`)
+    const children = response.data
+    
+    // 为最后一级节点（街道）添加叶子节点标记
+    if (node.level === 3) {
+      children.forEach(item => {
+        item.isLeaf = true
+      })
+    }
+    
+    // 延迟一小段时间，让动画效果更明显
+    setTimeout(() => {
+      resolve(children)
+      loading.close()
+    }, 300)
   } catch (error) {
-    console.error('加载区域树失败:', error)
-    ElMessage.error('加载区域树失败')
+    console.error('加载地区数据失败', error)
+    ElMessage.error('加载地区数据失败')
+    resolve([])
+    loading.close()
   }
 }
 
-// 处理区域点击事件
-const handleRegionNodeClick = (data, node) => {
-  console.log('节点点击:', data, node)
-  
-  // 获取节点级别
-  const level = data.level
-  
-  // 根据节点级别设置不同的字段
-  if (level === 1) { // 省级
-    form.provinceId = data.id
-    form.cityId = null
-    form.districtId = null
-    form.streetId = null
-  } else if (level === 2) { // 市级
-    // 查找当前节点的父节点
-    const parentNode = node.parent
-    if (parentNode && parentNode.data) {
-      form.provinceId = parentNode.data.id
+// 树节点点击事件
+const handleRegionNodeClick = async (data, node) => {
+  // 节点点击后的处理逻辑
+  if (node.isLeaf) {
+    // 如果是叶子节点（街道级别），加载详细信息
+    await loadNodeDetail(data.id, data)
+  } else {
+    // 非叶子节点
+    if (node.level === 1) {
+      // 省级
+      form.provinceId = data.id
+      form.cityId = null
+      form.districtId = null
+      form.streetId = null
+      updateRegionInfo(data, null, null, null)
+    } else if (node.level === 2) {
+      // 市级
+      form.provinceId = node.parent.data.id
+      form.cityId = data.id
+      form.districtId = null
+      form.streetId = null
+      updateRegionInfo(node.parent.data, data, null, null)
+    } else if (node.level === 3) {
+      // 区县级
+      form.provinceId = node.parent.parent.data.id
+      form.cityId = node.parent.data.id
+      form.districtId = data.id
+      form.streetId = null
+      updateRegionInfo(node.parent.parent.data, node.parent.data, data, null)
     }
-    form.cityId = data.id
-    form.districtId = null
-    form.streetId = null
-  } else if (level === 3) { // 区/县级
-    // 获取当前节点的层级关系
-    const parentNode = node.parent
-    let grandParentNode = null
+  }
+}
+
+// 加载节点详细信息
+const loadNodeDetail = async (nodeId, nodeData) => {
+  try {
+    const response = await axios.get(`/api/regions/${nodeId}`)
+    const nodeDetail = response.data
     
-    if (parentNode) {
-      grandParentNode = parentNode.parent
-      form.cityId = parentNode.data.id
+    if (nodeDetail.level === 4) {
+      // 街道级别
+      form.streetId = nodeDetail.id
       
-      if (grandParentNode) {
-        form.provinceId = grandParentNode.data.id
-      }
-    }
-    
-    form.districtId = data.id
-    form.streetId = null
-  } else if (level === 4) { // 街道/乡镇级
-    // 获取当前节点的完整层级关系
-    const parentNode = node.parent
-    let cityNode = null
-    let provinceNode = null
-    
-    if (parentNode) { // 区/县
-      form.districtId = parentNode.data.id
-      cityNode = parentNode.parent
+      // 递归获取完整路径
+      const pathResponse = await axios.get(`/api/regions/${nodeId}/path`)
+      const pathData = pathResponse.data
       
-      if (cityNode) { // 市
-        form.cityId = cityNode.data.id
-        provinceNode = cityNode.parent
-        
-        if (provinceNode) { // 省
-          form.provinceId = provinceNode.data.id
+      let province, city, district, street
+      
+      // 根据路径设置各级ID和名称
+      for (const node of pathData) {
+        if (node.level === 1) {
+          province = node
+          form.provinceId = node.id
+        } else if (node.level === 2) {
+          city = node
+          form.cityId = node.id
+        } else if (node.level === 3) {
+          district = node
+          form.districtId = node.id
+        } else if (node.level === 4) {
+          street = node
+          form.streetId = node.id
         }
       }
+      
+      // 展开所有父节点
+      if (province) expandedKeys.value.push(province.id)
+      if (city) expandedKeys.value.push(city.id)
+      if (district) expandedKeys.value.push(district.id)
+      
+      // 更新区域信息
+      updateRegionInfo(province, city, district, street)
+      
+      // 如果是街道级别，获取经纬度和图片
+      regionInfo.longitude = nodeDetail.longitude
+      regionInfo.latitude = nodeDetail.latitude
+      regionInfo.imageUrl = nodeDetail.imageUrl
+      form.longitude = nodeDetail.longitude ? nodeDetail.longitude.valueOf() : null
+      form.latitude = nodeDetail.latitude ? nodeDetail.latitude.valueOf() : null
     }
     
-    form.streetId = data.id
-  }
-  
-  // 更新选中的地址显示
-  updateSelectedAddress()
-  
-  console.log('设置的区域ID:', form.provinceId, form.cityId, form.districtId, form.streetId)
-}
-
-// 更新选中的地址显示
-const updateSelectedAddress = async () => {
-  try {
-    // 获取完整地址路径
-    const response = await axios.get('/api/regions/address-path', {
-      params: {
-        provinceId: form.provinceId,
-        cityId: form.cityId,
-        districtId: form.districtId,
-        streetId: form.streetId
-      }
-    })
-    
-    const addressText = response.data || '未选择地址'
-    selectedAddress.value = addressText
-    
-    // 自动填写区域字段
-    if (addressText && addressText !== '未选择地址') {
-      form.area = addressText
-    }
   } catch (error) {
-    console.error('获取地址路径失败:', error)
-    selectedAddress.value = '获取地址路径失败'
+    console.error('加载节点详情失败', error)
+    ElMessage.error('加载节点详情失败')
   }
 }
 
-// 获取完整地址
-const getFullAddress = (item) => {
-  if (!item) return '未设置'
+// 更新区域信息
+const updateRegionInfo = (province, city, district, street) => {
+  let area = []
   
-  let address = ''
+  if (province) area.push(province.name)
+  if (city) area.push(city.name)
+  if (district) area.push(district.name)
+  if (street) area.push(street.name)
   
-  if (item.provinceName) address += item.provinceName
-  if (item.cityName) address += item.cityName
-  if (item.districtName) address += item.districtName
-  if (item.streetName) address += item.streetName
-  
-  if (!address) {
-    // 尝试通过fullAddress字段获取
-    if (item.fullAddress) return item.fullAddress
-    return '未设置'
-  }
-  
-  return address
+  form.area = area.join('')
+  // 不再自动填充详细地址，让用户自行填写具体门牌号等信息
 }
 
 // 页面加载时获取数据
 onMounted(() => {
   loadAdvertisementList()
-  loadRegionTree()
+  loadProvinces()
 })
 </script>
 
@@ -725,39 +1118,379 @@ onMounted(() => {
 
 .dialog-content {
   display: flex;
-  min-height: 450px;
+  min-height: 500px;
+  gap: 30px;
+  overflow: visible;
+}
+
+.form-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border-left: 1px solid #E6F1FC;
+  padding-left: 30px;
+  padding-right: 15px;
+  min-width: 0; /* 允许flexbox子元素收缩 */
+}
+
+.form-container {
+  flex: 1;
+  min-width: 0; /* 确保表单元素可以收缩，不会溢出 */
 }
 
 .region-tree-container {
-  flex: 0 0 260px;
-  margin-right: 20px;
-  border-right: 1px solid #ebeef5;
-  padding-right: 20px;
-  overflow: auto;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+  height: 100%;
+  overflow: visible;
+  padding-right: 0;
+  padding-bottom: 10px;
+  position: relative;
+  z-index: 10;
 }
 
 .region-tree-container h4 {
   margin-top: 0;
   margin-bottom: 15px;
+  color: #2C8CF0;
+  font-size: 16px;
+  font-weight: 600;
+  position: relative;
+  padding: 8px 0 8px 15px;
+  border-left: 4px solid #2C8CF0;
+  background: linear-gradient(90deg, rgba(44, 140, 240, 0.08) 0%, rgba(44, 140, 240, 0) 100%);
+  border-radius: 0 4px 4px 0;
 }
 
-.form-container {
-  flex: 1;
+.region-tree-container h4 .el-icon {
+  margin-right: 8px;
+  color: #2C8CF0;
+  font-size: 18px;
+  vertical-align: middle;
 }
 
-.selected-address {
+.region-tree {
+  height: 380px;
+  min-height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #E6F1FC;
+  border-radius: 8px;
+  padding: 15px 5px 15px 15px;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.05);
+  background-color: #FAFCFF;
+  scrollbar-width: thin;
+  scrollbar-color: #C0D8F0 #F5F9FF;
+  margin-right: 10px;
+  position: relative;
+}
+
+/* 让树的内容可以撑开足够宽度 */
+.region-tree :deep(.el-scrollbar__wrap) {
+  overflow-x: visible !important;
+}
+
+.region-tree :deep(.el-scrollbar__view) {
+  min-width: 100%;
+  width: fit-content;
+}
+
+/* 确保树节点内容不被截断 */
+:deep(.el-tree-node__content > span:last-child) {
+  overflow: visible;
+  text-overflow: clip;
+  padding-right: 15px;
+}
+
+.region-image {
+  margin-top: 15px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.street-image {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 4px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  border: 3px solid white;
+}
+
+.street-image:hover {
+  transform: scale(1.02);
+}
+
+.region-location {
+  margin-top: 15px;
+}
+
+.street-detail-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* 动画过渡效果 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.region-card {
   margin-bottom: 15px;
-  padding: 10px;
-  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FCFF 100%);
+}
+
+.region-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(44, 140, 240, 0.15);
+}
+
+.region-card :deep(.el-card__body) {
+  padding: 12px;
+}
+
+.image-card, .location-card {
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FCFF 100%);
+}
+
+.image-card:hover, .location-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(44, 140, 240, 0.15);
+}
+
+.image-title {
+  font-size: 14px;
+  color: #2C8CF0;
+  margin-bottom: 10px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background-color: #F0F8FF;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.location-header {
+  font-size: 14px;
+  color: #2C8CF0;
+  margin-bottom: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #F0F8FF;
   border-radius: 4px;
 }
 
-.selected-address .address {
-  font-weight: bold;
-  color: #409eff;
+.location-icon {
+  margin-right: 8px;
+  font-size: 16px;
 }
 
-.no-address {
-  color: #999;
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-item {
+  display: flex;
+  font-size: 13px;
+}
+
+.location-label {
+  color: #909399;
+  width: 50px;
+}
+
+.location-value {
+  color: #606266;
+  font-weight: 500;
+}
+
+/* 美化树节点样式 */
+:deep(.el-tree-node__content) {
+  height: 36px;
+  border-radius: 6px;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+  padding-left: 5px;
+  padding-right: 10px;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+:deep(.el-tree-node__content:hover) {
+  background-color: #E6F1FC;
+  transform: translateX(2px);
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content) {
+  background-color: #E6F1FC;
+  color: #2C8CF0;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(44, 140, 240, 0.15);
+}
+
+:deep(.el-tree-node__expand-icon) {
+  color: #2C8CF0;
+  font-size: 14px;
+}
+
+:deep(.el-tree-node__expand-icon.expanded) {
+  transform: rotate(90deg) scale(1.1);
+}
+
+:deep(.el-tree-node__label) {
+  font-size: 14px;
+  color: #606266;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+:deep(.el-tree-node.is-current .el-tree-node__label) {
+  color: #2C8CF0;
+}
+
+:deep(.el-form-item__label) {
+  color: #606880;
+  font-weight: 500;
+}
+
+:deep(.el-input__inner) {
+  border-radius: 6px;
+}
+
+:deep(.el-input__inner:focus) {
+  border-color: #2C8CF0;
+  box-shadow: 0 0 0 2px rgba(44, 140, 240, 0.1);
+}
+
+:deep(.el-select .el-input__inner:focus) {
+  border-color: #2C8CF0;
+}
+
+:deep(.el-textarea__inner) {
+  border-radius: 6px;
+}
+
+:deep(.el-textarea__inner:focus) {
+  border-color: #2C8CF0;
+  box-shadow: 0 0 0 2px rgba(44, 140, 240, 0.1);
+}
+
+:deep(.el-input-number__decrease),
+:deep(.el-input-number__increase) {
+  background-color: #F5F9FF;
+  border-color: #E6F1FC;
+  color: #2C8CF0;
+}
+
+:deep(.el-input-number__decrease:hover),
+:deep(.el-input-number__increase:hover) {
+  color: #2C8CF0;
+  background-color: #E6F1FC;
+}
+
+:deep(.el-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-dialog__header) {
+  background: linear-gradient(90deg, #2C8CF0 0%, #43A6FF 100%);
+  padding: 15px 20px;
+  margin-right: 0;
+}
+
+:deep(.el-dialog__title) {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #FFFFFF;
+}
+
+:deep(.el-dialog__body) {
+  padding: 25px;
+}
+
+:deep(.el-dialog__footer) {
+  border-top: 1px solid #F0F2F5;
+  padding: 15px 25px;
+}
+
+/* 增强树节点样式 */
+:deep(.el-tree-node) {
+  white-space: nowrap;
+  overflow: visible;
+  min-width: 100%;
+  width: fit-content;
+}
+
+:deep(.el-tree-node__children) {
+  overflow: visible;
+  min-width: 100%;
+  width: fit-content;
+}
+
+:deep(.el-tree) {
+  min-width: 100%;
+  width: fit-content;
+}
+
+:deep(.el-tree-node__label) {
+  font-size: 14px;
+  color: #606266;
+  white-space: nowrap;
+  overflow: visible;
+  display: inline-block;
+}
+
+:deep(.el-icon) {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* 自定义滚动条样式 */
+.region-tree::-webkit-scrollbar {
+  width: 8px;
+}
+
+.region-tree::-webkit-scrollbar-track {
+  background: #F5F9FF;
+  border-radius: 6px;
+}
+
+.region-tree::-webkit-scrollbar-thumb {
+  background-color: #C0D8F0;
+  border-radius: 6px;
+  border: 2px solid #F5F9FF;
 }
 </style> 

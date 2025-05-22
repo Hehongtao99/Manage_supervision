@@ -141,7 +141,17 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'regions',
         name: 'RegionManagement',
-        component: () => import('../views/admin/RegionManagement.vue'),
+        component: () => import('../views/admin/RegionTree.vue'),
+        meta: { 
+          title: '区域管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'region-tree',
+        name: 'RegionTreeManagement',
+        component: () => import('../views/admin/RegionTree.vue'),
         meta: { 
           title: '区域管理',
           requiresAuth: true,

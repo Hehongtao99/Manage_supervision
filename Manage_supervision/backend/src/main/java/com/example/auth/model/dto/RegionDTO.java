@@ -2,40 +2,44 @@ package com.example.auth.model.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 省市区街道数据传输对象
+ */
 @Data
 public class RegionDTO {
     
     private Long id;
     
-    // 父级ID
     private Long parentId;
     
-    // 区域名称
     private String name;
     
-    // 区域编码
     private String code;
     
-    // 区域级别：1-省, 2-市, 3-区/县, 4-街道/乡镇
     private Integer level;
     
-    // 排序号
     private Integer sortOrder;
     
-    // 创建时间
-    private String createTime;
+    private BigDecimal longitude;
     
-    // 更新时间
-    private String updateTime;
+    private BigDecimal latitude;
     
-    // 子区域
+    private String imageUrl;
+    
+    private LocalDateTime createTime;
+    
+    private LocalDateTime updateTime;
+    
+    private Boolean hasChildren;
+    
+    private Boolean isStreet;
+    
+    /**
+     * 子节点列表，用于树形结构
+     */
     private List<RegionDTO> children;
-    
-    // 值，用于前端选择器
-    private String value;
-    
-    // 标签，用于前端选择器
-    private String label;
 } 

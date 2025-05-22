@@ -49,38 +49,28 @@ public class AdvertisementApplication {
     // 备注
     private String remark;
     
+    // 详细地址
+    private String detailedAddress;
+    
+    // 经度
+    private Double longitude;
+    
+    // 纬度
+    private Double latitude;
+    
     // 省份ID
     private Long provinceId;
     
     // 城市ID
     private Long cityId;
     
-    // 区/县ID
+    // 区县ID
     private Long districtId;
     
-    // 街道/乡镇ID
+    // 街道ID
     private Long streetId;
-    
-    // 详细地址
-    private String detailedAddress;
     
     // 申请人信息（非数据库字段）
     @TableField(exist = false)
     private User applicant;
-    
-    // 省份信息（非数据库字段）
-    @TableField(exist = false)
-    private Region province;
-    
-    // 城市信息（非数据库字段）
-    @TableField(exist = false)
-    private Region city;
-    
-    // 区/县信息（非数据库字段）
-    @TableField(exist = false)
-    private Region district;
-    
-    // 街道/乡镇信息（非数据库字段）
-    @TableField(exist = false)
-    private Region street;
 } 

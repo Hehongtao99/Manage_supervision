@@ -2,12 +2,11 @@ package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.auth.mapper.AdvertisementApplicationMapper;
-import com.example.auth.mapper.RegionMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.dto.AdvertisementApplicationDTO;
 import com.example.auth.model.dto.PageResponse;
+import com.example.auth.model.dto.RegionDTO;
 import com.example.auth.model.entity.AdvertisementApplication;
-import com.example.auth.model.entity.Region;
 import com.example.auth.model.entity.User;
 import com.example.auth.service.AdvertisementService;
 import com.example.auth.service.RegionService;
@@ -20,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class AdvertisementServiceImpl implements AdvertisementService {
@@ -29,9 +29,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     
     @Autowired
     private UserMapper userMapper;
-    
-    @Autowired
-    private RegionMapper regionMapper;
     
     @Autowired
     private RegionService regionService;
@@ -54,6 +51,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         
         // 转换为DTO列表
         List<AdvertisementApplicationDTO> advertisementDTOs = new ArrayList<>();
+        
         for (AdvertisementApplication advertisement : advertisementPage.getRecords()) {
             AdvertisementApplicationDTO dto = convertToDTO(advertisement);
             
@@ -67,17 +65,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 }
             }
             
-            // 查询区域信息
-            setRegionInfo(advertisement, dto);
-            
             advertisementDTOs.add(dto);
         }
         
-        return new PageResponse<>(
+        // 构建分页响应
+        PageResponse<AdvertisementApplicationDTO> response = new PageResponse<>(
                 advertisementDTOs, 
                 advertisementPage.getTotal(), 
-                (int)pageParam.getCurrent(), 
-                (int)pageParam.getSize());
+                page, 
+                size);
+        
+        return response;
     }
     
     @Override
@@ -97,13 +95,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         advertisement.setStatus("pending");
         advertisement.setApplicantId(dto.getApplicantId());
         advertisement.setRemark(dto.getRemark());
+        advertisement.setDetailedAddress(dto.getDetailedAddress());
+        advertisement.setLongitude(dto.getLongitude());
+        advertisement.setLatitude(dto.getLatitude());
         
-        // 设置省市区街道ID
+        // 设置省市区街道
         advertisement.setProvinceId(dto.getProvinceId());
         advertisement.setCityId(dto.getCityId());
         advertisement.setDistrictId(dto.getDistrictId());
         advertisement.setStreetId(dto.getStreetId());
-        advertisement.setDetailedAddress(dto.getDetailedAddress());
         
         // 设置时间
         LocalDateTime now = LocalDateTime.now();
@@ -148,12 +148,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 advertisement.setRemark(dto.getRemark());
             }
             
-            // 省市区街道信息
+            advertisement.setDetailedAddress(dto.getDetailedAddress());
+            advertisement.setLongitude(dto.getLongitude());
+            advertisement.setLatitude(dto.getLatitude());
+            
+            // 设置省市区街道
             advertisement.setProvinceId(dto.getProvinceId());
             advertisement.setCityId(dto.getCityId());
             advertisement.setDistrictId(dto.getDistrictId());
             advertisement.setStreetId(dto.getStreetId());
-            advertisement.setDetailedAddress(dto.getDetailedAddress());
             
             // 更新时间
             advertisement.setUpdateTime(LocalDateTime.now());
@@ -210,97 +213,22 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 }
             }
             
-            // 查询区域信息
-            setRegionInfo(advertisement, dto);
-            
             return dto;
         }
         
         return null;
     }
     
-    /**
-     * 设置区域相关信息
-     */
-    private void setRegionInfo(AdvertisementApplication advertisement, AdvertisementApplicationDTO dto) {
-        // 省份信息
-        if (advertisement.getProvinceId() != null) {
-            Region province = regionMapper.selectById(advertisement.getProvinceId());
-            if (province != null) {
-                dto.setProvinceName(province.getName());
-            }
-        }
-        
-        // 城市信息
-        if (advertisement.getCityId() != null) {
-            Region city = regionMapper.selectById(advertisement.getCityId());
-            if (city != null) {
-                dto.setCityName(city.getName());
-            }
-        }
-        
-        // 区/县信息
-        if (advertisement.getDistrictId() != null) {
-            Region district = regionMapper.selectById(advertisement.getDistrictId());
-            if (district != null) {
-                dto.setDistrictName(district.getName());
-            }
-        }
-        
-        // 街道/乡镇信息
-        if (advertisement.getStreetId() != null) {
-            Region street = regionMapper.selectById(advertisement.getStreetId());
-            if (street != null) {
-                dto.setStreetName(street.getName());
-            }
-        }
-        
-        // 设置完整地址
-        String fullAddress = regionService.getFullAddressPath(
-                advertisement.getProvinceId(),
-                advertisement.getCityId(),
-                advertisement.getDistrictId(),
-                advertisement.getStreetId());
-        
-        if (advertisement.getDetailedAddress() != null && !advertisement.getDetailedAddress().isEmpty()) {
-            fullAddress += advertisement.getDetailedAddress();
-        }
-        
-        dto.setFullAddress(fullAddress);
-    }
-    
     @Override
     public String generateApplicationNumber() {
-        // 生成申请编号，格式：AD + 年月日 + 4位序号
-        String prefix = "AD" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // 生成基于时间的申请编号，格式：AD + 年月日 + 4位随机数
+        String prefix = "AD";
+        String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         
-        // 查询最大的申请编号
-        String maxApplicationNumber = advertisementApplicationMapper.getMaxApplicationNumber();
+        Random random = new Random();
+        String randomStr = String.format("%04d", random.nextInt(10000));
         
-        // 如果没有申请记录，从0001开始
-        if (maxApplicationNumber == null || maxApplicationNumber.isEmpty()) {
-            return prefix + "0001";
-        }
-        
-        // 如果有申请记录，获取序号并加1
-        try {
-            String currentDay = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            
-            // 如果最大的申请编号不是今天的，从0001开始
-            if (!maxApplicationNumber.contains(currentDay)) {
-                return prefix + "0001";
-            }
-            
-            // 获取序号
-            String sequence = maxApplicationNumber.substring(maxApplicationNumber.length() - 4);
-            int nextSequence = Integer.parseInt(sequence) + 1;
-            
-            // 格式化为4位数字
-            return prefix + String.format("%04d", nextSequence);
-        } catch (Exception e) {
-            // 异常情况下，使用时间戳
-            return prefix + "0001";
-        }
+        return prefix + dateStr + randomStr;
     }
     
     /**
@@ -318,13 +246,70 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         dto.setStatus(advertisement.getStatus());
         dto.setApplicantId(advertisement.getApplicantId());
         dto.setRemark(advertisement.getRemark());
+        dto.setDetailedAddress(advertisement.getDetailedAddress());
+        dto.setLongitude(advertisement.getLongitude());
+        dto.setLatitude(advertisement.getLatitude());
         
-        // 区域相关信息
+        // 设置省市区街道ID
         dto.setProvinceId(advertisement.getProvinceId());
         dto.setCityId(advertisement.getCityId());
         dto.setDistrictId(advertisement.getDistrictId());
         dto.setStreetId(advertisement.getStreetId());
-        dto.setDetailedAddress(advertisement.getDetailedAddress());
+        
+        // 如果有街道ID，获取街道详情
+        if (advertisement.getStreetId() != null) {
+            try {
+                RegionDTO street = regionService.getRegionById(advertisement.getStreetId());
+                if (street != null) {
+                    dto.setStreetName(street.getName());
+                    dto.setStreetImageUrl(street.getImageUrl());
+                    if (dto.getLongitude() == null) {
+                        dto.setLongitude(street.getLongitude() != null ? street.getLongitude().doubleValue() : null);
+                    }
+                    if (dto.getLatitude() == null) {
+                        dto.setLatitude(street.getLatitude() != null ? street.getLatitude().doubleValue() : null);
+                    }
+                }
+            } catch (Exception e) {
+                // 忽略错误，不影响主流程
+            }
+        }
+        
+        // 如果有区县ID，获取区县名称
+        if (advertisement.getDistrictId() != null) {
+            try {
+                RegionDTO district = regionService.getRegionById(advertisement.getDistrictId());
+                if (district != null) {
+                    dto.setDistrictName(district.getName());
+                }
+            } catch (Exception e) {
+                // 忽略错误，不影响主流程
+            }
+        }
+        
+        // 如果有城市ID，获取城市名称
+        if (advertisement.getCityId() != null) {
+            try {
+                RegionDTO city = regionService.getRegionById(advertisement.getCityId());
+                if (city != null) {
+                    dto.setCityName(city.getName());
+                }
+            } catch (Exception e) {
+                // 忽略错误，不影响主流程
+            }
+        }
+        
+        // 如果有省份ID，获取省份名称
+        if (advertisement.getProvinceId() != null) {
+            try {
+                RegionDTO province = regionService.getRegionById(advertisement.getProvinceId());
+                if (province != null) {
+                    dto.setProvinceName(province.getName());
+                }
+            } catch (Exception e) {
+                // 忽略错误，不影响主流程
+            }
+        }
         
         // 格式化时间
         if (advertisement.getCreateTime() != null) {

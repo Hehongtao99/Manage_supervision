@@ -44,3 +44,17 @@ mybatis-plus:
 jwt:
   secret: your_jwt_secret_key_here_please_change_in_production
   expiration: 86400000  # 24小时 
+
+# 文件上传配置
+file:
+  upload:
+    path: uploads  # 上传文件的本地存储路径
+  access:
+    path: http://localhost:8081/uploads/  # 访问文件的URL前缀 
+
+# MinIO配置
+minio:
+  endpoint: http://113.45.161.48:9000
+  accessKey: hht5002342003
+  secretKey: hht5002342003
+  bucketName: admin-system 
