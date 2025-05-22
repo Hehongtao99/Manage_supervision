@@ -31,63 +31,34 @@
           <span>角色管理</span>
         </el-menu-item>
       </el-sub-menu>
-
-      <el-sub-menu index="teacher-student-management">
-        <template #title>
-          <el-icon><User /></el-icon>
-          <span>教学管理</span>
-        </template>
-        <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
-          <el-icon><UserFilled /></el-icon>
-          <span>教师管理</span>
-        </el-menu-item>
-        <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
-          <el-icon><Avatar /></el-icon>
-          <span>学生管理</span>
-        </el-menu-item>
-      </el-sub-menu>
-    </template>
-
-    <!-- 督导员菜单 -->
-    <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>
-          <span>聊天</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
-        <el-icon><UserFilled /></el-icon>
-        <template #title>
-          <span>教师信息</span>
-        </template>
-      </el-menu-item>
       
-      <!-- 社交系统菜单 - 教师 -->
       <el-sub-menu index="social-management">
         <template #title>
-          <el-icon><Connection /></el-icon>
-          <span>社交系统</span>
+          <el-icon><ChatDotRound /></el-icon>
+          <span>社交管理</span>
         </template>
-        <el-menu-item index="/social" @click="handleRoute('/social')">
+        <el-menu-item index="/admin/social/posts" @click="handleRoute('/admin/social/posts')">
+          <el-icon><PictureFilled /></el-icon>
+          <span>朋友圈管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/social/comments" @click="handleRoute('/admin/social/comments')">
           <el-icon><ChatLineRound /></el-icon>
-          <span>朋友圈</span>
+          <span>评论管理</span>
         </el-menu-item>
-        <el-menu-item index="/social/my-posts" @click="handleRoute('/social/my-posts')">
-          <el-icon><Collection /></el-icon>
-          <span>我的发布</span>
+      </el-sub-menu>
+      
+      <el-sub-menu index="running-management">
+        <template #title>
+          <el-icon><Timer /></el-icon>
+          <span>跑步管理</span>
+        </template>
+        <el-menu-item index="/admin/running/report" @click="handleRoute('/admin/running/report')">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>跑步报表</span>
         </el-menu-item>
-        <el-menu-item index="/social/create-post" @click="handleRoute('/social/create-post')">
-          <el-icon><Edit /></el-icon>
-          <span>发布动态</span>
+        <el-menu-item index="/admin/running/ranking" @click="handleRoute('/admin/running/ranking')">
+          <el-icon><Medal /></el-icon>
+          <span>跑步排名</span>
         </el-menu-item>
       </el-sub-menu>
     </template>
@@ -175,7 +146,9 @@ import {
   Connection,
   ChatLineRound,
   Collection,
-  Edit
+  Edit,
+  PictureFilled,
+  Medal
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

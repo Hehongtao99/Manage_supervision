@@ -172,7 +172,9 @@ const fetchRoleList = async () => {
     // 使用axios替代fetch，以便利用全局拦截器
     const response = await axios.get('/api/admin/roles')
     console.log('获取角色列表成功:', response.data.length, '个角色')
-    roleList.value = response.data
+    
+    // 过滤掉SUPERVISOR角色
+    roleList.value = response.data.filter((role: Role) => role.name !== 'SUPERVISOR')
   } catch (error: any) {
     console.error('获取角色列表失败:', error)
     ElMessage.error('获取角色列表失败')

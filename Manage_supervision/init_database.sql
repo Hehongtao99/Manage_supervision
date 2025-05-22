@@ -105,8 +105,7 @@ CREATE INDEX idx_teacher_student_student_id ON teacher_student_relations(student
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 
 ('ADMIN', '管理员角色，拥有最高权限', ',USER_VIEW,ROLE_VIEW,LOG_VIEW,USER_EDIT,ROLE_EDIT,SYSTEM_SETTINGS,USER_DELETE,ROLE_DELETE', NOW()),
-('USER', '学生角色，基本用户权限', '', NOW()),
-('SUPERVISOR', '督导员角色，可以管理学生', ',USER_VIEW,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW', NOW());
+('USER', '学生角色，基本用户权限', '', NOW());
 
 -- 插入管理员用户 (username: admin, password: 123456)
 -- 密码使用BCrypt加密，这里是"123456"的BCrypt哈希值
@@ -120,5 +119,4 @@ INSERT INTO user_roles (user_id, role_id) SELECT
 
 -- 确保roles表中的权限字段包含正确的权限设置
 UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,USER_DELETE,ROLE_VIEW,ROLE_EDIT,ROLE_DELETE,LOG_VIEW,SYSTEM_SETTINGS' WHERE name = 'ADMIN';
-UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW' WHERE name = 'SUPERVISOR';
 UPDATE roles SET permissions = 'USER_VIEW' WHERE name = 'USER'; 

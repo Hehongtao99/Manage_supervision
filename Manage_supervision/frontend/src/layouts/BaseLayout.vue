@@ -60,11 +60,6 @@
                   <el-icon><Setting /></el-icon>管理控制台
                 </el-dropdown-item>
                 
-                <!-- 教师可以直接进入教师页面 -->
-                <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/students')">
-                  <el-icon><Monitor /></el-icon>学生管理
-                </el-dropdown-item>
-                
                 <el-dropdown-item divided @click="handleLogout">
                   <el-icon><SwitchButton /></el-icon>退出登录
                 </el-dropdown-item>
@@ -117,8 +112,6 @@ const unreadCount = computed(() => chatStore.totalUnreadCount)
 const roleName = computed(() => {
   if (userStore.isAdmin) {
     return '管理员'
-  } else if (userStore.isSupervisor) {
-    return '教师'
   } else {
     return '普通用户'
   }
@@ -128,8 +121,6 @@ const roleName = computed(() => {
 const roleTagType = computed(() => {
   if (userStore.isAdmin) {
     return 'danger'
-  } else if (userStore.isSupervisor) {
-    return 'warning'
   } else {
     return 'success'
   }
@@ -139,20 +130,14 @@ const roleTagType = computed(() => {
 const navigateToProfile = () => {
   if (userStore.isAdmin) {
     router.push('/profile')
-  } else if (userStore.isSupervisor) {
-    router.push('/supervisor/profile')
   } else {
     router.push('/profile')
   }
 }
 
-// 根据角色导航到对应的聊天页面
+// 导航到聊天页面
 const navigateToChat = () => {
-  if (userStore.isSupervisor) {
-    router.push('/supervisor/chat')
-  } else {
-    router.push('/chat')
-  }
+  router.push('/chat')
 }
 
 const toggleSidebar = () => {

@@ -56,6 +56,11 @@ public class CommentResponse {
     private String replyUsername;
     
     /**
+     * 被回复的用户名（用于前端显示）
+     */
+    private String replyToUsername;
+    
+    /**
      * 点赞数量
      */
     private Integer likeCount;
@@ -69,6 +74,11 @@ public class CommentResponse {
      * 创建时间
      */
     private LocalDateTime createTime;
+    
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
     
     /**
      * 子评论列表
