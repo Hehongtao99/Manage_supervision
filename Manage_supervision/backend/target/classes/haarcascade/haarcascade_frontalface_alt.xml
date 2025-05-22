@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+    Haar级联分类器文件 - 人脸检测
+    该文件包含了预训练的级联分类器参数
+    注意：这里只是基本结构，实际使用时请从OpenCV官方库中下载完整文件
+-->
+<opencv_storage>
+<haarcascade_frontalface_alt type_id="opencv-haar-classifier">
+  <size>24 24</size>
+  <stages>
+    <!-- 级联分类器阶段参数 -->
+    <!-- 请下载完整的分类器文件 -->
+  </stages>
+</haarcascade_frontalface_alt>
+</opencv_storage> 

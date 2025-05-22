@@ -23,10 +23,8 @@ const routes: RouteRecordRaw[] = [
       const userStore = useUserStore()
       if (userStore.isAdmin) {
         return '/admin/dashboard'
-      } else if (userStore.isSupervisor) {
-        return '/supervisor/students'
       } else {
-        return '/chat'
+        return '/attendance'
       }
     },
     children: [
@@ -54,6 +52,24 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/chat/ChatPage.vue'),
         meta: {
           title: '聊天',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'attendance',
+        name: 'Attendance',
+        component: () => import('../views/student/AttendanceView.vue'),
+        meta: {
+          title: '考勤签到',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'face-registration',
+        name: 'FaceRegistration',
+        component: () => import('../views/student/FaceRegistrationView.vue'),
+        meta: {
+          title: '人脸注册',
           requiresAuth: true
         }
       }
@@ -89,31 +105,11 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'teachers',
-        name: 'TeacherManagement',
-        component: () => import('../views/admin/TeacherManagement.vue'),
-        meta: { 
-          title: '教师管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
         path: 'students',
         name: 'AdminStudentManagement',
         component: () => import('../views/admin/StudentManagement.vue'),
         meta: { 
           title: '学生管理',
-          requiresAuth: true,
-          requiresAdmin: true
-        }
-      },
-      {
-        path: 'roles',
-        name: 'RoleManagement',
-        component: () => import('../views/admin/RoleManagement.vue'),
-        meta: { 
-          title: '角色管理',
           requiresAuth: true,
           requiresAdmin: true
         }
@@ -127,50 +123,30 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'attendance',
+        name: 'AttendanceManagement',
+        component: () => import('../views/admin/AttendanceManagement.vue'),
+        meta: { 
+          title: '考勤管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'attendance-summary',
+        name: 'AttendanceSummary',
+        component: () => import('../views/admin/AttendanceSummary.vue'),
+        meta: { 
+          title: '考勤汇总',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },
-  {
-    path: '/supervisor',
-    component: BaseLayout,
-    redirect: '/supervisor/students',
-    meta: { 
-      requiresAuth: true,
-      requiresSupervisor: true
-    },
-    children: [
-      {
-        path: 'students',
-        name: 'StudentManagement',
-        component: () => import('../views/supervisor/StudentManagement.vue'),
-        meta: { 
-          title: '学生管理',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
-      {
-        path: 'profile',
-        name: 'SupervisorProfile',
-        component: () => import('../views/supervisor/Profile.vue'),
-        meta: { 
-          title: '教师信息',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      },
-      {
-        path: 'chat',
-        name: 'SupervisorChat',
-        component: () => import('../views/chat/ChatPage.vue'),
-        meta: {
-          title: '聊天',
-          requiresAuth: true,
-          requiresSupervisor: true
-        }
-      }
-    ]
-  }
+
 ]
 
 const router = createRouter({
@@ -200,7 +176,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // 检查特定角色要求之前，强制刷新用户信息以确保权限是最新的
-    if (to.meta.requiresAdmin || to.meta.requiresSupervisor) {
+    if (to.meta.requiresAdmin) {
       console.log('页面需要特定角色权限，刷新用户信息...')
       try {
         // 尝试刷新用户信息，但不强制刷新以避免可能的循环
@@ -209,9 +185,6 @@ router.beforeEach(async (to, from, next) => {
         
         if (to.meta.requiresAdmin && !userStore.isAdmin) {
           console.log('需要管理员权限但当前不是管理员，尝试强制刷新')
-          needsForceRefresh = true
-        } else if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-          console.log('需要教师权限但当前不是教师，尝试强制刷新')
           needsForceRefresh = true
         }
         
@@ -226,14 +199,7 @@ router.beforeEach(async (to, from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/chat')
-      return
-    }
-    
-    // 检查教师权限
-    if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-      console.log('需要教师权限，但用户不是教师，重定向到首页')
-      next('/chat')
+      next('/attendance')
       return
     }
   }
@@ -242,10 +208,8 @@ router.beforeEach(async (to, from, next) => {
   if (userStore.isLoggedIn && (to.path === '/login' || to.path === '/register')) {
     if (userStore.isAdmin) {
       next('/admin/dashboard')
-    } else if (userStore.isSupervisor) {
-      next('/supervisor/students')
     } else {
-      next('/chat')
+      next('/attendance')
     }
     return
   }

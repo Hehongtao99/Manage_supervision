@@ -37,9 +37,7 @@ const statistics = ref({
 // 用户角色分布数据
 const userRoleDistribution = ref([
   { value: 0, name: '管理员' },
-  { value: 0, name: '教师' },
-  { value: 0, name: '学生' },
-  { value: 0, name: '普通用户' }
+  { value: 0, name: '学生' }
 ])
 
 // 近7天用户创建趋势数据
@@ -177,11 +175,14 @@ const mockDashboardData = () => {
   statistics.value = {
     totalUsers: 0,
     activeUsers: 0,
-    totalRoles: 0,
+    totalRoles: 2, // 只有两种角色：管理员和学生
     systemHealth: '正常'
   }
   
-  userRoleDistribution.value = []
+  userRoleDistribution.value = [
+    { value: 0, name: '管理员' },
+    { value: 0, name: '学生' }
+  ]
   
   // 不再模拟用户创建趋势数据
   userCreationData.value = {

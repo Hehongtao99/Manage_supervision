@@ -2,6 +2,8 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 删除已有表（如果存在）
+DROP TABLE IF EXISTS e981_attendance_record;
+DROP TABLE IF EXISTS e981_attendance;
 DROP TABLE IF EXISTS teacher_student_relations;
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS conversations;
@@ -38,7 +40,8 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     bio TEXT,
     status VARCHAR(20) DEFAULT 'active',
-    user_number VARCHAR(20) UNIQUE
+    user_number VARCHAR(20) UNIQUE,
+    face_data TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 创建用户-角色关联表
@@ -93,6 +96,34 @@ CREATE TABLE teacher_student_relations (
     CONSTRAINT UK_teacher_student UNIQUE (teacher_id, student_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- 创建考勤表
+CREATE TABLE e981_attendance (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description VARCHAR(500),
+    start_time DATETIME NOT NULL,
+    end_time DATETIME NOT NULL,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    creator_id BIGINT NOT NULL,
+    status VARCHAR(20) DEFAULT 'active',
+    CONSTRAINT FK_attendance_creator FOREIGN KEY (creator_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建考勤记录表
+CREATE TABLE e981_attendance_record (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    attendance_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    check_in_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT '正常',
+    location VARCHAR(255),
+    notes VARCHAR(500),
+    face_verified BOOLEAN DEFAULT FALSE,
+    CONSTRAINT FK_attendance_record_attendance FOREIGN KEY (attendance_id) REFERENCES e981_attendance (id) ON DELETE CASCADE,
+    CONSTRAINT FK_attendance_record_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT UK_attendance_record UNIQUE (attendance_id, user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- 创建索引以提高查询性能
 CREATE INDEX idx_conversations_user1_id ON conversations(user1_id);
 CREATE INDEX idx_conversations_user2_id ON conversations(user2_id);
@@ -101,6 +132,10 @@ CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
 CREATE INDEX idx_chat_messages_recipient_id ON chat_messages(recipient_id);
 CREATE INDEX idx_teacher_student_teacher_id ON teacher_student_relations(teacher_id);
 CREATE INDEX idx_teacher_student_student_id ON teacher_student_relations(student_id);
+CREATE INDEX idx_attendance_creator_id ON e981_attendance(creator_id);
+CREATE INDEX idx_attendance_status ON e981_attendance(status);
+CREATE INDEX idx_attendance_record_attendance_id ON e981_attendance_record(attendance_id);
+CREATE INDEX idx_attendance_record_user_id ON e981_attendance_record(user_id);
 
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 

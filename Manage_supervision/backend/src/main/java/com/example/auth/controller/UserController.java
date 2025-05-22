@@ -100,6 +100,94 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("message", "头像上传失败: " + e.getMessage()));
         }
     }
+    
+    @PostMapping("/face-data")
+    public ResponseEntity<?> uploadFaceData(@RequestBody Map<String, String> requestBody,
+                                            @RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7); // 去除"Bearer "前缀
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "用户不存在"));
+            }
+            
+            // 从请求体中获取人脸数据
+            if (!requestBody.containsKey("faceData")) {
+                return ResponseEntity.badRequest().body(Map.of("message", "人脸数据不能为空"));
+            }
+            
+            String faceData = requestBody.get("faceData");
+            
+            // 调用UserService保存人脸数据
+            boolean updated = userService.updateFaceData(user, faceData);
+            
+            if (updated) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "人脸数据保存成功");
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", "人脸数据保存失败"));
+            }
+        } catch (Exception e) {
+            logger.error("保存人脸数据失败", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "保存人脸数据失败: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/has-face-data")
+    public ResponseEntity<?> hasFaceData(@RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7); // 去除"Bearer "前缀
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "用户不存在"));
+            }
+            
+            boolean hasFaceData = userService.hasFaceData(user.getId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("hasFaceData", hasFaceData);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("检查人脸数据失败", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "检查人脸数据失败: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/face-data")
+    public ResponseEntity<?> getFaceData(@RequestHeader("Authorization") String auth) {
+        try {
+            // 获取当前用户
+            String token = auth.substring(7); // 去除"Bearer "前缀
+            String username = jwtUtil.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "用户不存在"));
+            }
+            
+            String faceData = userService.getFaceData(user.getId());
+            
+            if (faceData == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "未找到人脸数据"));
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("faceData", faceData);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("获取人脸数据失败", e);
+            return ResponseEntity.badRequest().body(Map.of("message", "获取人脸数据失败: " + e.getMessage()));
+        }
+    }
 
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(@RequestBody Map<String, String> profileData,

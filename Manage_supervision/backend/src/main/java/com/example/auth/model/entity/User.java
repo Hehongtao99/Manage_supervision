@@ -36,6 +36,9 @@ public class User {
     
     @TableField("user_number")
     private String userNumber;
+    
+    @TableField("face_data")
+    private String faceData;
 
     @TableField(exist = false)
     private Set<Role> roles;
@@ -93,6 +96,10 @@ public class User {
         return userNumber;
     }
 
+    public String getFaceData() {
+        return faceData;
+    }
+
     // Setters
     public void setId(Long id) {
         this.id = id;
@@ -144,5 +151,9 @@ public class User {
     
     public void setUserNumber(String userNumber) {
         this.userNumber = userNumber;
+    }
+
+    public void setFaceData(String faceData) {
+        this.faceData = faceData;
     }
 }

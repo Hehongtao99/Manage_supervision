@@ -55,10 +55,21 @@ instance.interceptors.response.use(
       requestUrl.includes('/evaluate')
     )
     
+    // 检查是否是人脸识别签到请求
+    const isFaceCheckInRequest = requestUrl && requestUrl.includes('/face-check-in')
+    
     // 根据状态码处理不同的错误情况
     switch (statusCode) {
       case 400:
         console.log('请求参数错误:', errorMessage)
+        // 如果是人脸签到请求的400错误，直接返回错误响应，让组件自行处理
+        if (isFaceCheckInRequest) {
+          console.log('人脸签到请求400错误，将由组件处理')
+          if (error.response?.data) {
+            error.data = error.response.data
+          }
+          return Promise.reject(error)
+        }
         break
       case 401:
         console.log(`授权失败 (${requestUrl}):`, errorMessage)

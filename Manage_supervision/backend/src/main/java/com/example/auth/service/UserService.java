@@ -27,4 +27,9 @@ public interface UserService {
 
     // 添加获取教师学生的方法
     List<UserDTO> getStudentsByTeacher(Long teacherId);
+    
+    // 人脸数据管理相关方法
+    boolean updateFaceData(User user, String faceData);
+    String getFaceData(Long userId);
+    boolean hasFaceData(Long userId);
 } 

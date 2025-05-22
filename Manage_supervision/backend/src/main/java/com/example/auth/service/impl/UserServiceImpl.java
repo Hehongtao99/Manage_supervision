@@ -450,6 +450,64 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public boolean updateFaceData(User user, String faceData) {
+        if (user == null) {
+            logger.warn("人脸数据更新失败: 用户为空");
+            return false;
+        }
+        
+        try {
+            user.setFaceData(faceData);
+            userMapper.updateById(user);
+            logger.info("用户 {} 人脸数据更新成功", user.getUsername());
+            return true;
+        } catch (Exception e) {
+            logger.error("人脸数据更新过程中发生异常", e);
+            return false;
+        }
+    }
+    
+    @Override
+    public String getFaceData(Long userId) {
+        if (userId == null) {
+            logger.warn("获取人脸数据失败: 用户ID为空");
+            return null;
+        }
+        
+        try {
+            User user = userMapper.selectById(userId);
+            if (user == null) {
+                logger.warn("获取人脸数据失败: 用户不存在, ID: {}", userId);
+                return null;
+            }
+            
+            return user.getFaceData();
+        } catch (Exception e) {
+            logger.error("获取人脸数据过程中发生异常", e);
+            return null;
+        }
+    }
+    
+    @Override
+    public boolean hasFaceData(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        
+        try {
+            User user = userMapper.selectById(userId);
+            if (user == null) {
+                return false;
+            }
+            
+            return user.getFaceData() != null && !user.getFaceData().isEmpty();
+        } catch (Exception e) {
+            logger.error("检查人脸数据过程中发生异常", e);
+            return false;
+        }
+    }
+
     // ==================== 辅助方法 ====================
 
     /**

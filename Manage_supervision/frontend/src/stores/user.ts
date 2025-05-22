@@ -61,17 +61,15 @@ export const useUserStore = defineStore('user', {
       return false
     },
     isSupervisor: (state) => {
-      console.log('检查教师权限，当前角色:', state.user.roles)
-      return state.user.roles.some((role: string) => 
-        role === 'SUPERVISOR' || role === 'supervisor'
-      )
+      // 教师角色已经被删除，始终返回false
+      return false
     },
     isStudent: (state) => {
       console.log('检查学生权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
         role === 'USER' || role === 'user'
       ) && !state.user.roles.some((role: string) => 
-        role === 'ADMIN' || role === 'admin' || role === 'SUPERVISOR' || role === 'supervisor'
+        role === 'ADMIN' || role === 'admin'
       )
     },
     getUserRole: (state) => {
@@ -243,12 +241,9 @@ export const useUserStore = defineStore('user', {
       if (this.isAdmin) {
         console.log('用户是管理员，重定向到管理员仪表盘')
         router.push('/admin/dashboard')
-      } else if (this.isSupervisor) {
-        console.log('用户是教师，重定向到教师控制台')
-        router.push('/supervisor/students')
       } else {
         console.log('用户是普通用户，重定向到普通仪表盘')
-        router.push('/dashboard')
+        router.push('/attendance')
       }
     },
 

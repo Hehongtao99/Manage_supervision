@@ -41,7 +41,6 @@
         <el-table-column prop="realName" label="姓名" width="120" />
         <el-table-column prop="email" label="邮箱" width="180" />
         <el-table-column prop="phone" label="手机号" width="120" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag
@@ -49,27 +48,6 @@
             >
               {{ row.status === 'active' ? '活跃' : '禁用' }}
             </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="分配状态" width="120">
-          <template #default="{ row }">
-            <el-tag
-              :type="row.assignStatus ? 'success' : 'info'"
-            >
-              {{ row.assignStatus ? '已分配' : '未分配' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" fixed="right" width="180">
-          <template #default="{ row }">
-            <el-button
-              type="primary"
-              link
-              @click="handleShowTeacher(row)"
-              v-if="row.assignStatus"
-            >
-              查看教师
-            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -87,169 +65,66 @@
         />
       </div>
     </el-card>
-
-    <!-- 学生教师信息对话框 -->
-    <el-dialog
-      title="分配教师信息"
-      v-model="teacherDialogVisible"
-      width="500px"
-    >
-      <div v-if="selectedStudent && studentTeachers.length > 0" class="teacher-info">
-        <h3>{{ selectedStudent.realName || selectedStudent.username }} 的教师</h3>
-        
-        <el-descriptions :column="1" border>
-          <el-descriptions-item label="教师姓名">
-            {{ studentTeachers[0].realName || studentTeachers[0].username }}
-          </el-descriptions-item>
-          <el-descriptions-item label="教师编号">
-            {{ studentTeachers[0].userNumber }}
-          </el-descriptions-item>
-          <el-descriptions-item label="联系邮箱">
-            {{ studentTeachers[0].email }}
-          </el-descriptions-item>
-          <el-descriptions-item label="联系电话">
-            {{ studentTeachers[0].phone }}
-          </el-descriptions-item>
-        </el-descriptions>
-        
-        <div class="dialog-footer">
-          <el-button @click="teacherDialogVisible = false">关闭</el-button>
-          <el-button
-            type="danger"
-            @click="handleUnassignStudent"
-          >
-            取消分配
-          </el-button>
-        </div>
-      </div>
-      
-      <div v-else class="empty-data">
-        该学生暂未分配教师
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watchEffect } from 'vue'
-import {
-  Search,
-  Refresh
-} from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { getStudents } from '../../api/student'
-import { unassignStudent } from '../../api/teacher'
-import type { UserProfile } from '../../types/user'
-import axios from '../../utils/axios'
+import { ref, reactive, onMounted } from 'vue';
+import { Search, Refresh } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { getStudents } from '../../api/student';
+import type { UserProfile } from '../../types/user';
 
 // 状态
-const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
-const studentList = ref<(UserProfile & { assignStatus?: boolean })[]>([])
-const teacherDialogVisible = ref(false)
-const selectedStudent = ref<UserProfile | null>(null)
-const studentTeachers = ref<UserProfile[]>([])
+const loading = ref(false);
+const currentPage = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
+const studentList = ref<UserProfile[]>([]);
 
 // 搜索表单
 const searchForm = reactive({
   keyword: ''
-})
+});
 
 // 方法
 const fetchStudents = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await getStudents(currentPage.value, pageSize.value, searchForm.keyword)
-    const students = response.content
-    
-    // 获取学生分配状态
-    await Promise.all(students.map(async (student: any) => {
-      try {
-        const teachersResponse = await axios.get(`/api/admin/teachers/student/${student.id}`)
-        student.assignStatus = teachersResponse.data.length > 0
-      } catch (error) {
-        student.assignStatus = false
-      }
-    }))
-    
-    studentList.value = students
-    total.value = response.total
+    const response = await getStudents(currentPage.value, pageSize.value, searchForm.keyword);
+    studentList.value = response.content;
+    total.value = response.total;
   } catch (error) {
-    ElMessage.error('获取学生列表失败')
+    ElMessage.error('获取学生列表失败');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const handleSearch = () => {
-  currentPage.value = 1
-  fetchStudents()
-}
+  currentPage.value = 1;
+  fetchStudents();
+};
 
 const handleReset = () => {
-  searchForm.keyword = ''
-  handleSearch()
-}
+  searchForm.keyword = '';
+  handleSearch();
+};
 
 const handleSizeChange = (val: number) => {
-  pageSize.value = val
-  fetchStudents()
-}
+  pageSize.value = val;
+  fetchStudents();
+};
 
 const handleCurrentChange = (val: number) => {
-  currentPage.value = val
-  fetchStudents()
-}
-
-const handleShowTeacher = async (student: UserProfile) => {
-  selectedStudent.value = student
-  teacherDialogVisible.value = true
-  
-  try {
-    const response = await axios.get(`/api/admin/teachers/student/${student.id}`)
-    studentTeachers.value = response.data
-  } catch (error) {
-    ElMessage.error('获取教师信息失败')
-    studentTeachers.value = []
-  }
-}
-
-const handleUnassignStudent = async () => {
-  if (!selectedStudent.value || studentTeachers.length === 0) return
-  
-  try {
-    await ElMessageBox.confirm(
-      `确定要取消 ${selectedStudent.value.realName || selectedStudent.value.username} 与教师的分配关系吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    const result = await unassignStudent(studentTeachers.value[0].id, selectedStudent.value.id)
-    
-    if (result.success) {
-      ElMessage.success('取消分配成功')
-      teacherDialogVisible.value = false
-      fetchStudents() // 刷新列表
-    } else {
-      ElMessage.error(result.message || '取消分配失败')
-    }
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error('取消分配失败')
-    }
-  }
-}
+  currentPage.value = val;
+  fetchStudents();
+};
 
 // 生命周期钩子
 onMounted(() => {
-  fetchStudents()
-})
+  fetchStudents();
+});
 </script>
 
 <style scoped>
@@ -288,24 +163,5 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-}
-
-.teacher-info h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-.empty-data {
-  text-align: center;
-  padding: 20px;
-  color: #999;
-  font-size: 14px;
-}
-
-.dialog-footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
 }
 </style> 

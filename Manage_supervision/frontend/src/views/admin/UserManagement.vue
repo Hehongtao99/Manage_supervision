@@ -18,20 +18,6 @@
             @keyup.enter="handleSearch"
           />
         </el-form-item>
-        <el-form-item label="角色">
-          <el-select
-            v-model="searchForm.role"
-            placeholder="请选择角色"
-            clearable
-          >
-            <el-option
-              v-for="role in roles"
-              :key="role.name"
-              :label="role.name"
-              :value="role.name"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item label="状态">
           <el-select
             v-model="searchForm.status"
@@ -69,18 +55,6 @@
         <el-table-column prop="nickname" label="昵称" width="120" />
         <el-table-column prop="email" label="邮箱" width="180" />
         <el-table-column prop="phone" label="手机号" width="120" />
-        <el-table-column label="角色" width="150">
-          <template #default="{ row }">
-            <el-tag
-              v-for="role in row.roles"
-              :key="role"
-              :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
-              class="role-tag"
-            >
-              {{ role === 'ADMIN' ? '管理员' : role === 'SUPERVISOR' ? '教师' : role === 'USER' ? '学生' : role }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag
@@ -197,19 +171,6 @@
             placeholder="请输入手机号"
           />
         </el-form-item>
-        <el-form-item label="角色" prop="roles">
-          <el-select
-            v-model="form.roles"
-            placeholder="请选择角色"
-          >
-            <el-option
-              v-for="role in roles"
-              :key="role.name"
-              :label="role.name"
-              :value="role.name"
-            />
-          </el-select>
-        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -281,7 +242,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import type {
   UserProfile,
-  Role,
   CreateUserRequest,
   UpdateUserRequest
 } from '../../types/user'
@@ -299,7 +259,6 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const userList = ref<UserProfile[]>([])
-const roles = ref<Role[]>([])
 
 // 表单
 const formRef = ref<FormInstance>()
@@ -307,18 +266,16 @@ const resetPasswordFormRef = ref<FormInstance>()
 
 const searchForm = reactive({
   username: '',
-  role: '',
   status: ''
 })
 
-const form = reactive<Omit<CreateUserRequest & UpdateUserRequest, 'roles'> & { roles: string | string[] }>({
+const form = reactive<Omit<CreateUserRequest & UpdateUserRequest, 'roles'>>({
   username: '',
   password: '',
   realName: '',
   nickname: '',
   email: '',
-  phone: '',
-  roles: ''
+  phone: ''
 })
 
 const resetPasswordForm = reactive({
@@ -351,8 +308,7 @@ const rules = {
   ],
   phone: [
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
-  ],
-  roles: []
+  ]
 }
 
 const resetPasswordRules = {
@@ -395,15 +351,6 @@ const fetchUserList = async () => {
   }
 }
 
-const fetchRoles = async () => {
-  try {
-    const response = await axios.get('/api/admin/roles')
-    roles.value = response.data
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || '获取角色列表失败')
-  }
-}
-
 const resetForm = () => {
   if (formRef.value) {
     formRef.value.resetFields()
@@ -414,7 +361,6 @@ const resetForm = () => {
   form.nickname = ''
   form.email = ''
   form.phone = ''
-  form.roles = ''
 }
 
 const handleAdd = () => {
@@ -426,14 +372,6 @@ const handleAdd = () => {
 const handleEdit = (row: UserProfile) => {
   dialogType.value = 'edit'
   const userData = { ...row };
-  
-  // 确保只选择第一个角色
-  if (userData.roles && userData.roles.length > 0) {
-    userData.roles = userData.roles[0];
-  } else {
-    userData.roles = '';
-  }
-  
   Object.assign(form, userData);
   dialogVisible.value = true
 }
@@ -447,13 +385,6 @@ const handleSubmit = async () => {
       try {
         // 创建一个表单数据的副本
         const formData = { ...form };
-        
-        // 将单个角色值转换为数组
-        if (formData.roles && typeof formData.roles === 'string') {
-          formData.roles = [formData.roles];
-        } else if (!formData.roles) {
-          formData.roles = [];
-        }
         
         if (dialogType.value === 'add') {
           await axios.post('/api/admin/users', formData)
@@ -534,7 +465,6 @@ const handleSearch = () => {
 
 const handleReset = () => {
   searchForm.username = ''
-  searchForm.role = ''
   searchForm.status = ''
   handleSearch()
 }
@@ -567,15 +497,11 @@ onMounted(async () => {
   console.log('用户角色:', userStore.user.roles)
   
   // 添加请求前的检查项
-  console.log('开始请求用户列表和角色数据')
+  console.log('开始请求用户列表')
   
   try {
-    // 分开请求以便能更明确地显示哪个请求成功或失败
     await fetchUserList()
     console.log('请求用户列表成功')
-    
-    await fetchRoles()
-    console.log('请求角色列表成功')
   } catch (error) {
     console.error('请求数据失败:', error)
   }

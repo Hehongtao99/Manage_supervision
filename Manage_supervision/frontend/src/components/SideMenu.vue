@@ -26,10 +26,6 @@
           <el-icon><Avatar /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/roles" @click="handleRoute('/admin/roles')">
-          <el-icon><Lock /></el-icon>
-          <span>角色管理</span>
-        </el-menu-item>
       </el-sub-menu>
 
       <el-sub-menu index="teacher-student-management">
@@ -37,47 +33,27 @@
           <el-icon><User /></el-icon>
           <span>教学管理</span>
         </template>
-        <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
-          <el-icon><UserFilled /></el-icon>
-          <span>教师管理</span>
-        </el-menu-item>
         <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
           <el-icon><Avatar /></el-icon>
           <span>学生管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/attendance" @click="handleRoute('/admin/attendance')">
+          <el-icon><Calendar /></el-icon>
+          <span>考勤管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/attendance-summary" @click="handleRoute('/admin/attendance-summary')">
+          <el-icon><Document /></el-icon>
+          <span>考勤汇总</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 
-    <!-- 督导员菜单 -->
-    <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>
-          <span>聊天</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
-        <el-icon><UserFilled /></el-icon>
-        <template #title>
-          <span>教师信息</span>
-        </template>
-      </el-menu-item>
-    </template>
-
     <!-- 学生菜单 -->
-    <template v-else>
-      <el-menu-item index="/chat" @click="handleRoute('/chat')">
-        <el-icon><ChatDotRound /></el-icon>
+    <template v-if="!userStore.isAdmin">
+      <el-menu-item index="/attendance" @click="handleRoute('/attendance')">
+        <el-icon><Calendar /></el-icon>
         <template #title>
-          <span>聊天</span>
+          <span>考勤签到</span>
         </template>
       </el-menu-item>
 
@@ -102,11 +78,8 @@ import {
   Setting,
   Management,
   Avatar,
-  Lock,
   Document,
-  List,
-  Folder,
-  ChatDotRound
+  Calendar
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

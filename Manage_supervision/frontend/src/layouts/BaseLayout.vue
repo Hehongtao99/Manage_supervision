@@ -26,13 +26,6 @@
         </div>
         
         <div class="navbar-right">
-          <!-- 聊天图标和未读消息提示 -->
-          <div class="notification-item" @click="navigateToChat">
-            <el-badge :value="unreadCount > 0 ? unreadCount : ''" :max="99" :hidden="unreadCount <= 0">
-              <el-icon :size="20"><ChatDotRound /></el-icon>
-            </el-badge>
-          </div>
-          
           <!-- 角色标识 -->
           <div class="role-indicator">
             <el-tag :type="roleTagType" effect="dark">
@@ -58,11 +51,6 @@
                 <!-- 管理员可以直接进入管理页面 -->
                 <el-dropdown-item v-if="userStore.isAdmin" @click="$router.push('/admin/dashboard')">
                   <el-icon><Setting /></el-icon>管理控制台
-                </el-dropdown-item>
-                
-                <!-- 教师可以直接进入教师页面 -->
-                <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/students')">
-                  <el-icon><Monitor /></el-icon>学生管理
                 </el-dropdown-item>
                 
                 <el-dropdown-item divided @click="handleLogout">
@@ -100,9 +88,7 @@ import {
   User,
   SwitchButton,
   CaretBottom,
-  Setting,
-  Monitor,
-  ChatDotRound
+  Setting
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -117,8 +103,6 @@ const unreadCount = computed(() => chatStore.totalUnreadCount)
 const roleName = computed(() => {
   if (userStore.isAdmin) {
     return '管理员'
-  } else if (userStore.isSupervisor) {
-    return '教师'
   } else {
     return '学生'
   }
@@ -128,8 +112,6 @@ const roleName = computed(() => {
 const roleTagType = computed(() => {
   if (userStore.isAdmin) {
     return 'danger'
-  } else if (userStore.isSupervisor) {
-    return 'warning'
   } else {
     return 'success'
   }
@@ -137,23 +119,11 @@ const roleTagType = computed(() => {
 
 // 根据角色导航到对应的个人信息页
 const navigateToProfile = () => {
-  if (userStore.isAdmin) {
-    router.push('/profile')
-  } else if (userStore.isSupervisor) {
-    router.push('/supervisor/profile')
-  } else {
-    router.push('/profile')
-  }
+  router.push('/profile')
 }
 
-// 根据角色导航到对应的聊天页面
-const navigateToChat = () => {
-  if (userStore.isSupervisor) {
-    router.push('/supervisor/chat')
-  } else {
-    router.push('/chat')
-  }
-}
+// 聊天导航已不需要，因为已删除教师端
+const navigateToChat = () => {}
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value

@@ -149,6 +149,55 @@
         </el-tag>
       </div>
     </el-card>
+
+    <!-- 人脸信息卡片 -->
+    <el-card class="profile-card" style="margin-top: 20px">
+      <template #header>
+        <div class="card-header">
+          <h3>人脸信息管理</h3>
+          <div>
+            <el-tag v-if="hasFaceData" type="success">已录入</el-tag>
+            <el-tag v-else type="warning">未录入</el-tag>
+          </div>
+        </div>
+      </template>
+
+      <div class="face-info">
+        <el-alert
+          v-if="!hasFaceData"
+          title="您尚未录入人脸信息"
+          type="warning"
+          description="请完成人脸信息录入，这将用于考勤签到验证身份"
+          :closable="false"
+          show-icon
+        />
+        
+        <p class="face-tip">
+          <el-icon><Warning /></el-icon>
+          人脸信息用于考勤打卡验证身份，请确保在光线充足的环境下录入清晰的面部信息
+        </p>
+        
+        <div class="face-action-buttons">
+          <el-button 
+            type="primary" 
+            @click="showFaceRegistration = true"
+            :icon="hasFaceData ? 'Refresh' : 'Plus'"
+          >
+            {{ hasFaceData ? '重新录入人脸信息' : '录入人脸信息' }}
+          </el-button>
+        </div>
+      </div>
+    </el-card>
+    
+    <!-- 人脸注册弹窗 -->
+    <el-dialog
+      v-model="showFaceRegistration"
+      title="人脸信息录入"
+      width="800px"
+      class="face-dialog"
+    >
+      <FaceRegistration @registration-complete="handleFaceRegistrationComplete" />
+    </el-dialog>
   </div>
 </template>
 
@@ -158,12 +207,17 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, UploadProps } from 'element-plus'
 import type { UpdateProfileRequest, UpdatePasswordRequest } from '../types/user'
+import { Warning, Plus, Refresh } from '@element-plus/icons-vue'
+import FaceRegistration from '../components/FaceRegistration.vue'
+import apiService from '../api/apiService'
 
 const userStore = useUserStore()
 const formRef = ref<FormInstance>()
 const passwordFormRef = ref<FormInstance>()
 const loading = ref(false)
 const passwordLoading = ref(false)
+const hasFaceData = ref(false)
+const showFaceRegistration = ref(false)
 
 // 个人信息表单
 const form = reactive<UpdateProfileRequest & { avatar?: string }>({
@@ -173,35 +227,6 @@ const form = reactive<UpdateProfileRequest & { avatar?: string }>({
   phone: userStore.user.phone || '',
   bio: userStore.user.bio || '',
   avatar: userStore.user.avatar || ''
-})
-
-// 页面加载时确保用户信息已更新
-onMounted(async () => {
-  try {
-    // 强制刷新用户信息
-    const success = await userStore.fetchUserInfo(true)
-    
-    if (success) {
-      console.log('用户信息已更新，学号:', userStore.user.userNumber)
-      
-      // 更新表单数据
-      form.realName = userStore.user.realName || ''
-      form.nickname = userStore.user.nickname || ''
-      form.email = userStore.user.email || ''
-      form.phone = userStore.user.phone || ''
-      form.bio = userStore.user.bio || ''
-      form.avatar = userStore.user.avatar || ''
-    } else {
-      // 不要显示错误消息，避免多次显示
-      console.warn('获取用户信息未成功，可能需要重新登录')
-    }
-  } catch (error) {
-    console.error('获取用户信息失败:', error)
-    // 只在不是认证错误时显示提示
-    if (!(error as any).response || (error as any).response.status !== 401) {
-      ElMessage.error('获取用户信息失败，请刷新页面重试')
-    }
-  }
 })
 
 // 修改密码表单
@@ -261,6 +286,55 @@ const passwordRules = {
 const uploadHeaders = computed(() => {
   return {
     Authorization: `Bearer ${userStore.token}`
+  }
+})
+
+// 获取用户人脸数据状态
+const checkFaceDataStatus = async () => {
+  try {
+    const response = await apiService.face.getFaceStatus()
+    hasFaceData.value = response.data.registered
+  } catch (error) {
+    console.error('获取人脸信息状态失败:', error)
+  }
+}
+
+// 人脸注册完成后的回调
+const handleFaceRegistrationComplete = () => {
+  checkFaceDataStatus()
+  showFaceRegistration.value = false
+  ElMessage.success('人脸信息录入成功！现在可以使用人脸验证进行考勤签到')
+}
+
+// 页面加载时确保用户信息已更新
+onMounted(async () => {
+  try {
+    // 强制刷新用户信息
+    const success = await userStore.fetchUserInfo(true)
+    
+    if (success) {
+      console.log('用户信息已更新，学号:', userStore.user.userNumber)
+      
+      // 更新表单数据
+      form.realName = userStore.user.realName || ''
+      form.nickname = userStore.user.nickname || ''
+      form.email = userStore.user.email || ''
+      form.phone = userStore.user.phone || ''
+      form.bio = userStore.user.bio || ''
+      form.avatar = userStore.user.avatar || ''
+      
+      // 检查用户人脸数据状态
+      await checkFaceDataStatus()
+    } else {
+      // 不要显示错误消息，避免多次显示
+      console.warn('获取用户信息未成功，可能需要重新登录')
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+    // 只在不是认证错误时显示提示
+    if (!(error as any).response || (error as any).response.status !== 401) {
+      ElMessage.error('获取用户信息失败，请刷新页面重试')
+    }
   }
 })
 
@@ -393,6 +467,8 @@ const beforeAvatarUpload = (file: File) => {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .profile-card {
@@ -460,5 +536,29 @@ const beforeAvatarUpload = (file: File) => {
 
 :deep(.el-upload:hover) {
   border-color: #409EFF;
+}
+
+.face-info {
+  padding: 20px 0;
+}
+
+.face-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+  color: #e6a23c;
+}
+
+.face-action-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+:deep(.face-dialog .el-dialog__body) {
+  padding: 0;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 </style> 
