@@ -1,7 +1,5 @@
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '../stores/user';
 
 // 创建axios实例
 const service = axios.create({

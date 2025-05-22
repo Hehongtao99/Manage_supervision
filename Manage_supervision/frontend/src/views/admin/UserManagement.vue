@@ -398,7 +398,10 @@ const fetchUserList = async () => {
 const fetchRoles = async () => {
   try {
     const response = await axios.get('/api/admin/roles')
-    roles.value = response.data
+    // 过滤角色，只保留ADMIN和USER角色
+    roles.value = response.data.filter((role: Role) => 
+      role.name === 'ADMIN' || role.name === 'USER'
+    )
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '获取角色列表失败')
   }

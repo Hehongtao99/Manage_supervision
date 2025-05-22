@@ -1,7 +1,7 @@
 package com.example.auth.service;
 
-import com.example.auth.model.dto.StudentDTO;
-import com.example.auth.model.dto.StudentDetailDTO;
+import com.example.auth.model.dto.RunnerDTO;
+import com.example.auth.model.dto.RunnerDetailDTO;
 import com.example.auth.model.dto.UserDTO;
 import com.example.auth.model.entity.User;
 import java.util.List;
@@ -16,17 +16,17 @@ public interface UserService {
     void updateAvatar(User user, String avatarUrl);
     User updateProfile(User user, Map<String, String> profileData);
     
-    // 学生管理相关方法
-    List<StudentDTO> getAllStudents();
-    StudentDetailDTO getStudentDetails(Long id);
-    boolean updateStudentStatus(Long id, String status);
-    boolean deleteStudent(Long id);
+    // 跑步爱好者管理相关方法
+    List<RunnerDTO> getAllRunners();
+    RunnerDetailDTO getRunnerDetails(Long id);
+    boolean updateRunnerStatus(Long id, String status);
+    boolean deleteRunner(Long id);
     
-    // 督导员管理相关方法
+    // 管理员管理相关方法
     List<User> getAllSupervisors();
 
-    // 添加获取教师学生的方法
-    List<UserDTO> getStudentsByTeacher(Long teacherId);
+    // 添加获取管理员跑步爱好者的方法
+    List<UserDTO> getRunnersBySupervisor(Long supervisorId);
 
     /**
      * 获取用户发布的帖子数量

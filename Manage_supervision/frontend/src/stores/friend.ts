@@ -302,11 +302,6 @@ export const useFriendStore = defineStore('friend', {
     // 搜索用户
     async searchUsers(keyword: string) {
       try {
-        // 获取当前用户角色信息
-        const userStore = useUserStore();
-        const isAdmin = userStore.isAdmin;
-        const isSupervisor = userStore.isSupervisor;
-        
         const response = await axios.get('/api/friends/search', {
           params: { 
             keyword,
