@@ -276,7 +276,9 @@ const hasRunningRecord = computed(() => {
 const handleLike = async () => {
   try {
     await toggleLike(props.post.id)
-    emit('refresh')
+    // 本地更新点赞状态，不触发整个列表刷新
+    props.post.liked = !props.post.liked
+    props.post.likeCount = props.post.liked ? props.post.likeCount + 1 : props.post.likeCount - 1
   } catch (error) {
     ElMessage.error('操作失败，请重试')
     console.error(error)
@@ -285,7 +287,11 @@ const handleLike = async () => {
 
 // 查看详情
 const handleViewDetail = () => {
-  router.push(`/social/post/${props.post.id}`)
+  router.push({
+    path: `/social/post/${props.post.id}`,
+    // 添加替换选项，避免向历史记录添加新条目
+    replace: false
+  })
 }
 
 // 下拉菜单命令处理

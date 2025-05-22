@@ -73,13 +73,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
-import { createComment, deleteComment } from '@/api/social'
+import { createComment, deleteComment, getCommentList } from '@/api/social'
 import { getUserId } from '@/utils/auth'
 import type { CommentResponse } from '@/types/social'
 
@@ -97,6 +97,24 @@ const currentUserId = computed(() => getUserId())
 const commentContent = ref('')
 const replyTo = ref<CommentResponse | null>(null)
 const parentComment = ref<CommentResponse | null>(null)
+
+// 获取评论列表
+const fetchComments = async () => {
+  try {
+    const response = await getCommentList(props.postId)
+    // 更新父组件的评论列表
+    emit('refresh')
+  } catch (error) {
+    console.error('获取评论列表失败:', error)
+  }
+}
+
+// 在组件挂载时，如果评论为空，则自动获取
+onMounted(() => {
+  if (props.comments.length === 0) {
+    fetchComments()
+  }
+})
 
 // 计算总评论数（包括子评论）
 const totalCommentCount = computed(() => {
@@ -161,12 +179,31 @@ const submitComment = async () => {
       requestData.replyUserId = replyTo.value.userId
     }
     
-    await createComment(requestData)
+    const response = await createComment(requestData)
+    const newComment = response.data.data
+    
+    // 本地更新评论列表
+    if (replyTo.value && parentComment.value) {
+      // 如果是回复子评论，在父评论的children中添加
+      const parent = props.comments.find(c => c.id === parentComment.value?.id)
+      if (parent && parent.children) {
+        parent.children.push(newComment)
+      }
+    } else if (replyTo.value) {
+      // 如果是回复一级评论，在该评论的children中添加
+      const parent = props.comments.find(c => c.id === replyTo.value?.id)
+      if (parent) {
+        if (!parent.children) parent.children = []
+        parent.children.push(newComment)
+      }
+    } else {
+      // 如果是新的一级评论，直接添加到评论列表
+      props.comments.unshift(newComment)
+    }
     
     commentContent.value = ''
     replyTo.value = null
     parentComment.value = null
-    emit('refresh')
     ElMessage.success('评论成功')
   } catch (error) {
     ElMessage.error('评论失败，请重试')
@@ -183,8 +220,28 @@ const deleteUserComment = (commentId: number) => {
   }).then(async () => {
     try {
       await deleteComment(commentId)
+      
+      // 本地更新评论列表
+      // 1. 先检查是否是一级评论
+      const commentIndex = props.comments.findIndex(c => c.id === commentId)
+      if (commentIndex > -1) {
+        // 是一级评论，直接从数组中移除
+        props.comments.splice(commentIndex, 1)
+      } else {
+        // 可能是子评论，遍历所有一级评论的子评论
+        for (const parent of props.comments) {
+          if (parent.children && parent.children.length > 0) {
+            const childIndex = parent.children.findIndex(c => c.id === commentId)
+            if (childIndex > -1) {
+              // 找到了，从子评论数组中移除
+              parent.children.splice(childIndex, 1)
+              break
+            }
+          }
+        }
+      }
+      
       ElMessage.success('删除成功')
-      emit('refresh')
     } catch (error) {
       ElMessage.error('删除失败，请重试')
       console.error(error)
