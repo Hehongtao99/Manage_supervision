@@ -74,46 +74,6 @@
         </transition>
       </router-view>
     </main>
-
-    <!-- 底部 -->
-    <footer class="footer">
-      <div class="footer-container">
-        <div class="footer-content">
-          <div class="footer-section">
-            <div class="footer-logo">
-              <div class="footer-logo-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13.5 5.5C13.5 6.88071 12.3807 8 11 8C9.61929 8 8.5 6.88071 8.5 5.5C8.5 4.11929 9.61929 3 11 3C12.3807 3 13.5 4.11929 13.5 5.5Z" fill="#1890ff"/>
-                  <path d="M9.5 8.5L8 10.5L10.5 12L12 11L14 13L16.5 12L18 14L19.5 13.5L18.5 15.5L16 16.5L13.5 15L11.5 16.5L9 15L7.5 16.5L6 15L4.5 16.5L3 15L4 13L6 14L7.5 12.5L9.5 8.5Z" fill="#1890ff"/>
-                  <path d="M6 18L8 17L10 18.5L12 17.5L14 19L16 18L18 19.5L20 18.5L21 20.5L19 21.5L17 20L15 21L13 19.5L11 21L9 19.5L7 21L5 19.5L4 21.5L6 18Z" fill="#1890ff"/>
-                </svg>
-              </div>
-              <h4>Run2gather</h4>
-            </div>
-            <p>让跑步更有趣，让运动成为生活方式</p>
-          </div>
-          <div class="footer-section">
-            <h4>功能</h4>
-            <ul>
-              <li>跑步记录</li>
-              <li>社交分享</li>
-              <li>好友互动</li>
-              <li>成就系统</li>
-            </ul>
-          </div>
-          <div class="footer-section">
-            <h4>联系我们</h4>
-            <ul>
-              <li>邮箱：contact@run2gather.com</li>
-              <li>电话：400-888-0000</li>
-            </ul>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2024 Run2gather. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -347,60 +307,8 @@ const handleLogout = () => {
 
 .main-content {
   flex: 1;
-  min-height: calc(100vh - 64px - 200px);
-}
-
-.footer {
-  background: #2c3e50;
-  color: #fff;
-  margin-top: auto;
-}
-
-.footer-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px 20px;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 32px;
-  margin-bottom: 32px;
-}
-
-.footer-section h4 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  color: #1890ff;
-}
-
-.footer-section p {
-  margin: 0;
-  color: #bbb;
-  line-height: 1.6;
-}
-
-.footer-section ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-section li {
-  margin: 8px 0;
-  color: #bbb;
-}
-
-.footer-bottom {
-  border-top: 1px solid #3d4f5f;
-  padding-top: 20px;
-  text-align: center;
-}
-
-.footer-bottom p {
-  margin: 0;
-  color: #999;
+  min-height: calc(100vh - 64px);
+  padding-bottom: 0;
 }
 
 /* 路由过渡动画 */
@@ -427,40 +335,5 @@ const handleLogout = () => {
   .nav-menu {
     gap: 16px;
   }
-  
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-}
-
-.footer-logo {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.footer-logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #1890ff, #722ed1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-}
-
-.footer-logo-icon svg {
-  filter: brightness(0) invert(1);
-}
-
-.footer-logo h4 {
-  margin: 0;
-  font-size: 20px;
-  background: linear-gradient(135deg, #1890ff, #722ed1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 </style> 

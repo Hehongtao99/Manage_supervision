@@ -448,24 +448,22 @@ const handleTabClick = () => {
 
 <style scoped>
 .friend-page {
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden !important;
   display: flex;
   flex-direction: column;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  height: calc(100vh - 64px); /* 只减去头部导航栏的高度 */
+  overflow: hidden;
+  background-color: #f5f5f5;
 }
 
 .friend-container {
   display: flex;
   height: 100%;
-  max-height: 100vh;
-  overflow: hidden !important;
+  overflow: hidden;
   flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  margin: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .friend-sidebar {
@@ -484,6 +482,7 @@ const handleTabClick = () => {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  background-color: #fafafa;
 }
 
 .sidebar-header h2 {
@@ -495,6 +494,7 @@ const handleTabClick = () => {
 .friend-list {
   flex: 1;
   overflow-y: auto;
+  background-color: white;
 }
 
 .empty-state {
@@ -512,9 +512,12 @@ const handleTabClick = () => {
 .friend-item {
   display: flex;
   padding: 12px 16px;
-  border-bottom: 1px solid #f1f1f1;
   cursor: pointer;
   transition: background-color 0.2s;
+}
+
+.friend-item:not(:last-child) {
+  border-bottom: 1px solid #f5f5f5;
 }
 
 .friend-item:hover {
@@ -523,6 +526,7 @@ const handleTabClick = () => {
 
 .friend-item.active {
   background-color: #f0f7ff;
+  border-left: 3px solid #1890ff;
 }
 
 .avatar {
@@ -551,13 +555,14 @@ const handleTabClick = () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #e0e0e0;
   overflow: hidden;
+  background-color: white;
 }
 
 .request-header {
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
 }
 
 .request-header h3 {
@@ -586,6 +591,10 @@ const handleTabClick = () => {
   padding: 16px;
 }
 
+.request-tabs :deep(.el-tabs__nav-wrap)::after {
+  display: none; /* 移除标签页下面的横线 */
+}
+
 .request-items {
   display: flex;
   flex-direction: column;
@@ -595,15 +604,22 @@ const handleTabClick = () => {
 .request-item {
   display: flex;
   padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background-color: #f9f9f9;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: all 0.3s;
+}
+
+.request-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
 }
 
 .request-info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: 12px;
 }
 
 .request-name {
@@ -631,5 +647,38 @@ const handleTabClick = () => {
 .request-to {
   margin-bottom: 16px;
   font-weight: 500;
+}
+
+/* 移除可能造成视觉干扰的底部边框 */
+.friend-container > *:last-child {
+  border-right: none;
+}
+
+/* 优化对话框样式 */
+:deep(.el-dialog) {
+  border-radius: 8px;
+}
+
+:deep(.el-dialog__header) {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .friend-container {
+    flex-direction: column;
+    margin: 10px;
+  }
+  
+  .friend-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 40vh;
+  }
+  
+  .friend-requests {
+    border-left: none;
+  }
 }
 </style> 
