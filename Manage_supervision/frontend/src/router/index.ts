@@ -11,6 +11,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '登录' }
   },
   {
+    path: '/attendance-panel',
+    name: 'AttendancePanel',
+    component: () => import('../views/AttendancePanel.vue'),
+    meta: { title: '考勤面板' }
+  },
+  {
     path: '/register',
     name: 'register',
     component: () => import('../views/Register.vue'),
@@ -115,6 +121,16 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'face-management',
+        name: 'FaceManagement',
+        component: () => import('../views/admin/FaceManagement.vue'),
+        meta: { 
+          title: '人脸管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
         path: 'logs',
         name: 'SystemLogs',
         component: () => import('../views/admin/SystemLogs.vue'),
@@ -140,6 +156,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/admin/AttendanceSummary.vue'),
         meta: { 
           title: '考勤汇总',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'attendance-records',
+        name: 'AttendanceRecords',
+        component: () => import('../views/admin/AttendanceRecords.vue'),
+        meta: { 
+          title: '考勤记录',
           requiresAuth: true,
           requiresAdmin: true
         }

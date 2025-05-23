@@ -45,7 +45,7 @@ public class AdminTeacherStudentController {
     }
 
     // 获取所有学生列表（带分页）
-    @GetMapping("/students")
+    @GetMapping("/students-list")
     @RequireRole("ADMIN")
     public ResponseEntity<PageResponse<UserDTO>> getAllStudents(
             @RequestParam(defaultValue = "1") int page,

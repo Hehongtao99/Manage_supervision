@@ -10,15 +10,20 @@ public class AttendanceRecordDTO {
     private Long id;
     private Long attendanceId;
     private Long userId;
-    private String username;
-    private String realName;
-    private String userNumber;
-    private LocalDateTime checkInTime;
+    private String checkInTime; // 改为String类型，更灵活地处理日期
     private String status;
     private String location;
     private String notes;
-    private String attendanceTitle;
     private Boolean faceVerified;
+    private Float similarity;
+    
+    // 额外字段，用于前端展示
+    private String username;
+    private String realName;
+    private String userNumber;
+    private String attendanceTitle;
+    
+    // 用于返回错误信息
     private String error;
     private String message;
     

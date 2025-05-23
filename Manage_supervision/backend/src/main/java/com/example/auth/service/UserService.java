@@ -22,6 +22,9 @@ public interface UserService {
     boolean updateStudentStatus(Long id, String status);
     boolean deleteStudent(Long id);
     
+    // 获取所有学生用户（包含人脸数据）
+    List<User> findAllStudents();
+    
     // 督导员管理相关方法
     List<User> getAllSupervisors();
 

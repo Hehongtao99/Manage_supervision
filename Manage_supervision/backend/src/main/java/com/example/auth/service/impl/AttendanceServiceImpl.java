@@ -3,6 +3,7 @@ package com.example.auth.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.auth.mapper.AttendanceMapper;
 import com.example.auth.mapper.AttendanceRecordMapper;
 import com.example.auth.mapper.UserMapper;
@@ -217,7 +218,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         resultDTO.setId(record.getId());
         resultDTO.setAttendanceId(record.getAttendanceId());
         resultDTO.setUserId(record.getUserId());
-        resultDTO.setCheckInTime(record.getCheckInTime());
+
+        // 将LocalDateTime格式化为字符串
+        if (record.getCheckInTime() != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            resultDTO.setCheckInTime(record.getCheckInTime().format(formatter));
+        }
+
         resultDTO.setStatus(record.getStatus());
         resultDTO.setLocation(record.getLocation());
         resultDTO.setNotes(record.getNotes());
@@ -348,16 +355,27 @@ public class AttendanceServiceImpl implements AttendanceService {
         dto.setId(record.getId());
         dto.setAttendanceId(record.getAttendanceId());
         dto.setUserId(record.getUserId());
-        dto.setCheckInTime(record.getCheckInTime());
+        
+        // 将LocalDateTime转换为格式化的字符串
+        if (record.getCheckInTime() != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            dto.setCheckInTime(record.getCheckInTime().format(formatter));
+        }
+        
         dto.setStatus(record.getStatus());
         dto.setLocation(record.getLocation());
         dto.setNotes(record.getNotes());
         dto.setFaceVerified(record.getFaceVerified());
+        dto.setSimilarity(record.getSimilarity());
         
         // 获取考勤标题
-        Attendance attendance = attendanceMapper.selectById(record.getAttendanceId());
-        if (attendance != null) {
-            dto.setAttendanceTitle(attendance.getTitle());
+        if (record.getAttendanceId() != null && record.getAttendanceId() > 0) {
+            Attendance attendance = attendanceMapper.selectById(record.getAttendanceId());
+            if (attendance != null) {
+                dto.setAttendanceTitle(attendance.getTitle());
+            }
+        } else if (record.getAttendanceId() != null && record.getAttendanceId() == -1L) {
+            dto.setAttendanceTitle("公共人脸识别记录");
         }
         
         // 获取用户信息
@@ -455,24 +473,11 @@ public class AttendanceServiceImpl implements AttendanceService {
         // 转换为DTO
         List<AttendanceRecordDTO> recordDTOs = new ArrayList<>();
         for (AttendanceRecord record : records) {
-            AttendanceRecordDTO dto = new AttendanceRecordDTO();
-            BeanUtils.copyProperties(record, dto);
-            
-            // 获取考勤信息
-            Attendance attendance = attendanceMapper.selectById(record.getAttendanceId());
-            if (attendance != null) {
-                dto.setAttendanceId(attendance.getId());
+            // 使用已修复的convertToDTO方法
+            AttendanceRecordDTO dto = convertToDTO(record);
+            if (dto != null) {
+                recordDTOs.add(dto);
             }
-            
-            // 获取用户信息
-            User user = userMapper.selectById(userId);
-            if (user != null) {
-                dto.setUsername(user.getUsername());
-                dto.setRealName(user.getRealName());
-                dto.setUserNumber(user.getUserNumber());
-            }
-            
-            recordDTOs.add(dto);
         }
         
         return recordDTOs;
@@ -558,7 +563,10 @@ public class AttendanceServiceImpl implements AttendanceService {
                 row.createCell(0).setCellValue(i + 1);
                 row.createCell(1).setCellValue(record.getRealName());
                 row.createCell(2).setCellValue(record.getUserNumber());
-                row.createCell(3).setCellValue(record.getCheckInTime().format(formatter));
+                
+                // 直接使用DTO中的checkInTime字符串，不需要再次格式化
+                row.createCell(3).setCellValue(record.getCheckInTime() != null ? record.getCheckInTime() : "");
+                
                 row.createCell(4).setCellValue(record.getStatus());
                 row.createCell(5).setCellValue(record.getLocation() != null ? record.getLocation() : "");
                 row.createCell(6).setCellValue(record.getNotes() != null ? record.getNotes() : "");
@@ -612,6 +620,11 @@ public class AttendanceServiceImpl implements AttendanceService {
             Long attendanceId = entry.getKey();
             List<AttendanceRecordDTO> attendanceRecords = entry.getValue();
             
+            // 如果是特殊考勤记录（ID为-1），则跳过
+            if (attendanceId == -1L) {
+                continue;
+            }
+            
             Attendance attendance = attendanceMapper.selectById(attendanceId);
             if (attendance == null) continue;
             
@@ -646,5 +659,242 @@ public class AttendanceServiceImpl implements AttendanceService {
         result.put("attendanceSummaries", attendanceSummaries);
         
         return result;
+    }
+    
+    @Override
+    public Long getActiveAttendanceId() {
+        logger.info("获取当前活动考勤ID");
+        try {
+            // 构建查询条件：状态为活动且当前时间在考勤时间范围内
+            LocalDateTime now = LocalDateTime.now();
+            LambdaQueryWrapper<Attendance> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Attendance::getStatus, "active")
+                       .le(Attendance::getStartTime, now)  // 开始时间早于等于当前时间
+                       .ge(Attendance::getEndTime, now)    // 结束时间晚于等于当前时间
+                       .orderByDesc(Attendance::getCreateTime);
+            
+            // 查询符合条件的第一条记录
+            Attendance attendance = attendanceMapper.selectOne(queryWrapper);
+            
+            if (attendance != null) {
+                logger.info("找到当前活动考勤，ID: {}, 标题: {}", attendance.getId(), attendance.getTitle());
+                return attendance.getId();
+            } else {
+                logger.info("当前没有活动考勤");
+                
+                // 如果没有正在进行中的考勤，则查找最近一次的考勤
+                LambdaQueryWrapper<Attendance> recentWrapper = new LambdaQueryWrapper<>();
+                recentWrapper.eq(Attendance::getStatus, "active")
+                           .orderByDesc(Attendance::getCreateTime);
+                
+                Attendance recentAttendance = attendanceMapper.selectOne(recentWrapper);
+                if (recentAttendance != null) {
+                    logger.info("找到最近的考勤，ID: {}, 标题: {}", recentAttendance.getId(), recentAttendance.getTitle());
+                    return recentAttendance.getId();
+                }
+                
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("获取当前活动考勤ID过程中发生异常", e);
+            return null;
+        }
+    }
+
+    @Override
+    public boolean saveSpecialAttendanceRecord(AttendanceRecordDTO recordDTO) {
+        try {
+            logger.info("保存特殊考勤记录，用户ID: {}", recordDTO.getUserId());
+            
+            // 1. 创建特殊考勤记录
+            AttendanceRecord record = new AttendanceRecord();
+            
+            // 设置基本字段
+            record.setUserId(recordDTO.getUserId());
+            record.setStatus(recordDTO.getStatus() != null ? recordDTO.getStatus() : "系统记录");
+            record.setLocation(recordDTO.getLocation());
+            record.setNotes(recordDTO.getNotes());
+            record.setFaceVerified(true); // 特殊记录都是通过人脸验证的
+            
+            // 设置考勤ID（特殊值，表示系统记录）
+            // 因为数据库中这个字段不能为null，所以我们使用一个特殊值-1
+            record.setAttendanceId(-1L);
+            
+            // 设置签到时间
+            if (recordDTO.getCheckInTime() != null) {
+                // 如果传入了时间字符串，尝试解析
+                try {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                    record.setCheckInTime(LocalDateTime.parse(recordDTO.getCheckInTime(), formatter));
+                } catch (Exception e) {
+                    // 解析失败则使用当前时间
+                    record.setCheckInTime(LocalDateTime.now());
+                    logger.warn("解析时间字符串失败：{}，使用当前时间", recordDTO.getCheckInTime());
+                }
+            } else {
+                // 没有时间则使用当前时间
+                record.setCheckInTime(LocalDateTime.now());
+            }
+            
+            // 2. 保存考勤记录
+            int result = attendanceRecordMapper.insert(record);
+            
+            logger.info("特殊考勤记录保存结果: {}, 记录ID: {}", result > 0, record.getId());
+            return result > 0;
+        } catch (Exception e) {
+            logger.error("保存特殊考勤记录异常", e);
+            return false;
+        }
+    }
+
+    @Override
+    public PageResponse<AttendanceRecordDTO> getSpecialAttendanceRecords(int page, int size) {
+        Page<AttendanceRecordDTO> pageParam = new Page<>(page, size);
+        var records = attendanceRecordMapper.getSpecialAttendanceRecords(pageParam);
+        
+        // 处理结果，添加特殊标记
+        for (AttendanceRecordDTO record : records.getRecords()) {
+            // 由于这些记录不属于任何考勤，设置一个特殊标题
+            record.setAttendanceTitle("公共人脸识别记录");
+            
+            // 如果没有状态，设置默认状态
+            if (record.getStatus() == null || record.getStatus().isEmpty()) {
+                record.setStatus("系统记录");
+            }
+        }
+        
+        return new PageResponse<>(records.getRecords(), records.getTotal(), (int) records.getCurrent(), (int) records.getSize());
+    }
+    
+    @Override
+    public PageResponse<AttendanceRecordDTO> getAllAttendanceRecordsForAdmin(int page, int size, String startDate, String endDate, String username, String recordType) {
+        logger.info("管理员查询所有打卡记录，页码: {}, 大小: {}, 开始日期: {}, 结束日期: {}, 用户名: {}, 记录类型: {}", 
+                    page, size, startDate, endDate, username, recordType);
+        
+        Page<AttendanceRecordDTO> pageParam = new Page<>(page, size);
+        IPage<AttendanceRecordDTO> records;
+        
+        // 如果没有提供日期范围，默认查询最近30天的数据
+        if ((startDate == null || startDate.isEmpty()) && (endDate == null || endDate.isEmpty())) {
+            LocalDateTime endDateTime = LocalDateTime.now();
+            LocalDateTime startDateTime = endDateTime.minusDays(30);
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            startDate = startDateTime.format(formatter);
+            endDate = endDateTime.format(formatter);
+        }
+        
+        // 根据不同的筛选条件调用不同的查询方法
+        if (recordType != null && recordType.equals("normal")) {
+            // 只查询正常考勤记录
+            records = attendanceRecordMapper.getNormalAttendanceRecords(pageParam);
+        } else if (recordType != null && recordType.equals("special")) {
+            // 只查询特殊考勤记录
+            records = attendanceRecordMapper.getSpecialAttendanceRecordsForAdmin(pageParam);
+        } else if (username != null && !username.isEmpty()) {
+            // 按用户名查询
+            records = attendanceRecordMapper.getAllAttendanceRecordsForAdminByUsername(pageParam, username);
+        } else if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
+            // 按日期范围查询
+            records = attendanceRecordMapper.getAllAttendanceRecordsForAdminByDateRange(pageParam, startDate, endDate);
+        } else {
+            // 查询所有记录
+            records = attendanceRecordMapper.getAllAttendanceRecordsForAdmin(pageParam);
+        }
+        
+        // 处理结果，确保每条记录都有完整的信息
+        for (AttendanceRecordDTO record : records.getRecords()) {
+            // 处理考勤标题
+            if (record.getAttendanceTitle() == null || record.getAttendanceTitle().isEmpty()) {
+                if (record.getAttendanceId() == -1L) {
+                    record.setAttendanceTitle("公共人脸识别记录");
+                } else {
+                    record.setAttendanceTitle("未知考勤");
+                }
+            }
+            
+            // 处理状态
+            if (record.getStatus() == null || record.getStatus().isEmpty()) {
+                if (record.getAttendanceId() == -1L) {
+                    record.setStatus("系统记录");
+                } else {
+                    record.setStatus("正常");
+                }
+            }
+            
+            // 处理人脸验证状态
+            if (record.getFaceVerified() == null) {
+                record.setFaceVerified(false);
+            }
+        }
+        
+        return new PageResponse<>(records.getRecords(), records.getTotal(), (int) records.getCurrent(), (int) records.getSize());
+    }
+    
+    @Override
+    public Map<String, Object> getAttendanceRecordsStatistics(String startDate, String endDate) {
+        logger.info("获取打卡记录统计数据，开始日期: {}, 结束日期: {}", startDate, endDate);
+        
+        Map<String, Object> statistics;
+        
+        // 如果没有提供日期范围，查询所有数据
+        if ((startDate == null || startDate.isEmpty()) && (endDate == null || endDate.isEmpty())) {
+            statistics = attendanceRecordMapper.getAttendanceRecordsStatistics();
+        } else {
+            // 如果没有提供完整的日期范围，默认查询最近30天的数据
+            if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+                LocalDateTime endDateTime = LocalDateTime.now();
+                LocalDateTime startDateTime = endDateTime.minusDays(30);
+                
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                startDate = startDateTime.format(formatter);
+                endDate = endDateTime.format(formatter);
+            }
+            
+            statistics = attendanceRecordMapper.getAttendanceRecordsStatisticsByDateRange(startDate, endDate);
+        }
+        
+        // 添加查询时间范围
+        statistics.put("startDate", startDate);
+        statistics.put("endDate", endDate);
+        
+        // 处理可能为null的值
+        if (statistics.get("totalRecords") == null) {
+            statistics.put("totalRecords", 0);
+        }
+        if (statistics.get("normalRecords") == null) {
+            statistics.put("normalRecords", 0);
+        }
+        if (statistics.get("specialRecords") == null) {
+            statistics.put("specialRecords", 0);
+        }
+        if (statistics.get("uniqueUsers") == null) {
+            statistics.put("uniqueUsers", 0);
+        }
+        if (statistics.get("faceVerifiedRecords") == null) {
+            statistics.put("faceVerifiedRecords", 0);
+        }
+        
+        // 计算百分比
+        int totalRecords = ((Number) statistics.get("totalRecords")).intValue();
+        int normalRecords = ((Number) statistics.get("normalRecords")).intValue();
+        int specialRecords = ((Number) statistics.get("specialRecords")).intValue();
+        int faceVerifiedRecords = ((Number) statistics.get("faceVerifiedRecords")).intValue();
+        
+        if (totalRecords > 0) {
+            statistics.put("normalRecordsPercentage", (double) normalRecords / totalRecords * 100);
+            statistics.put("specialRecordsPercentage", (double) specialRecords / totalRecords * 100);
+            statistics.put("faceVerifiedPercentage", (double) faceVerifiedRecords / totalRecords * 100);
+        } else {
+            statistics.put("normalRecordsPercentage", 0.0);
+            statistics.put("specialRecordsPercentage", 0.0);
+            statistics.put("faceVerifiedPercentage", 0.0);
+        }
+        
+        // 获取总用户数
+        int totalUsers = attendanceMapper.countTotalActiveUsers();
+        statistics.put("totalUsers", totalUsers);
+        
+        return statistics;
     }
 } 

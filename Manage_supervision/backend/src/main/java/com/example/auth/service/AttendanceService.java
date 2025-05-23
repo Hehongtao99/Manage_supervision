@@ -31,6 +31,12 @@ public interface AttendanceService {
      */
     AttendanceRecordDTO faceCheckIn(Long attendanceId, Long userId, AttendanceRecordDTO recordDTO, String faceData);
     
+    /**
+     * 获取当前活动状态的考勤ID
+     * @return 活动考勤ID，如果没有活动考勤则返回null
+     */
+    Long getActiveAttendanceId();
+    
     // 获取考勤记录和统计
     PageResponse<AttendanceRecordDTO> getAttendanceRecords(Long attendanceId, int page, int size);
     List<AttendanceRecordDTO> getUncheckedUsers(Long attendanceId);
@@ -44,4 +50,39 @@ public interface AttendanceService {
     List<AttendanceRecordDTO> getAllAttendanceRecords(Long attendanceId);
     byte[] exportAttendanceRecords(Long attendanceId) throws Exception;
     Map<String, Object> getAttendanceSummary(String startDate, String endDate);
+
+    /**
+     * 保存特殊考勤记录（无活动考勤时的记录）
+     * @param recordDTO 考勤记录DTO
+     * @return 是否保存成功
+     */
+    boolean saveSpecialAttendanceRecord(AttendanceRecordDTO recordDTO);
+
+    /**
+     * 获取所有特殊考勤记录（无活动考勤时的系统记录）
+     * @param page 页码
+     * @param size 每页大小
+     * @return 特殊考勤记录列表
+     */
+    PageResponse<AttendanceRecordDTO> getSpecialAttendanceRecords(int page, int size);
+
+    /**
+     * 管理员获取所有打卡记录（包括正常考勤记录和特殊记录）
+     * @param page 页码
+     * @param size 每页大小
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @param username 用户名（可选）
+     * @param recordType 记录类型：all-所有记录，normal-正常考勤记录，special-特殊记录
+     * @return 打卡记录列表
+     */
+    PageResponse<AttendanceRecordDTO> getAllAttendanceRecordsForAdmin(int page, int size, String startDate, String endDate, String username, String recordType);
+    
+    /**
+     * 获取打卡记录统计数据
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 统计数据
+     */
+    Map<String, Object> getAttendanceRecordsStatistics(String startDate, String endDate);
 } 

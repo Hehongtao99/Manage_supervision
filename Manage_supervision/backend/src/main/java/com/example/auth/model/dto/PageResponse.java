@@ -10,6 +10,9 @@ public class PageResponse<T> {
     private int page;
     private int size;
     
+    public PageResponse() {
+    }
+    
     public PageResponse(List<T> content, long total, int page, int size) {
         this.content = content;
         this.total = total;

@@ -501,10 +501,76 @@ public class UserServiceImpl implements UserService {
                 return false;
             }
             
-            return user.getFaceData() != null && !user.getFaceData().isEmpty();
+            String faceData = user.getFaceData();
+            // 更严格检查：null、空字符串、或只包含空白字符都视为无人脸数据
+            if (faceData == null || faceData.trim().isEmpty()) {
+                return false;
+            }
+            // 额外检查：非空但长度过短的数据也认为是无效的
+            if (faceData.length() < 50) {  // 一个有效的Base64编码人脸数据通常很长
+                return false;
+            }
+            
+            return true;
         } catch (Exception e) {
             logger.error("检查人脸数据过程中发生异常", e);
             return false;
+        }
+    }
+
+    @Override
+    public List<User> findAllStudents() {
+        logger.info("获取所有学生用户");
+        try {
+            // 获取USER角色
+            Role userRole = roleMapper.findByName("USER");
+            if (userRole == null) {
+                logger.warn("未找到USER角色");
+                return new ArrayList<>();
+            }
+            
+            // 获取所有具有USER角色的用户
+            List<User> users = userMapper.findByRoleId(userRole.getId());
+            
+            // 排除同时有ADMIN或SUPERVISOR角色的用户
+            Role adminRole = roleMapper.findByName("ADMIN");
+            Role supervisorRole = roleMapper.findByName("SUPERVISOR");
+            
+            final List<Long> adminUserIds = new ArrayList<>();
+            final List<Long> supervisorUserIds = new ArrayList<>();
+            
+            if (adminRole != null) {
+                adminUserIds.addAll(userMapper.findByRoleId(adminRole.getId())
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()));
+            }
+            
+            if (supervisorRole != null) {
+                supervisorUserIds.addAll(userMapper.findByRoleId(supervisorRole.getId())
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()));
+            }
+            
+            // 过滤出纯学生用户且具有人脸数据的用户
+            return users.stream()
+                .filter(user -> !adminUserIds.contains(user.getId()) && !supervisorUserIds.contains(user.getId()))
+                .filter(user -> {
+                    String faceData = user.getFaceData();
+                    // 使用与hasFaceData相同的检查逻辑
+                    if (faceData == null || faceData.trim().isEmpty()) {
+                        return false;
+                    }
+                    if (faceData.length() < 50) {
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("获取所有学生用户过程中发生异常", e);
+            return new ArrayList<>();
         }
     }
 

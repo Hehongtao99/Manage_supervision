@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface AttendanceMapper extends BaseMapper<Attendance> {
     
-    @Select("SELECT COUNT(*) FROM e981_attendance_record WHERE attendance_id = #{attendanceId}")
+    @Select("SELECT COUNT(*) FROM attendance_records WHERE attendance_id = #{attendanceId}")
     int countCheckedInUsers(@Param("attendanceId") Long attendanceId);
     
     @Select("SELECT COUNT(*) FROM users WHERE status = 'active'")

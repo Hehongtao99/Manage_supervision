@@ -38,4 +38,31 @@ CREATE TABLE IF NOT EXISTS face_registration_logs (
 -- 3. 提高相似度阈值至0.75，确保识别准确性
 -- 4. 增加详细日志输出，便于分析比对过程和结果
 -- 5. 改进Mat对象资源管理，确保内存正确释放
--- 注意：此修改保持了严格的人脸验证标准，同时解决了与JavaCV库版本兼容性的问题 
+-- 注意：此修改保持了严格的人脸验证标准，同时解决了与JavaCV库版本兼容性的问题
+
+-- 确保用户表中包含人脸数据字段
+ALTER TABLE users ADD COLUMN IF NOT EXISTS face_data TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS face_registered_time DATETIME;
+
+-- 添加人脸识别相关日志表
+CREATE TABLE IF NOT EXISTS face_recognition_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    operation_type VARCHAR(50) NOT NULL COMMENT '操作类型：REGISTER、UPDATE、DELETE、VERIFY',
+    operated_by BIGINT COMMENT '操作人ID，如果是管理员操作则记录管理员ID',
+    success BOOLEAN NOT NULL DEFAULT FALSE COMMENT '操作是否成功',
+    ip_address VARCHAR(50) COMMENT '操作IP地址',
+    details TEXT COMMENT '详细信息',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_face_logs_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT FK_face_logs_operator FOREIGN KEY (operated_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建索引以提高查询性能
+CREATE INDEX idx_face_logs_user_id ON face_recognition_logs(user_id);
+CREATE INDEX idx_face_logs_operation_type ON face_recognition_logs(operation_type);
+CREATE INDEX idx_face_logs_success ON face_recognition_logs(success);
+CREATE INDEX idx_face_logs_create_time ON face_recognition_logs(create_time);
+
+-- 更新用户权限，确保管理员拥有人脸管理权限
+UPDATE roles SET permissions = CONCAT(permissions, ',FACE_MANAGEMENT') WHERE name = 'ADMIN'; 

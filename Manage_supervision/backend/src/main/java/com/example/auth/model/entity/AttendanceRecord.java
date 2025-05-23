@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@TableName("e981_attendance_record")
+@TableName("attendance_records")
 public class AttendanceRecord {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -28,6 +28,9 @@ public class AttendanceRecord {
     
     @TableField("face_verified")
     private Boolean faceVerified;
+    
+    @TableField("similarity")
+    private Float similarity;
 
     // Getters
     public Long getId() {
@@ -61,6 +64,10 @@ public class AttendanceRecord {
     public Boolean getFaceVerified() {
         return faceVerified;
     }
+    
+    public Float getSimilarity() {
+        return similarity;
+    }
 
     // Setters
     public void setId(Long id) {
@@ -93,5 +100,9 @@ public class AttendanceRecord {
 
     public void setFaceVerified(Boolean faceVerified) {
         this.faceVerified = faceVerified;
+    }
+    
+    public void setSimilarity(Float similarity) {
+        this.similarity = similarity;
     }
 } 

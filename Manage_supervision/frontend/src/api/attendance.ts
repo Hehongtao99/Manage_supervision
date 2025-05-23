@@ -164,4 +164,65 @@ export const getCurrentUserAttendances = async () => {
 export const getCurrentUserAttendanceRecords = async () => {
   const response = await request.get('/api/attendance/user/records');
   return response.data;
+};
+
+// 公开考勤接口（无需登录）
+export const publicFaceCheckIn = async (faceData: string) => {
+  // 确保提取base64数据部分（去掉前缀）
+  const base64Data = faceData.includes(',') ? faceData.split(',')[1] : faceData;
+  
+  const data = {
+    faceData: base64Data
+  };
+  
+  console.log('发送公开人脸识别请求，数据长度:', base64Data.length);
+  
+  try {
+    const response = await request.post('/api/attendance/face-checkin', data);
+    return response;
+  } catch (error: any) {
+    // 如果是400错误，可能包含详细错误信息，应当正常返回
+    if (error.response && error.response.status === 400 && error.response.data) {
+      return error.response;
+    }
+    // 其他错误继续抛出
+    throw error;
+  }
+};
+
+// 获取特殊考勤记录（无活动考勤时的记录）
+export const getSpecialAttendanceRecords = async (page: number = 1, size: number = 10) => {
+  const response = await request.get('/api/attendance/special-records', {
+    params: { page, size }
+  });
+  return response.data;
+};
+
+// 管理员获取所有打卡记录（包括正常考勤记录和特殊记录）
+export const getAllAttendanceRecordsForAdmin = async (
+  page: number = 1, 
+  size: number = 10, 
+  startDate?: string, 
+  endDate?: string, 
+  username?: string, 
+  recordType?: string
+) => {
+  const params: Record<string, any> = { page, size };
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  if (username) params.username = username;
+  if (recordType) params.recordType = recordType;
+  
+  const response = await request.get('/api/attendance/admin/all-records', { params });
+  return response.data;
+};
+
+// 获取打卡记录统计数据
+export const getAttendanceRecordsStatistics = async (startDate?: string, endDate?: string) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  const response = await request.get('/api/attendance/admin/records-statistics', { params });
+  return response.data;
 }; 

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@TableName("e981_attendance")
+@TableName("attendance")
 public class Attendance {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

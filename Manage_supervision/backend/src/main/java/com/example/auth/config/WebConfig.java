@@ -29,7 +29,12 @@ public class WebConfig implements WebMvcConfigurer {
         logger.info("配置拦截器，验证用户权限");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/auth/login", "/api/auth/register");
+                .excludePathPatterns(
+                    "/api/auth/login", 
+                    "/api/auth/register",
+                    "/api/face/detect",
+                    "/api/attendance/face-checkin"
+                );
     }
 
     @Override

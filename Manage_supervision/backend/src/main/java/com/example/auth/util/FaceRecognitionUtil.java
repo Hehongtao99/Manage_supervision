@@ -48,7 +48,18 @@ public class FaceRecognitionUtil {
     
     private static final String CASCADE_FILE = "haarcascade_frontalface_alt.xml";
     private static final String CASCADE_PATH = "./data/haarcascade/";
-    private static final CascadeClassifier faceDetector = loadFaceDetector();
+    // 使用延迟初始化，不在静态区块中初始化
+    private static CascadeClassifier faceDetector;
+    
+    /**
+     * 获取人脸检测器
+     */
+    private static synchronized CascadeClassifier getFaceDetector() {
+        if (faceDetector == null) {
+            faceDetector = loadFaceDetector();
+        }
+        return faceDetector;
+    }
     
     /**
      * 加载人脸检测器
@@ -58,33 +69,36 @@ public class FaceRecognitionUtil {
         CascadeClassifier detector = new CascadeClassifier();
         
         try {
-            // 1. 首先检查本地文件是否存在
-            File cascadeFile = new File(CASCADE_PATH + CASCADE_FILE);
-            if (cascadeFile.exists() && cascadeFile.length() > 0) {
-                logger.info("从本地加载级联分类器: {}", cascadeFile.getAbsolutePath());
-                if (detector.load(cascadeFile.getAbsolutePath())) {
-                    logger.info("级联分类器加载成功");
-                    return detector;
-                } else {
-                    logger.warn("从本地加载级联分类器失败");
-                }
-            } else {
-                logger.info("本地级联分类器文件不存在: {}", cascadeFile.getAbsolutePath());
-            }
+            // 1. 从资源目录加载
+            // 检查多种可能的资源路径
+            String[] resourcePaths = {
+                "./backend/src/main/resources/haarcascade/" + CASCADE_FILE,
+                "./src/main/resources/haarcascade/" + CASCADE_FILE,
+                "../backend/src/main/resources/haarcascade/" + CASCADE_FILE,
+                "./Manage_supervision/backend/src/main/resources/haarcascade/" + CASCADE_FILE,
+                "./resources/haarcascade/" + CASCADE_FILE
+            };
             
-            // 2. 尝试从资源目录加载
-            File resourceDir = new File("./backend/src/main/resources/haarcascade");
-            File resourceFile = new File(resourceDir, CASCADE_FILE);
-            if (resourceFile.exists() && resourceFile.length() > 0) {
-                logger.info("从资源目录加载级联分类器: {}", resourceFile.getAbsolutePath());
-                if (detector.load(resourceFile.getAbsolutePath())) {
-                    logger.info("资源目录级联分类器加载成功");
+            // 尝试加载项目中的资源文件
+            InputStream is = FaceRecognitionUtil.class.getClassLoader()
+                .getResourceAsStream("haarcascade/" + CASCADE_FILE);
+            
+            if (is != null) {
+                logger.info("从类路径资源加载级联分类器");
+                // 将输入流复制到临时文件
+                Path tempFile = Files.createTempFile("cascade_", ".xml");
+                Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
+                is.close();
+                
+                if (detector.load(tempFile.toString())) {
+                    logger.info("从类路径资源成功加载级联分类器: {}", tempFile);
                     
                     // 如果本地目录不存在，复制到本地目录
+                    File cascadeFile = new File(CASCADE_PATH + CASCADE_FILE);
                     if (!cascadeFile.exists()) {
                         try {
                             Files.createDirectories(Paths.get(CASCADE_PATH));
-                            Files.copy(resourceFile.toPath(), cascadeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            Files.copy(tempFile, cascadeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                             logger.info("级联分类器已复制到数据目录: {}", cascadeFile.getAbsolutePath());
                         } catch (Exception e) {
                             logger.warn("复制级联分类器到数据目录失败", e);
@@ -92,11 +106,19 @@ public class FaceRecognitionUtil {
                     }
                     
                     return detector;
-                } else {
-                    logger.warn("从资源目录加载级联分类器失败");
                 }
-            } else {
-                logger.info("资源目录级联分类器文件不存在: {}", resourceFile.getAbsolutePath());
+            }
+            
+            // 2. 尝试从各种可能的位置加载文件
+            for (String path : resourcePaths) {
+                File file = new File(path);
+                if (file.exists() && file.length() > 0) {
+                    logger.info("尝试从路径加载级联分类器: {}", file.getAbsolutePath());
+                    if (detector.load(file.getAbsolutePath())) {
+                        logger.info("级联分类器成功加载: {}", file.getAbsolutePath());
+                        return detector;
+                    }
+                }
             }
             
             // 3. 尝试使用JavaCV内置的文件
@@ -110,40 +132,20 @@ public class FaceRecognitionUtil {
                     logger.info("从JavaCV资源加载级联分类器: {}", javaCVFile.getAbsolutePath());
                     if (detector.load(javaCVFile.getAbsolutePath())) {
                         logger.info("JavaCV资源级联分类器加载成功");
-                        
-                        // 如果本地目录不存在，复制到本地目录
-                        if (!cascadeFile.exists()) {
-                            try {
-                                Files.createDirectories(Paths.get(CASCADE_PATH));
-                                Files.copy(javaCVFile.toPath(), cascadeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                                logger.info("级联分类器已复制到数据目录: {}", cascadeFile.getAbsolutePath());
-                            } catch (Exception e) {
-                                logger.warn("复制级联分类器到数据目录失败", e);
-                            }
-                        }
-                        
                         return detector;
-                    } else {
-                        logger.warn("从JavaCV资源加载级联分类器失败");
                     }
-                } else {
-                    logger.warn("JavaCV资源中找不到级联分类器文件");
                 }
             } catch (Exception e) {
                 logger.warn("访问JavaCV资源文件失败", e);
             }
             
-            // 4. 所有尝试都失败，使用默认文件名（可能会在当前工作目录或系统目录查找）
-            logger.warn("尝试使用默认文件名加载级联分类器");
-            if (detector.load(CASCADE_FILE)) {
-                logger.info("使用默认文件名加载成功");
-                return detector;
+            // 4. 所有尝试都失败，输出详细错误信息
+            logger.error("无法加载人脸检测器，请确保级联分类器文件 {} 存在", CASCADE_FILE);
+            logger.error("已尝试的路径:");
+            for (String path : resourcePaths) {
+                logger.error("- {}", path);
             }
-            
-            // 5. 所有尝试都失败
-            logger.error("无法加载人脸检测器，请确保级联分类器文件存在于以下位置之一：" +
-                     "\n1. " + CASCADE_PATH + CASCADE_FILE +
-                     "\n2. ./backend/src/main/resources/haarcascade/" + CASCADE_FILE);
+            logger.error("请确保正确安装OpenCV及级联分类器文件");
             
             return null; // 返回null表示加载失败
         } catch (Exception e) {
@@ -159,6 +161,13 @@ public class FaceRecognitionUtil {
      */
     public static String detectFace(String base64Image) {
         try {
+            // 确保人脸检测器已加载
+            CascadeClassifier detector = getFaceDetector();
+            if (detector == null) {
+                logger.error("人脸检测器未加载，无法进行人脸检测");
+                return null;
+            }
+            
             // 解码Base64字符串
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
             
@@ -177,7 +186,7 @@ public class FaceRecognitionUtil {
             
             // 检测人脸
             RectVector faceDetections = new RectVector();
-            faceDetector.detectMultiScale(image, faceDetections);
+            detector.detectMultiScale(image, faceDetections);
             
             if (faceDetections.empty() || faceDetections.size() <= 0) {
                 logger.warn("未检测到人脸");
@@ -393,5 +402,91 @@ public class FaceRecognitionUtil {
         ImageIO.write(image, formatName, baos);
         byte[] imageBytes = baos.toByteArray();
         return Base64.getEncoder().encodeToString(imageBytes);
+    }
+    
+    /**
+     * 获取两个人脸的相似度
+     * @param storedFaceBase64 存储的人脸数据（Base64编码）
+     * @param capturedFaceBase64 当前捕获的人脸数据（Base64编码）
+     * @return 相似度（0-1之间的值，1表示完全匹配）
+     */
+    public static double getFaceSimilarity(String storedFaceBase64, String capturedFaceBase64) {
+        try {
+            // 解码Base64字符串
+            byte[] storedImageBytes = Base64.getDecoder().decode(storedFaceBase64);
+            byte[] capturedImageBytes = Base64.getDecoder().decode(capturedFaceBase64);
+            
+            // 将字节数组转换为Mat对象
+            Mat storedBuffer = new Mat(1, storedImageBytes.length, CV_8UC1);
+            BytePointer storedPointer = new BytePointer(storedImageBytes);
+            storedBuffer.data(storedPointer);
+            
+            Mat capturedBuffer = new Mat(1, capturedImageBytes.length, CV_8UC1);
+            BytePointer capturedPointer = new BytePointer(capturedImageBytes);
+            capturedBuffer.data(capturedPointer);
+            
+            Mat storedImage = imdecode(storedBuffer, IMREAD_GRAYSCALE);
+            Mat capturedImage = imdecode(capturedBuffer, IMREAD_GRAYSCALE);
+            
+            if (storedImage.empty() || capturedImage.empty()) {
+                logger.error("图像解码失败");
+                return 0.0;
+            }
+            
+            // 确保两个图像大小相同
+            if (storedImage.cols() != capturedImage.cols() || storedImage.rows() != capturedImage.rows()) {
+                resize(capturedImage, capturedImage, new Size(storedImage.cols(), storedImage.rows()));
+            }
+            
+            // 转换为浮点型Mat以便计算
+            Mat storedImageFloat = new Mat();
+            Mat capturedImageFloat = new Mat();
+            storedImage.convertTo(storedImageFloat, CV_32F);
+            capturedImage.convertTo(capturedImageFloat, CV_32F);
+            
+            // 使用LBPH人脸识别器
+            LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
+            
+            // 准备训练数据和标签
+            MatVector images = new MatVector(1);
+            images.put(0, storedImage);
+            
+            // 创建标签矩阵并设置值
+            Mat labelsMat = new Mat(1, 1, CV_32SC1);
+            IntBuffer intBuf = labelsMat.createBuffer();
+            intBuf.put(0, 1);
+            
+            // 训练模型
+            recognizer.train(images, labelsMat);
+            
+            // 预测
+            int[] label = new int[1];
+            double[] confidence = new double[1];
+            recognizer.predict(capturedImage, label, confidence);
+            
+            // LBPH置信度是反向的，值越低表示匹配度越高
+            // 将其转换为0-1的相似度值
+            double lbphSimilarity = Math.max(0.0, 1.0 - confidence[0] / 100.0);
+            
+            // 增加结构相似度计算
+            double structuralSimilarity = calculateStructuralSimilarity(storedImageFloat, capturedImageFloat);
+            
+            // 清理本地资源
+            storedPointer.close();
+            capturedPointer.close();
+            storedImageFloat.release();
+            capturedImageFloat.release();
+            
+            // 综合相似度（LBPH和结构相似度的加权平均）
+            double combinedSimilarity = 0.6 * lbphSimilarity + 0.4 * structuralSimilarity;
+            
+            logger.info("LBPH相似度: {}, 结构相似度: {}, 综合相似度: {}", 
+                       lbphSimilarity, structuralSimilarity, combinedSimilarity);
+            
+            return combinedSimilarity;
+        } catch (Exception e) {
+            logger.error("计算人脸相似度过程中发生异常", e);
+            return 0.0;
+        }
     }
 } 

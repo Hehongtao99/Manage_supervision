@@ -681,6 +681,7 @@ const submitCheckIn = async () => {
     const faceData = await captureFace();
     if (!faceData) {
       console.error('人脸图像捕获失败');
+      ElMessage.error('人脸图像捕获失败，请确保光线充足并正对摄像头');
       submitting.value = false;
       autoSigningIn.value = false;
       return;
@@ -691,80 +692,58 @@ const submitCheckIn = async () => {
     const response = await attendanceApi.faceCheckIn(currentAttendance.value.id, record, faceData);
     
     // 检查响应中是否包含错误信息
-    if (response && response.data && response.data.error) {
-      console.error('签到失败:', response.data.message);
-      const errorMessage = response.data.message || '签到失败';
+    if (response && response.data) {
+      if (response.data.error) {
+        // 显示警告而不是错误，以友好的方式提示用户
+        ElMessage({
+          type: 'warning',
+          message: response.data.error,
+          duration: 5000,
+          showClose: true
+        });
+        closeCheckInDialog();
+        return;
+      }
       
-      // 显示错误提示
+      // 签到成功
+      ElMessage.success('签到成功');
+      // 重新加载考勤记录
+      await loadMyRecords();
+      // 关闭对话框
+      closeCheckInDialog();
+    }
+  } catch (error) {
+    console.error('签到失败:', error);
+    
+    // 优先使用服务器返回的错误信息
+    let errorMessage = '签到失败，请稍后重试';
+    
+    if (error.response && error.response.data) {
+      if (error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
+    // 处理人脸验证失败的特定提示
+    if (errorMessage.includes('人脸验证失败') || errorMessage.includes('人脸验证未通过') || 
+        errorMessage.includes('未找到匹配') || errorMessage.includes('未检测到人脸')) {
+      // 使用警告类型而不是错误类型来显示验证失败提示
       ElMessage({
-        type: 'error',
+        type: 'warning',
         message: errorMessage,
         duration: 5000,
         showClose: true
       });
-      
-      // 根据错误类型决定是否关闭对话框
-      if (response.data.error === 'face_mismatch' || 
-          errorMessage.includes('人脸验证失败') || 
-          errorMessage.includes('人脸不匹配')) {
-        // 人脸不匹配错误，关闭对话框
-        closeCheckInDialog();
-        
-        // 显示详细提示
-        ElMessageBox.alert(
-          '验证失败可能原因：<br>1. 当前操作人非本人<br>2. 光线不足或过强<br>3. 角度不合适<br>4. 面部表情差异过大<br><br>建议操作：<br>1. 确保光线充足均匀<br>2. 直视摄像头<br>3. 保持自然表情<br>4. 若多次失败，请前往个人中心重新录入人脸',
-          '人脸验证未通过',
-          {
-            dangerouslyUseHTMLString: true,
-            confirmButtonText: '我知道了'
-          }
-        );
-      } else {
-        // 其他错误，也关闭对话框
-        closeCheckInDialog();
-      }
-      
-      submitting.value = false;
-      autoSigningIn.value = false;
-      return;
-    }
-    
-    console.log('签到成功');
-    
-    // 显示成功消息，根据是自动签到还是手动签到显示不同提示
-    if (autoSigningIn.value) {
-      ElMessage.success('人脸自动验证签到成功');
     } else {
-      ElMessage.success('人脸验证签到成功');
+      // 处理其他错误
+      ElMessage.error(errorMessage);
     }
     
     closeCheckInDialog();
-    
-    // 重新加载数据
-    await loadAttendanceList();
-    await loadMyRecords();
-  } catch (error) {
-    console.error('签到失败:', error);
-    
-    // 处理人脸验证失败的特定提示
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    
-    if (errorMessage.includes('人脸验证失败') || errorMessage.includes('人脸验证未通过')) {
-      // 使用警告类型而不是错误类型来显示验证失败提示
-      ElMessage({
-        type: 'warning',
-        message: '人脸验证未通过，请确保光线良好并正对摄像头',
-        duration: 5000,
-        showClose: true
-      });
-      
-      // 关闭对话框
-      closeCheckInDialog();
-    } else {
-      // 处理其他错误
-      ElMessage.error('签到失败: ' + errorMessage);
-      closeCheckInDialog();
-    }
   } finally {
     submitting.value = false;
     autoSigningIn.value = false;

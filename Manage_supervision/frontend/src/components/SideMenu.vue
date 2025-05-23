@@ -37,9 +37,17 @@
           <el-icon><Avatar /></el-icon>
           <span>学生管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/face-management" @click="handleRoute('/admin/face-management')">
+          <el-icon><View /></el-icon>
+          <span>人脸管理</span>
+        </el-menu-item>
         <el-menu-item index="/admin/attendance" @click="handleRoute('/admin/attendance')">
           <el-icon><Calendar /></el-icon>
           <span>考勤管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/attendance-records" @click="handleRoute('/admin/attendance-records')">
+          <el-icon><Document /></el-icon>
+          <span>考勤记录</span>
         </el-menu-item>
         <el-menu-item index="/admin/attendance-summary" @click="handleRoute('/admin/attendance-summary')">
           <el-icon><Document /></el-icon>
@@ -79,7 +87,8 @@ import {
   Management,
   Avatar,
   Document,
-  Calendar
+  Calendar,
+  View
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

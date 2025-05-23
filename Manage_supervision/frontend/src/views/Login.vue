@@ -8,6 +8,13 @@
       </div>
       
       <el-card class="login-card">
+        <div class="login-type-switch">
+          <h2 class="login-header">管理员登录</h2>
+          <el-button type="primary" @click="switchToAttendancePanel">
+            切换到考勤面板
+          </el-button>
+        </div>
+        
         <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
           <el-alert
             v-if="errorMessage"
@@ -89,6 +96,11 @@ const loading = ref(false)
 const rememberMe = ref(false)
 const errorMessage = ref('')
 
+// 切换到考勤面板
+const switchToAttendancePanel = () => {
+  router.push('/attendance-panel')
+}
+
 const handleLogin = async () => {
   errorMessage.value = ''
   
@@ -153,6 +165,22 @@ const handleLogin = async () => {
   color: white;
   margin-bottom: 1rem;
   animation: fadeInDown 0.8s ease;
+}
+
+.login-type-switch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.login-header {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #1e3a8a;
 }
 
 @keyframes fadeInDown {
@@ -321,6 +349,12 @@ const handleLogin = async () => {
 
   :deep(.el-input__wrapper) {
     height: 44px;
+  }
+  
+  .login-type-switch {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
   }
 }
 </style>
