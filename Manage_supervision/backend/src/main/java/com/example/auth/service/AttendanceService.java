@@ -37,6 +37,14 @@ public interface AttendanceService {
      */
     Long getActiveAttendanceId();
     
+    /**
+     * 检查用户在指定时间范围内是否已经打过卡
+     * @param userId 用户ID
+     * @param minutesAgo 检查多少分钟以前的记录
+     * @return 如果已经打过卡返回true，否则返回false
+     */
+    boolean hasRecentCheckIn(Long userId, int minutesAgo);
+    
     // 获取考勤记录和统计
     PageResponse<AttendanceRecordDTO> getAttendanceRecords(Long attendanceId, int page, int size);
     List<AttendanceRecordDTO> getUncheckedUsers(Long attendanceId);
@@ -85,4 +93,44 @@ public interface AttendanceService {
      * @return 统计数据
      */
     Map<String, Object> getAttendanceRecordsStatistics(String startDate, String endDate);
+    
+    /**
+     * 获取所有打卡记录统计数据（包括系统记录）- 用于考勤记录管理页面
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 统计数据
+     */
+    Map<String, Object> getAllRecordsStatistics(String startDate, String endDate);
+    
+    /**
+     * 获取每日打卡统计
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 每日打卡统计数据
+     */
+    List<Map<String, Object>> getDailyCheckInStatistics(String startDate, String endDate);
+    
+    /**
+     * 获取所有记录的每日打卡统计（包括系统记录）
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 每日打卡统计数据
+     */
+    List<Map<String, Object>> getAllDailyCheckInStatistics(String startDate, String endDate);
+    
+    /**
+     * 获取打卡时间分布
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 打卡时间分布数据
+     */
+    List<Map<String, Object>> getCheckInTimeDistribution(String startDate, String endDate);
+    
+    /**
+     * 获取所有记录的打卡时间分布（包括系统记录）
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 打卡时间分布数据
+     */
+    List<Map<String, Object>> getAllCheckInTimeDistribution(String startDate, String endDate);
 } 

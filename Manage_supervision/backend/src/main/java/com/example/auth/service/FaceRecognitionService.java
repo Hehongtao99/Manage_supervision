@@ -15,6 +15,13 @@ public interface FaceRecognitionService {
     String detectAndProcessFace(String base64Image);
     
     /**
+     * 检测并处理人脸，返回人脸位置信息
+     * @param base64Image Base64编码的图像
+     * @return 包含处理后的人脸和位置信息的Map
+     */
+    Map<String, Object> detectAndProcessFaceWithPosition(String base64Image);
+    
+    /**
      * 验证人脸
      * @param userId 用户ID
      * @param capturedFaceData 捕获的人脸数据
@@ -44,4 +51,21 @@ public interface FaceRecognitionService {
      * @return 匹配结果，包含匹配的用户ID和相似度
      */
     Map<String, Object> findMatchingUser(String capturedFaceData);
+    
+    /**
+     * 多次验证人脸，提高识别准确性
+     * @param userId 用户ID
+     * @param capturedFaceData 捕获的人脸数据
+     * @param verificationTimes 验证次数（建议3-5次）
+     * @return 多次验证结果，包含平均相似度等详细信息
+     */
+    Map<String, Object> verifyFaceMultipleTimes(Long userId, String capturedFaceData, int verificationTimes);
+    
+    /**
+     * 根据人脸数据查找匹配用户（多次验证版本）
+     * @param capturedFaceData 捕获的人脸数据
+     * @param verificationTimes 验证次数
+     * @return 匹配结果，包含详细验证信息
+     */
+    Map<String, Object> findMatchingUserWithMultipleVerification(String capturedFaceData, int verificationTimes);
 } 

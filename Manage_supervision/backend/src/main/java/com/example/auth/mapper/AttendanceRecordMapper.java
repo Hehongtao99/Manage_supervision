@@ -108,25 +108,95 @@ public interface AttendanceRecordMapper extends BaseMapper<AttendanceRecord> {
            "ORDER BY ar.check_in_time DESC")
     IPage<AttendanceRecordDTO> getSpecialAttendanceRecordsForAdmin(Page<AttendanceRecordDTO> page);
     
-    // 统计查询
+    // 统计查询 - 只统计前台考勤记录
     @Select("SELECT " +
            "COUNT(*) as totalRecords, " +
-           "COUNT(CASE WHEN ar.attendance_id > 0 THEN 1 END) as normalRecords, " +
-           "COUNT(CASE WHEN ar.attendance_id = -1 THEN 1 END) as specialRecords, " +
            "COUNT(DISTINCT ar.user_id) as uniqueUsers, " +
            "COUNT(CASE WHEN ar.face_verified = 1 THEN 1 END) as faceVerifiedRecords " +
-           "FROM attendance_records ar")
+           "FROM attendance_records ar " +
+           "WHERE ar.attendance_id > 0")
     Map<String, Object> getAttendanceRecordsStatistics();
     
     @Select("SELECT " +
            "COUNT(*) as totalRecords, " +
-           "COUNT(CASE WHEN ar.attendance_id > 0 THEN 1 END) as normalRecords, " +
-           "COUNT(CASE WHEN ar.attendance_id = -1 THEN 1 END) as specialRecords, " +
+           "COUNT(DISTINCT ar.user_id) as uniqueUsers, " +
+           "COUNT(CASE WHEN ar.face_verified = 1 THEN 1 END) as faceVerifiedRecords " +
+           "FROM attendance_records ar " +
+           "WHERE ar.attendance_id > 0 AND ar.check_in_time >= #{startDate} AND ar.check_in_time <= #{endDate}")
+    Map<String, Object> getAttendanceRecordsStatisticsByDateRange(
+        @Param("startDate") String startDate, 
+        @Param("endDate") String endDate
+    );
+    
+    // 统计所有打卡记录（包括系统记录）- 用于考勤记录管理页面
+    @Select("SELECT " +
+           "COUNT(*) as totalRecords, " +
+           "COUNT(DISTINCT ar.user_id) as uniqueUsers, " +
+           "COUNT(CASE WHEN ar.face_verified = 1 THEN 1 END) as faceVerifiedRecords " +
+           "FROM attendance_records ar")
+    Map<String, Object> getAllRecordsStatistics();
+    
+    @Select("SELECT " +
+           "COUNT(*) as totalRecords, " +
            "COUNT(DISTINCT ar.user_id) as uniqueUsers, " +
            "COUNT(CASE WHEN ar.face_verified = 1 THEN 1 END) as faceVerifiedRecords " +
            "FROM attendance_records ar " +
            "WHERE ar.check_in_time >= #{startDate} AND ar.check_in_time <= #{endDate}")
-    Map<String, Object> getAttendanceRecordsStatisticsByDateRange(
+    Map<String, Object> getAllRecordsStatisticsByDateRange(
+        @Param("startDate") String startDate, 
+        @Param("endDate") String endDate
+    );
+    
+    // 获取每日打卡统计
+    @Select("SELECT " +
+           "DATE(ar.check_in_time) as date, " +
+           "COUNT(*) as count " +
+           "FROM attendance_records ar " +
+           "WHERE ar.attendance_id > 0 AND ar.check_in_time >= #{startDate} AND ar.check_in_time <= #{endDate} " +
+           "GROUP BY DATE(ar.check_in_time) " +
+           "ORDER BY date")
+    List<Map<String, Object>> getDailyCheckInStatistics(
+        @Param("startDate") String startDate, 
+        @Param("endDate") String endDate
+    );
+    
+    // 获取所有记录的每日打卡统计（包括系统记录）
+    @Select("SELECT " +
+           "DATE(ar.check_in_time) as date, " +
+           "COUNT(*) as count " +
+           "FROM attendance_records ar " +
+           "WHERE ar.check_in_time >= #{startDate} AND ar.check_in_time <= #{endDate} " +
+           "GROUP BY DATE(ar.check_in_time) " +
+           "ORDER BY date")
+    List<Map<String, Object>> getAllDailyCheckInStatistics(
+        @Param("startDate") String startDate, 
+        @Param("endDate") String endDate
+    );
+    
+    // 获取打卡时间分布（按小时和星期分组）
+    @Select("SELECT " +
+           "DAYOFWEEK(ar.check_in_time) - 1 as dayOfWeek, " +
+           "HOUR(ar.check_in_time) as hour, " +
+           "COUNT(*) as count " +
+           "FROM attendance_records ar " +
+           "WHERE ar.attendance_id > 0 AND ar.check_in_time >= #{startDate} AND ar.check_in_time <= #{endDate} " +
+           "GROUP BY DAYOFWEEK(ar.check_in_time) - 1, HOUR(ar.check_in_time) " +
+           "ORDER BY dayOfWeek, hour")
+    List<Map<String, Object>> getCheckInTimeDistribution(
+        @Param("startDate") String startDate, 
+        @Param("endDate") String endDate
+    );
+    
+    // 获取所有记录的打卡时间分布（包括系统记录）
+    @Select("SELECT " +
+           "DAYOFWEEK(ar.check_in_time) - 1 as dayOfWeek, " +
+           "HOUR(ar.check_in_time) as hour, " +
+           "COUNT(*) as count " +
+           "FROM attendance_records ar " +
+           "WHERE ar.check_in_time >= #{startDate} AND ar.check_in_time <= #{endDate} " +
+           "GROUP BY DAYOFWEEK(ar.check_in_time) - 1, HOUR(ar.check_in_time) " +
+           "ORDER BY dayOfWeek, hour")
+    List<Map<String, Object>> getAllCheckInTimeDistribution(
         @Param("startDate") String startDate, 
         @Param("endDate") String endDate
     );

@@ -702,6 +702,35 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    public boolean hasRecentCheckIn(Long userId, int minutesAgo) {
+        logger.info("检查用户{}在过去{}分钟内是否已经打过卡", userId, minutesAgo);
+        
+        try {
+            // 计算时间范围
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime timeThreshold = now.minusMinutes(minutesAgo);
+            
+            // 构建查询条件：查询该用户在指定时间范围内的所有打卡记录（包括正常考勤和特殊记录）
+            LambdaQueryWrapper<AttendanceRecord> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AttendanceRecord::getUserId, userId)
+                       .ge(AttendanceRecord::getCheckInTime, timeThreshold)  // 签到时间大于等于阈值时间
+                       .le(AttendanceRecord::getCheckInTime, now);           // 签到时间小于等于当前时间
+            
+            // 查询记录数量
+            long count = attendanceRecordMapper.selectCount(queryWrapper);
+            
+            boolean hasRecent = count > 0;
+            logger.info("用户{}在过去{}分钟内{}打卡记录，记录数量: {}", 
+                       userId, minutesAgo, hasRecent ? "有" : "没有", count);
+            
+            return hasRecent;
+        } catch (Exception e) {
+            logger.error("检查用户{}近期打卡记录时发生异常", userId, e);
+            return false; // 发生异常时，为了不影响用户打卡，返回false允许打卡
+        }
+    }
+
+    @Override
     public boolean saveSpecialAttendanceRecord(AttendanceRecordDTO recordDTO) {
         try {
             logger.info("保存特殊考勤记录，用户ID: {}", recordDTO.getUserId());
@@ -833,7 +862,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     
     @Override
     public Map<String, Object> getAttendanceRecordsStatistics(String startDate, String endDate) {
-        logger.info("获取打卡记录统计数据，开始日期: {}, 结束日期: {}", startDate, endDate);
+        logger.info("获取前台考勤统计数据，开始日期: {}, 结束日期: {}", startDate, endDate);
         
         Map<String, Object> statistics;
         
@@ -862,11 +891,97 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (statistics.get("totalRecords") == null) {
             statistics.put("totalRecords", 0);
         }
-        if (statistics.get("normalRecords") == null) {
-            statistics.put("normalRecords", 0);
+        if (statistics.get("uniqueUsers") == null) {
+            statistics.put("uniqueUsers", 0);
         }
-        if (statistics.get("specialRecords") == null) {
-            statistics.put("specialRecords", 0);
+        if (statistics.get("faceVerifiedRecords") == null) {
+            statistics.put("faceVerifiedRecords", 0);
+        }
+        
+        // 计算人脸验证百分比
+        int totalRecords = ((Number) statistics.get("totalRecords")).intValue();
+        int faceVerifiedRecords = ((Number) statistics.get("faceVerifiedRecords")).intValue();
+        
+        if (totalRecords > 0) {
+            statistics.put("faceVerifiedPercentage", (double) faceVerifiedRecords / totalRecords * 100);
+        } else {
+            statistics.put("faceVerifiedPercentage", 0.0);
+        }
+        
+        // 获取总用户数
+        int totalUsers = attendanceMapper.countTotalActiveUsers();
+        statistics.put("totalUsers", totalUsers);
+        
+        logger.info("前台考勤统计结果: 总记录数={}, 打卡用户数={}, 人脸验证记录数={}, 人脸验证率={}%", 
+                   totalRecords, statistics.get("uniqueUsers"), faceVerifiedRecords, statistics.get("faceVerifiedPercentage"));
+        
+        return statistics;
+    }
+    
+    @Override
+    public List<Map<String, Object>> getDailyCheckInStatistics(String startDate, String endDate) {
+        logger.info("获取每日打卡统计，开始日期: {}, 结束日期: {}", startDate, endDate);
+        
+        // 如果没有提供完整的日期范围，默认查询最近30天的数据
+        if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+            LocalDateTime endDateTime = LocalDateTime.now();
+            LocalDateTime startDateTime = endDateTime.minusDays(30);
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            startDate = startDateTime.format(formatter);
+            endDate = endDateTime.format(formatter);
+        }
+        
+        return attendanceRecordMapper.getDailyCheckInStatistics(startDate, endDate);
+    }
+    
+    @Override
+    public List<Map<String, Object>> getCheckInTimeDistribution(String startDate, String endDate) {
+        logger.info("获取打卡时间分布，开始日期: {}, 结束日期: {}", startDate, endDate);
+        
+        // 如果没有提供完整的日期范围，默认查询最近30天的数据
+        if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+            LocalDateTime endDateTime = LocalDateTime.now();
+            LocalDateTime startDateTime = endDateTime.minusDays(30);
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            startDate = startDateTime.format(formatter);
+            endDate = endDateTime.format(formatter);
+        }
+        
+        return attendanceRecordMapper.getCheckInTimeDistribution(startDate, endDate);
+    }
+    
+    @Override
+    public Map<String, Object> getAllRecordsStatistics(String startDate, String endDate) {
+        logger.info("获取所有打卡记录统计数据（包括系统记录），开始日期: {}, 结束日期: {}", startDate, endDate);
+        
+        Map<String, Object> statistics;
+        
+        // 如果没有提供日期范围，查询所有数据
+        if ((startDate == null || startDate.isEmpty()) && (endDate == null || endDate.isEmpty())) {
+            statistics = attendanceRecordMapper.getAllRecordsStatistics();
+        } else {
+            // 如果没有提供完整的日期范围，默认查询最近30天的数据
+            if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+                LocalDateTime endDateTime = LocalDateTime.now();
+                LocalDateTime startDateTime = endDateTime.minusDays(30);
+                
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                startDate = startDateTime.format(formatter);
+                endDate = endDateTime.format(formatter);
+            }
+            
+            statistics = attendanceRecordMapper.getAllRecordsStatisticsByDateRange(startDate, endDate);
+        }
+        
+        // 添加查询时间范围
+        statistics.put("startDate", startDate);
+        statistics.put("endDate", endDate);
+        
+        // 处理可能为null的值
+        if (statistics.get("totalRecords") == null) {
+            statistics.put("totalRecords", 0);
         }
         if (statistics.get("uniqueUsers") == null) {
             statistics.put("uniqueUsers", 0);
@@ -875,19 +990,13 @@ public class AttendanceServiceImpl implements AttendanceService {
             statistics.put("faceVerifiedRecords", 0);
         }
         
-        // 计算百分比
+        // 计算人脸验证百分比
         int totalRecords = ((Number) statistics.get("totalRecords")).intValue();
-        int normalRecords = ((Number) statistics.get("normalRecords")).intValue();
-        int specialRecords = ((Number) statistics.get("specialRecords")).intValue();
         int faceVerifiedRecords = ((Number) statistics.get("faceVerifiedRecords")).intValue();
         
         if (totalRecords > 0) {
-            statistics.put("normalRecordsPercentage", (double) normalRecords / totalRecords * 100);
-            statistics.put("specialRecordsPercentage", (double) specialRecords / totalRecords * 100);
             statistics.put("faceVerifiedPercentage", (double) faceVerifiedRecords / totalRecords * 100);
         } else {
-            statistics.put("normalRecordsPercentage", 0.0);
-            statistics.put("specialRecordsPercentage", 0.0);
             statistics.put("faceVerifiedPercentage", 0.0);
         }
         
@@ -895,6 +1004,43 @@ public class AttendanceServiceImpl implements AttendanceService {
         int totalUsers = attendanceMapper.countTotalActiveUsers();
         statistics.put("totalUsers", totalUsers);
         
+        logger.info("所有打卡记录统计结果: 总记录数={}, 打卡用户数={}, 人脸验证记录数={}, 人脸验证率={}%", 
+                   totalRecords, statistics.get("uniqueUsers"), faceVerifiedRecords, statistics.get("faceVerifiedPercentage"));
+        
         return statistics;
+    }
+    
+    @Override
+    public List<Map<String, Object>> getAllDailyCheckInStatistics(String startDate, String endDate) {
+        logger.info("获取所有记录的每日打卡统计（包括系统记录），开始日期: {}, 结束日期: {}", startDate, endDate);
+        
+        // 如果没有提供完整的日期范围，默认查询最近30天的数据
+        if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+            LocalDateTime endDateTime = LocalDateTime.now();
+            LocalDateTime startDateTime = endDateTime.minusDays(30);
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            startDate = startDateTime.format(formatter);
+            endDate = endDateTime.format(formatter);
+        }
+        
+        return attendanceRecordMapper.getAllDailyCheckInStatistics(startDate, endDate);
+    }
+    
+    @Override
+    public List<Map<String, Object>> getAllCheckInTimeDistribution(String startDate, String endDate) {
+        logger.info("获取所有记录的打卡时间分布（包括系统记录），开始日期: {}, 结束日期: {}", startDate, endDate);
+        
+        // 如果没有提供完整的日期范围，默认查询最近30天的数据
+        if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+            LocalDateTime endDateTime = LocalDateTime.now();
+            LocalDateTime startDateTime = endDateTime.minusDays(30);
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            startDate = startDateTime.format(formatter);
+            endDate = endDateTime.format(formatter);
+        }
+        
+        return attendanceRecordMapper.getAllCheckInTimeDistribution(startDate, endDate);
     }
 } 

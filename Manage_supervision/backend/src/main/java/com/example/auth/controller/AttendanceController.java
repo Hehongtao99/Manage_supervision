@@ -200,6 +200,66 @@ public class AttendanceController {
         return ResponseEntity.ok(result);
     }
     
+    /**
+     * 管理员接口：获取所有打卡记录统计数据（包括系统记录）- 用于考勤记录管理页面
+     */
+    @GetMapping("/admin/all-records-statistics")
+    @RequireRole("ADMIN")
+    public ResponseEntity<Map<String, Object>> getAllRecordsStatistics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        Map<String, Object> result = attendanceService.getAllRecordsStatistics(startDate, endDate);
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 管理员接口：获取每日打卡统计
+     */
+    @GetMapping("/admin/daily-statistics")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<Map<String, Object>>> getDailyCheckInStatistics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        List<Map<String, Object>> result = attendanceService.getDailyCheckInStatistics(startDate, endDate);
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 管理员接口：获取打卡时间分布
+     */
+    @GetMapping("/admin/time-distribution")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<Map<String, Object>>> getCheckInTimeDistribution(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        List<Map<String, Object>> result = attendanceService.getCheckInTimeDistribution(startDate, endDate);
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 管理员接口：获取所有记录的每日打卡统计（包括系统记录）- 用于考勤汇总页面
+     */
+    @GetMapping("/admin/all-daily-statistics")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<Map<String, Object>>> getAllDailyCheckInStatistics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        List<Map<String, Object>> result = attendanceService.getAllDailyCheckInStatistics(startDate, endDate);
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 管理员接口：获取所有记录的打卡时间分布（包括系统记录）- 用于考勤汇总页面
+     */
+    @GetMapping("/admin/all-time-distribution")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<Map<String, Object>>> getAllCheckInTimeDistribution(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        List<Map<String, Object>> result = attendanceService.getAllCheckInTimeDistribution(startDate, endDate);
+        return ResponseEntity.ok(result);
+    }
+    
     // ========== 用户接口 ==========
     
     /**
@@ -273,148 +333,117 @@ public class AttendanceController {
      */
     @PostMapping("/face-checkin")
     public ResponseEntity<Map<String, Object>> publicFaceCheckIn(@RequestBody Map<String, Object> requestBody) {
+        logger.info("收到公共人脸考勤请求");
+        
         Map<String, Object> response = new HashMap<>();
         
+        if (!requestBody.containsKey("faceData")) {
+            response.put("success", false);
+            response.put("message", "未提供人脸数据");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        String faceData = (String) requestBody.get("faceData");
+        
         try {
-            if (!requestBody.containsKey("faceData")) {
-                response.put("success", false);
-                response.put("message", "未提供人脸数据，请允许摄像头访问并正对摄像头");
-                return ResponseEntity.ok(response);
-            }
+            // 使用多次验证进行人脸识别（5次验证确保最高准确度）
+            Map<String, Object> matchResult = faceRecognitionService.findMatchingUserWithMultipleVerification(faceData, 5);
             
-            String faceData = (String) requestBody.get("faceData");
-            
-            // 直接使用人脸识别服务的findMatchingUser方法查找匹配的用户
-            Map<String, Object> matchResult = faceRecognitionService.findMatchingUser(faceData);
-            
-            if (!(boolean)matchResult.get("success")) {
-                // 未找到匹配的用户
+            if (!(Boolean) matchResult.get("success")) {
                 response.put("success", false);
                 response.put("message", matchResult.get("message"));
+                response.put("verificationDetails", matchResult.get("allVerificationDetails"));
                 return ResponseEntity.ok(response);
             }
             
-            // 获取匹配的用户和相似度
-            User matchedUser = (User)matchResult.get("user");
-            double similarity = (double)matchResult.get("similarity");
+            User matchedUser = (User) matchResult.get("user");
+            Map<String, Object> verificationResult = (Map<String, Object>) matchResult.get("verificationResult");
             
-            // 获取当前时间
-            LocalDateTime now = LocalDateTime.now();
+            if (matchedUser == null) {
+                response.put("success", false);
+                response.put("message", "未找到匹配的用户");
+                return ResponseEntity.ok(response);
+            }
             
-            // 获取当前活动考勤ID
+            logger.info("多次验证识别成功，用户: {}，平均相似度: {}", 
+                       matchedUser.getUsername(), verificationResult.get("averageSimilarity"));
+            
+            // 检查是否有重复打卡（10分钟内）
+            boolean hasRecentCheckIn = attendanceService.hasRecentCheckIn(matchedUser.getId(), 10);
+            if (hasRecentCheckIn) {
+                response.put("success", false);
+                response.put("message", "您在10分钟内已经打卡过了，请勿重复打卡");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 获取当前活跃的考勤ID
             Long activeAttendanceId = attendanceService.getActiveAttendanceId();
+            
+            AttendanceRecordDTO result;
+            
+            if (activeAttendanceId != null) {
+                // 有活跃考勤，进行正常考勤打卡
+                AttendanceRecordDTO recordDTO = new AttendanceRecordDTO();
+                recordDTO.setUserId(matchedUser.getId());
+                recordDTO.setUsername(matchedUser.getUsername());
+                recordDTO.setUserNumber(matchedUser.getUserNumber());
+                recordDTO.setFaceVerified(true);
+                
+                result = attendanceService.faceCheckIn(
+                    activeAttendanceId,
+                    matchedUser.getId(),
+                    recordDTO,
+                    faceData
+                );
+                
+                logger.info("用户 {} 考勤打卡成功", matchedUser.getUsername());
+            } else {
+                // 没有活跃考勤，创建特殊记录
+                AttendanceRecordDTO specialRecord = new AttendanceRecordDTO();
+                specialRecord.setAttendanceId(-1L); // 特殊记录用-1表示无关联考勤
+                specialRecord.setUserId(matchedUser.getId());
+                specialRecord.setUsername(matchedUser.getUsername());
+                specialRecord.setUserNumber(matchedUser.getUserNumber());
+                specialRecord.setCheckInTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                specialRecord.setFaceVerified(true);
+                specialRecord.setLocation("系统自动记录"); // 添加位置信息
+                specialRecord.setNotes("非考勤时间人脸识别记录"); // 添加备注
+                
+                // 保存特殊记录到数据库
+                boolean saveSuccess = attendanceService.saveSpecialAttendanceRecord(specialRecord);
+                if (saveSuccess) {
+                    result = specialRecord;
+                    logger.info("用户 {} 在非考勤时间进行了人脸识别记录，已保存到数据库", matchedUser.getUsername());
+                } else {
+                    logger.error("保存用户 {} 的特殊考勤记录失败", matchedUser.getUsername());
+                    response.put("success", false);
+                    response.put("message", "保存考勤记录失败，请稍后重试");
+                    return ResponseEntity.ok(response);
+                }
+            }
             
             // 构建成功响应
             response.put("success", true);
-            response.put("userName", matchedUser.getRealName() != null ? matchedUser.getRealName() : matchedUser.getUsername());
+            response.put("message", "人脸识别考勤成功");
+            response.put("userName", matchedUser.getUsername());
             response.put("userNumber", matchedUser.getUserNumber());
-            response.put("similarity", (int)(similarity * 100)); // 转换为百分比
-            response.put("entryTime", now.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+            response.put("userId", matchedUser.getId());
+            response.put("entryTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
             response.put("status", "success");
             
-            // 创建考勤记录DTO
-            AttendanceRecordDTO recordDTO = new AttendanceRecordDTO();
-            recordDTO.setLocation("人脸签到系统");
-            recordDTO.setNotes("通过公共人脸签到接口");
-            
-            // 如果存在活动考勤，则记录签到
-            if (activeAttendanceId != null) {
-                try {
-                    // 检查用户是否已经在当前考勤中签到过
-                    List<AttendanceRecordDTO> userRecords = attendanceService.getCurrentUserAttendanceRecords(matchedUser.getId());
-                    boolean alreadyCheckedIn = userRecords.stream()
-                        .anyMatch(record -> record.getAttendanceId().equals(activeAttendanceId));
-                    
-                    if (alreadyCheckedIn) {
-                        logger.info("用户{}已在当前考勤{}中签到过", matchedUser.getId(), activeAttendanceId);
-                        response.put("attendanceRecorded", false);
-                        response.put("attendanceMessage", "您已在当前考勤中签到过");
-                    } else {
-                        // 使用真实数据进行签到
-                        AttendanceRecordDTO result = attendanceService.faceCheckIn(
-                            activeAttendanceId, 
-                            matchedUser.getId(), 
-                            recordDTO, 
-                            faceData
-                        );
-                        
-                        // 检查结果是否有错误
-                        if (result.getError() != null) {
-                            logger.warn("考勤记录失败: {}", result.getError());
-                            response.put("attendanceRecorded", false);
-                            response.put("attendanceMessage", result.getError());
-                        } else {
-                            // 考勤记录成功
-                            logger.info("用户{}成功完成考勤签到，考勤ID: {}", matchedUser.getId(), activeAttendanceId);
-                            response.put("attendanceRecorded", true);
-                            response.put("attendanceId", activeAttendanceId);
-                            response.put("attendanceMessage", "签到成功");
-                        }
-                    }
-                } catch (Exception e) {
-                    // 记录签到出现异常，但不影响主响应
-                    logger.warn("考勤记录过程中发生异常: {}", e.getMessage());
-                    response.put("attendanceRecorded", false);
-                    response.put("attendanceMessage", "考勤记录失败: " + e.getMessage());
-                }
-            } else {
-                // 无活动考勤，检查今天是否已创建过特殊记录，避免重复
-                try {
-                    // 检查今天是否已有特殊记录
-                    String todayStart = now.toLocalDate().atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                    String todayEnd = now.toLocalDate().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                    
-                    List<AttendanceRecordDTO> todaySpecialRecords = attendanceService.getCurrentUserAttendanceRecords(matchedUser.getId())
-                        .stream()
-                        .filter(record -> record.getAttendanceId() == -1L && 
-                                record.getCheckInTime() != null &&
-                                record.getCheckInTime().compareTo(todayStart) >= 0 &&
-                                record.getCheckInTime().compareTo(todayEnd) <= 0)
-                        .collect(Collectors.toList());
-                    
-                    if (!todaySpecialRecords.isEmpty()) {
-                        logger.info("用户{}今天已有特殊考勤记录，跳过创建", matchedUser.getId());
-                        response.put("attendanceRecorded", false);
-                        response.put("attendanceMessage", "当前没有活动考勤，但您今天已有进出记录");
-                        response.put("specialRecordExists", true);
-                    } else {
-                        // 创建一条特殊考勤记录
-                        AttendanceRecordDTO specialRecord = new AttendanceRecordDTO();
-                        specialRecord.setUserId(matchedUser.getId());
-                        specialRecord.setCheckInTime(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
-                        specialRecord.setStatus("系统记录");
-                        specialRecord.setLocation("人脸签到系统");
-                        specialRecord.setNotes("无活动考勤，系统自动记录");
-                        specialRecord.setFaceVerified(true);
-                        
-                        // 调用服务保存特殊记录
-                        boolean saved = attendanceService.saveSpecialAttendanceRecord(specialRecord);
-                        
-                        if (saved) {
-                            logger.info("为用户{}创建了无活动考勤的人脸识别记录", matchedUser.getId());
-                            response.put("specialRecordCreated", true);
-                            response.put("attendanceRecorded", false);
-                            response.put("attendanceMessage", "当前没有活动考勤，但系统已记录此次人脸识别");
-                        } else {
-                            logger.warn("创建特殊考勤记录失败");
-                            response.put("specialRecordCreated", false);
-                            response.put("attendanceRecorded", false);
-                            response.put("attendanceMessage", "当前没有活动考勤，记录保存失败");
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error("创建特殊考勤记录时发生异常", e);
-                    response.put("specialRecordCreated", false);
-                    response.put("attendanceRecorded", false);
-                    response.put("attendanceMessage", "当前没有活动考勤，系统记录失败");
-                }
-            }
+            // 添加多次验证的详细信息
+            response.put("verificationDetails", verificationResult);
+            response.put("averageSimilarity", Math.round((Double) verificationResult.get("averageStructuralSimilarity") * 100));
+            response.put("successRate", Math.round((Double) verificationResult.get("successRate") * 100));
+            response.put("totalAttempts", verificationResult.get("totalAttempts"));
+            response.put("successCount", verificationResult.get("successCount"));
             
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            logger.error("公共人脸签到失败", e);
+            logger.error("公共人脸考勤失败", e);
             response.put("success", false);
-            response.put("message", "服务器处理请求时发生错误: " + e.getMessage());
+            response.put("message", "人脸识别失败，请稍后重试: " + e.getMessage());
             return ResponseEntity.ok(response);
         }
     }

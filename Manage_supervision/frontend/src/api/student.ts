@@ -36,7 +36,7 @@ export const getStudents = async (page = 1, size = 10, keyword?: string) => {
   try {
     // 从localStorage获取用户角色
     const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
-    let url = '/api/admin/students'; // 默认管理员API
+    let url = '/api/admin/students-list'; // 修复API路径
     
     // 如果是督导员/教师角色，使用督导员API
     if (userRoles.includes('SUPERVISOR')) {

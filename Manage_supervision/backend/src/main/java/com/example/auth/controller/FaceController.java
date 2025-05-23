@@ -42,9 +42,11 @@ public class FaceController {
             }
             
             String imageBase64 = requestBody.get("image");
-            String processedFace = faceRecognitionService.detectAndProcessFace(imageBase64);
             
-            if (processedFace == null) {
+            // 使用新的带位置信息的检测方法
+            Map<String, Object> detectionResult = faceRecognitionService.detectAndProcessFaceWithPosition(imageBase64);
+            
+            if (detectionResult == null) {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", "未检测到人脸或处理失败"
@@ -54,7 +56,9 @@ public class FaceController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "人脸检测成功");
-            response.put("faceData", processedFace);
+            response.put("faceData", detectionResult.get("faceData"));
+            response.put("position", detectionResult.get("position"));
+            response.put("detectedFaces", detectionResult.get("detectedFaces"));
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {

@@ -28,15 +28,47 @@
             <el-tag type="warning" v-else>待签到</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="考勤操作" width="320" fixed="right">
           <template #default="{ row }">
-            <el-button 
-              size="small" 
-              type="primary" 
-              @click="handleCheckIn(row)"
-              :disabled="isCheckedIn(row) || isExpired(row) || !isActive(row)">
-              签到
-            </el-button>
+            <div v-if="!hasFaceData" class="no-face-data-inline">
+              <el-alert
+                title="未录入人脸"
+                type="warning"
+                :closable="false"
+                show-icon
+                style="margin-bottom: 10px;"
+              />
+              <el-button size="small" type="primary" @click="goToUserProfile">
+                去录入人脸
+              </el-button>
+            </div>
+            <div v-else-if="currentAttendanceId === row.id && cameraActive" class="camera-preview-inline">
+              <div class="camera-container" :id="'camera-container-' + row.id">
+                <div class="tracking-box"></div>
+                <div v-if="faceDetected" class="face-detected">
+                  <el-icon class="face-icon"><Check /></el-icon>
+                </div>
+                <div v-if="faceDetected && detectionCount > 0" class="auto-signin-progress">
+                  <div>{{ detectionCount }}/{{ requiredDetections }}</div>
+                  <div class="progress-text">{{ autoSigningIn ? '正在自动签到...' : '人脸识别中...' }}</div>
+                </div>
+              </div>
+              <div class="camera-controls">
+                <el-button size="small" type="danger" @click="stopCamera" :loading="submitting">
+                  {{ autoSigningIn ? '签到中...' : '停止考勤' }}
+                </el-button>
+              </div>
+            </div>
+            <div v-else>
+              <el-button 
+                size="small" 
+                type="primary" 
+                @click="handleStartAttendance(row)"
+                :disabled="isCheckedIn(row) || isExpired(row) || !isActive(row)"
+                :loading="submitting && currentAttendanceId === row.id">
+                {{ submitting && currentAttendanceId === row.id ? '启动中...' : '考勤' }}
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -67,94 +99,6 @@
         <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip></el-table-column>
       </el-table>
     </el-card>
-    
-    <!-- 签到对话框 -->
-    <el-dialog 
-      title="考勤签到" 
-      v-model="checkInDialogVisible"
-      width="400px"
-      @open="handleDialogOpen"
-      destroy-on-close>
-      <div v-if="currentAttendance" class="check-in-form">
-        <h3>{{ currentAttendance.title }}</h3>
-        <p class="attendance-time">
-          有效时间: {{ formatDateTime(currentAttendance.startTime) }} ~ {{ formatDateTime(currentAttendance.endTime) }}
-        </p>
-        <p v-if="currentAttendance.description" class="attendance-desc">
-          {{ currentAttendance.description }}
-        </p>
-        
-        <el-form :model="checkInForm" ref="checkInFormRef" label-width="80px">
-          <el-form-item label="位置">
-            <el-input v-model="checkInForm.location" placeholder="请输入您的位置"></el-input>
-          </el-form-item>
-          <el-form-item label="备注">
-            <el-input v-model="checkInForm.notes" type="textarea" :rows="3" placeholder="可选填写备注信息"></el-input>
-          </el-form-item>
-          
-          <div class="face-checkin-section">
-            <div v-if="!hasFaceData" class="no-face-data">
-              <el-alert
-                title="未检测到人脸数据"
-                type="warning"
-                description="您尚未录入人脸信息，无法完成签到。请先前往个人信息页面完成人脸录入"
-                :closable="false"
-                show-icon
-              />
-              <el-button type="primary" size="small" class="register-face-btn" @click="goToUserProfile">
-                去个人中心录入人脸
-              </el-button>
-            </div>
-            <div v-else class="face-capture">
-              <div v-if="!cameraActive" class="camera-start">
-                <el-button type="primary" @click="startCamera">
-                  <el-icon><VideoCamera /></el-icon>
-                  启动摄像头
-                </el-button>
-                <p class="camera-tip">人脸识别签到需要使用摄像头，请确保已授予摄像头权限</p>
-              </div>
-              <div v-else class="camera-preview" id="camera-container">
-                <div class="tracking-box"></div>
-                <div v-if="faceDetected" class="face-detected">
-                  <el-icon class="face-icon"><Check /></el-icon>
-                </div>
-                <div v-if="faceDetected && detectionCount > 0" class="auto-signin-progress">
-                  <div>{{ detectionCount }}/{{ requiredDetections }}</div>
-                  <div class="progress-text">{{ autoSigningIn ? '正在自动签到...' : '人脸识别中...' }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </el-form>
-        
-        <div class="check-in-time">
-          当前时间: {{ currentTime }}
-        </div>
-        
-        <el-alert
-          type="info"
-          :closable="false"
-          show-icon
-        >
-          <template #title>
-            请注意：签到必须通过人脸识别验证才能完成！系统将自动比对您的人脸信息。
-          </template>
-        </el-alert>
-      </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="closeCheckInDialog">取消</el-button>
-          <el-button 
-            type="primary" 
-            @click="submitCheckIn" 
-            :loading="submitting"
-            :disabled="!hasFaceData || !cameraActive || !faceDetected"
-          >
-            人脸验证签到
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -178,13 +122,9 @@ const loading = ref(false);
 const myRecords = ref<AttendanceRecordDTO[]>([]);
 const recordsLoading = ref(false);
 
-// 签到对话框数据
-const checkInDialogVisible = ref(false);
-const currentAttendance = ref<AttendanceDTO | null>(null);
+// 考勤相关数据
+const currentAttendanceId = ref<number | null>(null);
 const submitting = ref(false);
-const currentTime = ref('');
-const timer = ref<number | null>(null);
-const checkInFormRef = ref();
 const stream = ref<MediaStream | null>(null);
 const hasFaceData = ref(false);
 const cameraActive = ref(false);
@@ -192,16 +132,7 @@ const faceDetected = ref(false);
 const faceDetectionTimer = ref<number | null>(null);
 const autoSigningIn = ref(false);  // 是否正在自动签到
 const detectionCount = ref(0);  // 连续检测计数
-const requiredDetections = 2;  // 需要连续检测的次数
-const checkInForm = reactive({
-  location: '',
-  notes: ''
-});
-
-// 更新当前时间
-const updateCurrentTime = () => {
-  currentTime.value = formatDateTime(new Date().toISOString());
-};
+const requiredDetections = 5;  // 需要连续检测5秒（5次）
 
 // 检查用户是否有人脸数据
 const checkHasFaceData = async () => {
@@ -213,16 +144,23 @@ const checkHasFaceData = async () => {
   }
 };
 
-// 对话框打开时的处理函数
-const handleDialogOpen = async () => {
-  console.log('对话框打开');
-  
-  // 重置视频相关状态
-  cameraActive.value = false;
+// 启动考勤
+const handleStartAttendance = async (attendance: AttendanceDTO) => {
+  if (!hasFaceData.value) {
+    ElMessage.warning('您尚未录入人脸信息，请先在个人中心完成人脸信息录入');
+    return;
+  }
+
+  currentAttendanceId.value = attendance.id!;
+  detectionCount.value = 0;
+  autoSigningIn.value = false;
   faceDetected.value = false;
   
-  // 如果之前有流，确保它被停止
-  stopCamera();
+  // 启动摄像头
+  const success = await startCamera();
+  if (!success) {
+    currentAttendanceId.value = null;
+  }
 };
 
 // 启动摄像头
@@ -246,7 +184,7 @@ const startCamera = async () => {
     }
     
     // 检查容器是否可用
-    const container = document.getElementById('camera-container');
+    const container = document.getElementById(`camera-container-${currentAttendanceId.value}`);
     if (!container) {
       console.error('找不到相机容器');
       ElMessage.error('初始化摄像头失败：找不到视频容器');
@@ -259,8 +197,8 @@ const startCamera = async () => {
     console.log('请求摄像头权限...');
     stream.value = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 640 },
-        height: { ideal: 480 },
+        width: { ideal: 300 },
+        height: { ideal: 200 },
         facingMode: 'user'
       }
     });
@@ -269,13 +207,13 @@ const startCamera = async () => {
     
     // 创建视频元素
     const video = document.createElement('video');
-    video.id = 'faceCamera';
+    video.id = `faceCamera-${currentAttendanceId.value}`;
     video.className = 'camera-video';
     video.autoplay = true;
     video.playsInline = true;
     
     // 再次检查容器是否存在 (可能在获取权限期间被销毁)
-    if (!document.getElementById('camera-container')) {
+    if (!document.getElementById(`camera-container-${currentAttendanceId.value}`)) {
       console.error('容器在处理过程中被销毁');
       if (stream.value) {
         stream.value.getTracks().forEach(track => track.stop());
@@ -315,8 +253,8 @@ const startCamera = async () => {
       console.log('视频元数据已加载');
       
       // 再次检查容器和视频元素是否存在
-      const videoEl = document.getElementById('faceCamera');
-      const containerEl = document.getElementById('camera-container');
+      const videoEl = document.getElementById(`faceCamera-${currentAttendanceId.value}`);
+      const containerEl = document.getElementById(`camera-container-${currentAttendanceId.value}`);
       if (!videoEl || !containerEl) {
         console.error('视频元素或容器在元数据加载后不存在');
         return;
@@ -369,13 +307,13 @@ const startFaceDetection = () => {
   detectionCount.value = 0;
   autoSigningIn.value = false;
   
-  // 每2秒检测一次人脸
+  // 每1秒检测一次人脸
   faceDetectionTimer.value = window.setInterval(async () => {
-    if (!cameraActive.value) return;
+    if (!cameraActive.value || !currentAttendanceId.value) return;
     
     try {
       // 通过ID获取视频元素
-      const video = document.getElementById('faceCamera') as HTMLVideoElement | null;
+      const video = document.getElementById(`faceCamera-${currentAttendanceId.value}`) as HTMLVideoElement | null;
       
       if (!video) {
         console.error('视频元素不存在');
@@ -437,7 +375,7 @@ const startFaceDetection = () => {
       faceDetected.value = false;
       detectionCount.value = 0;
     }
-  }, 2000);
+  }, 1000);
 };
 
 // 停止摄像头
@@ -460,10 +398,13 @@ const stopCamera = () => {
   
   cameraActive.value = false;
   faceDetected.value = false;
+  currentAttendanceId.value = null;
+  autoSigningIn.value = false;
+  detectionCount.value = 0;
   
   // 尝试移除视频元素
   try {
-    const video = document.getElementById('faceCamera');
+    const video = document.getElementById(`faceCamera-${currentAttendanceId.value}`);
     if (video) {
       video.srcObject = null;
       if (video.parentNode) {
@@ -479,19 +420,155 @@ const stopCamera = () => {
 // 前往用户个人信息页录入人脸
 const goToUserProfile = () => {
   router.push('/profile');
-  closeCheckInDialog();
 };
 
-// 关闭签到对话框
-const closeCheckInDialog = () => {
-  checkInDialogVisible.value = false;
-  stopCamera();
-  autoSigningIn.value = false;
-  detectionCount.value = 0;
+// 捕获当前人脸图像
+const captureFace = async () => {
+  console.log('准备捕获人脸图像...');
   
-  if (timer.value) {
-    clearInterval(timer.value);
-    timer.value = null;
+  // 通过ID获取视频元素
+  const video = document.getElementById(`faceCamera-${currentAttendanceId.value}`) as HTMLVideoElement | null;
+  
+  if (!video) {
+    console.error('视频元素未找到');
+    ElMessage.error('摄像头未就绪，请稍候再试');
+    return null;
+  }
+  
+  if (!video.videoWidth || !video.videoHeight) {
+    console.error('视频尺寸未就绪:', video.videoWidth, video.videoHeight);
+    ElMessage.error('摄像头视频流未就绪，请稍候再试');
+    return null;
+  }
+  
+  // 创建canvas捕获当前视频帧
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.error('无法创建2D上下文');
+    ElMessage.error('无法创建图像上下文');
+    return null;
+  }
+  
+  // 绘制视频帧到canvas
+  try {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // 转换为base64图像
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    console.log('人脸图像已捕获');
+    return dataUrl;
+  } catch (error) {
+    console.error('捕获人脸图像失败:', error);
+    ElMessage.error('捕获人脸图像失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    return null;
+  }
+};
+
+// 提交签到
+const submitCheckIn = async () => {
+  console.log('开始提交签到...');
+  if (!currentAttendanceId.value) {
+    console.error('没有选中的考勤');
+    autoSigningIn.value = false;
+    return;
+  }
+  
+  if (!hasFaceData.value) {
+    console.error('用户未录入人脸信息');
+    ElMessage.error('您尚未录入人脸信息，请先在个人中心完成人脸信息录入');
+    autoSigningIn.value = false;
+    return;
+  }
+  
+  if (!cameraActive.value || !faceDetected.value) {
+    console.error('摄像头未启动或未检测到人脸');
+    ElMessage.error('请先启动摄像头并确保您的人脸被正确识别');
+    autoSigningIn.value = false;
+    return;
+  }
+  
+  submitting.value = true;
+  try {
+    const record: AttendanceRecordDTO = {
+      location: '实验室', // 默认位置
+      notes: '自动人脸识别签到'
+    };
+    
+    console.log('准备捕获人脸图像...');
+    // 捕获当前人脸图像
+    const faceData = await captureFace();
+    if (!faceData) {
+      console.error('人脸图像捕获失败');
+      ElMessage.error('人脸图像捕获失败，请确保光线充足并正对摄像头');
+      submitting.value = false;
+      autoSigningIn.value = false;
+      return;
+    }
+    
+    console.log('调用人脸签到API...');
+    // 使用人脸签到API
+    const response = await attendanceApi.faceCheckIn(currentAttendanceId.value, record, faceData);
+    
+    // 检查响应中是否包含错误信息
+    if (response && response.data) {
+      if (response.data.error) {
+        // 显示警告而不是错误，以友好的方式提示用户
+        ElMessage({
+          type: 'warning',
+          message: response.data.error,
+          duration: 5000,
+          showClose: true
+        });
+        stopCamera();
+        return;
+      }
+      
+      // 签到成功
+      ElMessage.success('签到成功');
+      // 重新加载考勤记录
+      await loadMyRecords();
+      // 停止摄像头
+      stopCamera();
+    }
+  } catch (error) {
+    console.error('签到失败:', error);
+    
+    // 优先使用服务器返回的错误信息
+    let errorMessage = '签到失败，请稍后重试';
+    
+    if (error.response && error.response.data) {
+      if (error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
+    // 处理人脸验证失败的特定提示
+    if (errorMessage.includes('人脸验证失败') || errorMessage.includes('人脸验证未通过') || 
+        errorMessage.includes('未找到匹配') || errorMessage.includes('未检测到人脸')) {
+      // 使用警告类型而不是错误类型来显示验证失败提示
+      ElMessage({
+        type: 'warning',
+        message: errorMessage,
+        duration: 5000,
+        showClose: true
+      });
+    } else {
+      // 处理其他错误
+      ElMessage.error(errorMessage);
+    }
+    
+    stopCamera();
+  } finally {
+    submitting.value = false;
+    autoSigningIn.value = false;
   }
 };
 
@@ -581,188 +658,15 @@ const loadMyRecords = async () => {
   }
 };
 
-// 处理签到按钮点击
-const handleCheckIn = async (attendance: AttendanceDTO) => {
-  currentAttendance.value = attendance;
-  checkInForm.location = '';
-  checkInForm.notes = '';
-  faceDetected.value = false;
-  cameraActive.value = false;
-  
-  // 检查用户是否有人脸数据
-  await checkHasFaceData();
-  
-  // 打开对话框
-  checkInDialogVisible.value = true;
-  
-  // 开始更新当前时间
-  updateCurrentTime();
-  timer.value = window.setInterval(updateCurrentTime, 1000);
-};
-
-// 捕获当前人脸图像
-const captureFace = async () => {
-  console.log('准备捕获人脸图像...');
-  
-  // 通过ID获取视频元素
-  const video = document.getElementById('faceCamera') as HTMLVideoElement | null;
-  
-  if (!video) {
-    console.error('视频元素未找到');
-    ElMessage.error('摄像头未就绪，请稍候再试');
-    return null;
-  }
-  
-  if (!video.videoWidth || !video.videoHeight) {
-    console.error('视频尺寸未就绪:', video.videoWidth, video.videoHeight);
-    ElMessage.error('摄像头视频流未就绪，请稍候再试');
-    return null;
-  }
-  
-  // 创建canvas捕获当前视频帧
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    console.error('无法创建2D上下文');
-    ElMessage.error('无法创建图像上下文');
-    return null;
-  }
-  
-  // 绘制视频帧到canvas
-  try {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // 转换为base64图像
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    console.log('人脸图像已捕获');
-    return dataUrl;
-  } catch (error) {
-    console.error('捕获人脸图像失败:', error);
-    ElMessage.error('捕获人脸图像失败: ' + (error instanceof Error ? error.message : '未知错误'));
-    return null;
-  }
-};
-
-// 提交签到
-const submitCheckIn = async () => {
-  console.log('开始提交签到...');
-  if (!currentAttendance.value?.id) {
-    console.error('没有选中的考勤');
-    autoSigningIn.value = false;
-    return;
-  }
-  
-  if (!hasFaceData.value) {
-    console.error('用户未录入人脸信息');
-    ElMessage.error('您尚未录入人脸信息，请先在个人中心完成人脸信息录入');
-    autoSigningIn.value = false;
-    return;
-  }
-  
-  if (!cameraActive.value || !faceDetected.value) {
-    console.error('摄像头未启动或未检测到人脸');
-    ElMessage.error('请先启动摄像头并确保您的人脸被正确识别');
-    autoSigningIn.value = false;
-    return;
-  }
-  
-  submitting.value = true;
-  try {
-    const record: AttendanceRecordDTO = {
-      location: checkInForm.location,
-      notes: checkInForm.notes
-    };
-    
-    console.log('准备捕获人脸图像...');
-    // 捕获当前人脸图像
-    const faceData = await captureFace();
-    if (!faceData) {
-      console.error('人脸图像捕获失败');
-      ElMessage.error('人脸图像捕获失败，请确保光线充足并正对摄像头');
-      submitting.value = false;
-      autoSigningIn.value = false;
-      return;
-    }
-    
-    console.log('调用人脸签到API...');
-    // 使用人脸签到API
-    const response = await attendanceApi.faceCheckIn(currentAttendance.value.id, record, faceData);
-    
-    // 检查响应中是否包含错误信息
-    if (response && response.data) {
-      if (response.data.error) {
-        // 显示警告而不是错误，以友好的方式提示用户
-        ElMessage({
-          type: 'warning',
-          message: response.data.error,
-          duration: 5000,
-          showClose: true
-        });
-        closeCheckInDialog();
-        return;
-      }
-      
-      // 签到成功
-      ElMessage.success('签到成功');
-      // 重新加载考勤记录
-      await loadMyRecords();
-      // 关闭对话框
-      closeCheckInDialog();
-    }
-  } catch (error) {
-    console.error('签到失败:', error);
-    
-    // 优先使用服务器返回的错误信息
-    let errorMessage = '签到失败，请稍后重试';
-    
-    if (error.response && error.response.data) {
-      if (error.response.data.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.response.data.message) {
-        errorMessage = error.response.data.message;
-      }
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    
-    // 处理人脸验证失败的特定提示
-    if (errorMessage.includes('人脸验证失败') || errorMessage.includes('人脸验证未通过') || 
-        errorMessage.includes('未找到匹配') || errorMessage.includes('未检测到人脸')) {
-      // 使用警告类型而不是错误类型来显示验证失败提示
-      ElMessage({
-        type: 'warning',
-        message: errorMessage,
-        duration: 5000,
-        showClose: true
-      });
-    } else {
-      // 处理其他错误
-      ElMessage.error(errorMessage);
-    }
-    
-    closeCheckInDialog();
-  } finally {
-    submitting.value = false;
-    autoSigningIn.value = false;
-  }
-};
-
 // 页面加载时获取数据
 onMounted(async () => {
+  await checkHasFaceData();
   await loadAttendanceList();
   await loadMyRecords();
 });
 
 // 页面卸载时清除定时器
 onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value);
-    timer.value = null;
-  }
-  
   if (faceDetectionTimer.value) {
     clearInterval(faceDetectionTimer.value);
     faceDetectionTimer.value = null;
@@ -798,67 +702,29 @@ onUnmounted(() => {
   margin-top: 20px;
 }
 
-.check-in-form {
+.no-face-data-inline {
+  padding: 10px;
   text-align: center;
 }
 
-.attendance-time {
-  color: #666;
-  margin: 10px 0;
-}
-
-.attendance-desc {
-  color: #666;
-  margin-bottom: 20px;
-  white-space: pre-line;
-}
-
-.check-in-time {
-  margin: 20px 0;
-  text-align: center;
-  font-size: 16px;
-  color: #409EFF;
-  font-weight: bold;
-}
-
-.face-checkin-section {
-  margin-top: 15px;
-  border: 1px solid #EBEEF5;
-  border-radius: 4px;
-  padding: 15px;
-}
-
-.no-face-data {
-  padding: 10px 0;
-}
-
-.register-face-btn {
-  margin-top: 15px;
-}
-
-.camera-start {
+.camera-preview-inline {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0;
+  gap: 10px;
 }
 
-.camera-tip {
-  margin-top: 10px;
-  color: #909399;
-  font-size: 12px;
-}
-
-.camera-preview {
+.camera-container {
   position: relative;
-  width: 100%;
-  height: 240px;
+  width: 280px;
+  height: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #000;
   overflow: hidden;
   border-radius: 4px;
+  border: 2px solid #EBEEF5;
 }
 
 .camera-video {
@@ -869,8 +735,8 @@ onUnmounted(() => {
 
 .tracking-box {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   border: 2px solid #67C23A;
   border-radius: 4px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -911,5 +777,10 @@ onUnmounted(() => {
 .progress-text {
   font-size: 12px;
   margin-top: 2px;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 10px;
 }
 </style> 

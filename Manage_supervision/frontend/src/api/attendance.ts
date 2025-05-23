@@ -225,4 +225,54 @@ export const getAttendanceRecordsStatistics = async (startDate?: string, endDate
   
   const response = await request.get('/api/attendance/admin/records-statistics', { params });
   return response.data;
+};
+
+// 获取所有打卡记录统计数据（包括系统记录）- 用于考勤记录管理页面
+export const getAllRecordsStatistics = async (startDate?: string, endDate?: string) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  const response = await request.get('/api/attendance/admin/all-records-statistics', { params });
+  return response.data;
+};
+
+// 获取每日打卡统计
+export const getDailyCheckInStatistics = async (startDate?: string, endDate?: string) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  const response = await request.get('/api/attendance/admin/daily-statistics', { params });
+  return response.data;
+};
+
+// 获取打卡时间分布
+export const getCheckInTimeDistribution = async (startDate?: string, endDate?: string) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  const response = await request.get('/api/attendance/admin/time-distribution', { params });
+  return response.data;
+};
+
+// 获取所有记录的每日打卡统计（包括系统记录）- 用于考勤汇总页面
+export const getAllDailyCheckInStatistics = async (startDate?: string, endDate?: string) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  const response = await request.get('/api/attendance/admin/all-daily-statistics', { params });
+  return response.data;
+};
+
+// 获取所有记录的打卡时间分布（包括系统记录）- 用于考勤汇总页面
+export const getAllCheckInTimeDistribution = async (startDate?: string, endDate?: string) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  const response = await request.get('/api/attendance/admin/all-time-distribution', { params });
+  return response.data;
 }; 

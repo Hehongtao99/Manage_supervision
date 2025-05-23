@@ -258,7 +258,7 @@ const loadStatistics = async () => {
       endDate = filterForm.dateRange[1] + ' 23:59:59'
     }
     
-    const statsResponse = await attendanceApi.getAttendanceRecordsStatistics(startDate, endDate)
+    const statsResponse = await attendanceApi.getAllRecordsStatistics(startDate, endDate)
     
     stats.totalRecords = statsResponse.totalRecords || 0
     
@@ -268,7 +268,7 @@ const loadStatistics = async () => {
     const todayEndDate = today + ' 23:59:59'
     
     try {
-      const todayStatsResponse = await attendanceApi.getAttendanceRecordsStatistics(todayStartDate, todayEndDate)
+      const todayStatsResponse = await attendanceApi.getAllRecordsStatistics(todayStartDate, todayEndDate)
       stats.todayRecords = todayStatsResponse.totalRecords || 0
     } catch (error) {
       console.warn('获取今日统计失败:', error)

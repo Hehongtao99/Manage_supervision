@@ -16,6 +16,36 @@
           <div class="camera-view" ref="cameraView">
             <video ref="video" autoplay muted playsinline></video>
             <canvas ref="canvas" style="display: none;"></canvas>
+            <div v-if="isCameraActive" class="detection-overlay">
+              <div 
+                v-if="facePosition" 
+                class="face-detection-box dynamic"
+                :style="{
+                  left: facePosition.x * 100 + '%',
+                  top: facePosition.y * 100 + '%',
+                  width: facePosition.width * 100 + '%',
+                  height: facePosition.height * 100 + '%'
+                }"
+              ></div>
+              <div 
+                v-else 
+                class="face-detection-box static"
+              ></div>
+              <div v-if="faceDetected && detectionCount > 0" class="detection-progress">
+                <div class="progress-text">
+                  {{ autoRecognizing ? '正在验证打卡...' : '人脸识别中...' }}
+                </div>
+                <div class="progress-count">{{ Math.min(detectionCount, requiredDetections) }}/{{ requiredDetections }}</div>
+                <el-progress 
+                  :percentage="Math.min((detectionCount / requiredDetections) * 100, 100)" 
+                  color="#67C23A"
+                  :stroke-width="6"
+                />
+              </div>
+              <div v-if="faceDetected" class="face-detected-icon">
+                <el-icon class="check-icon"><Check /></el-icon>
+              </div>
+            </div>
           </div>
           <div class="camera-controls">
             <el-button type="primary" @click="startCamera" :disabled="isCameraActive">
@@ -29,25 +59,37 @@
 
         <div class="recognition-section">
           <div class="face-recognition-container">
-            <div class="face-recognition-label">人脸识别</div>
-            <div class="face-frame" v-if="faceData">
-              <img :src="faceData" alt="检测到的人脸" />
+            <div class="face-recognition-label">自动识别状态</div>
+            <div class="status-display">
+              <div v-if="!isCameraActive" class="status-item">
+                <el-icon class="status-icon warning"><Warning /></el-icon>
+                <span>摄像头未启动</span>
+              </div>
+              <div v-else-if="!faceDetected" class="status-item">
+                <el-icon class="status-icon info"><InfoFilled /></el-icon>
+                <span>等待检测人脸...</span>
+              </div>
+              <div v-else-if="detectionCount < requiredDetections && !autoRecognizing" class="status-item">
+                <el-icon class="status-icon loading"><Loading /></el-icon>
+                <span>人脸检测中 ({{ detectionCount }}/{{ requiredDetections }})</span>
+              </div>
+              <div v-else-if="autoRecognizing" class="status-item">
+                <el-icon class="status-icon loading"><Loading /></el-icon>
+                <span>正在验证打卡...</span>
+              </div>
+              <div v-else class="status-item">
+                <el-icon class="status-icon success"><SuccessFilled /></el-icon>
+                <span>检测完成，即将考勤</span>
+              </div>
             </div>
-            <div class="face-frame empty" v-else>
-              <el-icon><UserFilled /></el-icon>
-              <span>等待人脸检测</span>
+            
+            <div class="instruction-text">
+              <p>📋 <strong>操作说明：</strong></p>
+              <p>1. 点击"打开"按钮启动摄像头</p>
+              <p>2. 将人脸对准摄像头保持5秒钟</p>
+              <p>3. 系统将自动完成人脸识别和考勤</p>
             </div>
           </div>
-          
-          <el-button 
-            type="success" 
-            class="recognition-btn" 
-            @click="recognizeFace" 
-            :disabled="!isCameraActive || isRecognizing"
-            :loading="isRecognizing"
-          >
-            <el-icon><Key /></el-icon> 验证并考勤
-          </el-button>
         </div>
       </div>
 
@@ -66,10 +108,22 @@
             <span class="label">相似度:</span>
             <div class="similarity-container">
               <el-progress 
-                :percentage="recognitionResult.similarity || 0" 
+                :percentage="recognitionResult.averageSimilarity || 0" 
                 :color="getSimilarityColor()"
                 :stroke-width="18"
               />
+              <span class="similarity-text">{{ recognitionResult.averageSimilarity }}%</span>
+            </div>
+          </div>
+          <div class="result-item" v-if="recognitionResult.verificationDetails">
+            <span class="label">验证详情:</span>
+            <div class="verification-details">
+              <div class="detail-item">
+                <span>成功率: {{ recognitionResult.successRate }}%</span>
+              </div>
+              <div class="detail-item">
+                <span>成功次数: {{ recognitionResult.successCount }}/{{ recognitionResult.totalAttempts }}</span>
+              </div>
             </div>
           </div>
           <div class="result-item">
@@ -85,7 +139,7 @@
           </div>
         </div>
         <div class="result-empty" v-else>
-          <el-empty description="暂无识别结果" />
+          <el-empty description="请启动摄像头并保持人脸对准5秒钟完成打卡" />
         </div>
       </div>
     </div>
@@ -102,9 +156,14 @@ import {
   UserFilled, 
   Key, 
   Check, 
-  Close 
+  Close,
+  Warning,
+  InfoFilled,
+  Loading,
+  SuccessFilled
 } from '@element-plus/icons-vue'
 import axios from 'axios'
+import { debounce } from 'lodash-es'
 
 const router = useRouter()
 const video = ref<HTMLVideoElement | null>(null)
@@ -117,18 +176,28 @@ const faceData = ref<string | null>(null)
 const recognitionResult = ref<{
   name: string, 
   studentId: string, 
-  similarity: number, 
+  averageSimilarity: number,
+  successRate: number,
+  successCount: number,
+  totalAttempts: number,
   entryTime: string,
-  status: string
+  status: string,
+  verificationDetails?: any
 } | null>(null)
 
-// 切换到管理员登录
+const faceDetected = ref(false)
+const detectionCount = ref(0)
+const requiredDetections = 5
+const autoRecognizing = ref(false)
+const facePosition = ref<{x: number, y: number, width: number, height: number} | null>(null)
+
+let faceDetectionInterval: number | null = null
+
 const switchToAdminLogin = () => {
   stopCamera()
   router.push('/login')
 }
 
-// 启动摄像头
 const startCamera = async () => {
   try {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -140,7 +209,8 @@ const startCamera = async () => {
         video.value.srcObject = stream.value
         isCameraActive.value = true
         
-        // 启动定时人脸检测
+        resetDetectionState()
+        
         startFaceDetection()
       }
     } else {
@@ -152,7 +222,6 @@ const startCamera = async () => {
   }
 }
 
-// 停止摄像头
 const stopCamera = () => {
   if (stream.value) {
     stream.value.getTracks().forEach(track => {
@@ -164,91 +233,149 @@ const stopCamera = () => {
     stream.value = null
     isCameraActive.value = false
     faceData.value = null
+    facePosition.value = null
+    
+    resetDetectionState()
+  }
+  
+  if (faceDetectionInterval) {
+    clearInterval(faceDetectionInterval)
+    faceDetectionInterval = null
   }
 }
 
-// 定时检测人脸
-let faceDetectionInterval: number | null = null
-const startFaceDetection = () => {
-  // 每2秒检测一次人脸
-  faceDetectionInterval = window.setInterval(() => {
-    if (isCameraActive.value && !isRecognizing.value) {
-      detectFace()
-    }
-  }, 2000)
+const resetDetectionState = () => {
+  faceDetected.value = false
+  detectionCount.value = 0
+  autoRecognizing.value = false
+  isRecognizing.value = false
+  facePosition.value = null
 }
 
-// 检测人脸
-const detectFace = async () => {
-  if (!video.value || !canvas.value) return
-  
-  const context = canvas.value.getContext('2d')
-  if (!context) return
-  
-  // 设置画布尺寸与视频一致
-  canvas.value.width = video.value.videoWidth
-  canvas.value.height = video.value.videoHeight
-  
-  // 在画布上绘制当前视频帧
-  context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height)
-  
-  // 将画布内容转换为Base64
-  const imageData = canvas.value.toDataURL('image/jpeg')
-  
+const startFaceDetection = () => {
+  faceDetectionInterval = window.setInterval(() => {
+    if (isCameraActive.value && !isRecognizing.value && !autoRecognizing.value) {
+      detectFace()
+    }
+  }, 200)
+}
+
+const detectFaceDebounced = debounce(async (imageData: string) => {
   try {
-    // 调用后端人脸检测API
     const response = await axios.post('/api/face/detect', {
       image: imageData
     })
     
     if (response.data.success) {
       faceData.value = `data:image/jpeg;base64,${response.data.faceData}`
+      faceDetected.value = true
+      
+      if (response.data.position) {
+        const newPosition = {
+          x: response.data.position.x,
+          y: response.data.position.y,
+          width: response.data.position.width,
+          height: response.data.position.height
+        }
+        
+        if (facePosition.value) {
+          const smoothingFactor = 0.7
+          facePosition.value = {
+            x: facePosition.value.x * (1 - smoothingFactor) + newPosition.x * smoothingFactor,
+            y: facePosition.value.y * (1 - smoothingFactor) + newPosition.y * smoothingFactor,
+            width: facePosition.value.width * (1 - smoothingFactor) + newPosition.width * smoothingFactor,
+            height: facePosition.value.height * (1 - smoothingFactor) + newPosition.height * smoothingFactor
+          }
+        } else {
+          facePosition.value = newPosition
+        }
+      }
+      
+      detectionCount.value++
+      console.log(`连续检测到人脸: ${detectionCount.value}/${requiredDetections}`)
+      
+      if (detectionCount.value >= requiredDetections && !autoRecognizing.value) {
+        console.log('达到连续检测阈值，开始自动考勤')
+        autoRecognizing.value = true
+        
+        setTimeout(() => {
+          recognizeFace()
+        }, 1500)
+      }
     } else {
       faceData.value = null
+      faceDetected.value = false
+      facePosition.value = null
+      
+      detectionCount.value = 0
     }
   } catch (error) {
     console.error('人脸检测失败:', error)
     faceData.value = null
+    faceDetected.value = false
+    facePosition.value = null
+    detectionCount.value = 0
   }
+}, 100)
+
+const detectFace = async () => {
+  if (!video.value || !canvas.value) return
+  
+  const context = canvas.value.getContext('2d')
+  if (!context) return
+  
+  canvas.value.width = video.value.videoWidth
+  canvas.value.height = video.value.videoHeight
+  
+  context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height)
+  
+  const imageData = canvas.value.toDataURL('image/jpeg', 0.8)
+  
+  detectFaceDebounced(imageData)
 }
 
-// 人脸识别并考勤
 const recognizeFace = async () => {
   if (!faceData.value) {
     ElMessage.warning('未检测到人脸，请正对摄像头')
+    autoRecognizing.value = false
     return
   }
   
   isRecognizing.value = true
+  
   try {
-    // 调用后端考勤API
     const attendanceResponse = await axios.post('/api/attendance/face-checkin', {
       faceData: faceData.value
     })
     
-    // 根据返回的success字段判断是否成功，即使返回200也要检查
     if (attendanceResponse.data && attendanceResponse.data.success) {
       const userData = attendanceResponse.data
       
-      // 更新识别结果
       recognitionResult.value = {
-        name: userData.userName || '测试',
-        studentId: userData.userNumber || '123',
-        similarity: userData.similarity || 71,
+        name: userData.userName || '未识别',
+        studentId: userData.userNumber || '未识别',
+        averageSimilarity: userData.averageSimilarity || 0,
+        successRate: userData.successRate || 0,
+        successCount: userData.successCount || 0,
+        totalAttempts: userData.totalAttempts || 0,
         entryTime: userData.entryTime || new Date().toLocaleTimeString('zh-CN', {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit'
         }),
-        status: userData.status || 'success'
+        status: userData.status || 'success',
+        verificationDetails: userData.verificationDetails
       }
       
-      ElMessage.success('考勤成功')
+      ElMessage.success(`打卡成功！欢迎 ${userData.userName}`)
+      
+      setTimeout(() => {
+        resetDetectionState()
+      }, 5000)
     } else {
-      // 错误信息优先显示服务器返回的消息
       const errorMessage = attendanceResponse.data && attendanceResponse.data.message 
         ? attendanceResponse.data.message 
-        : '未知错误，请联系管理员'
+        : '打卡失败，请确保光线充足并正对摄像头'
       
       ElMessage({
         message: errorMessage,
@@ -257,14 +384,16 @@ const recognizeFace = async () => {
         showClose: true
       })
       
-      // 不显示测试数据，让用户看到真实错误
       recognitionResult.value = null
+      
+      setTimeout(() => {
+        resetDetectionState()
+      }, 3000)
     }
   } catch (error) {
-    console.error('考勤过程中发生错误:', error)
+    console.error('打卡过程中发生错误:', error)
     
-    // 尝试从错误响应中提取错误信息
-    let errorMessage = '考勤失败，请稍后重试'
+    let errorMessage = '打卡失败，请稍后重试'
     if (error.response && error.response.data) {
       errorMessage = error.response.data.message || errorMessage
     }
@@ -276,28 +405,28 @@ const recognizeFace = async () => {
       showClose: true
     })
     
-    // 不显示测试数据，让用户看到真实错误
     recognitionResult.value = null
+    
+    setTimeout(() => {
+      resetDetectionState()
+    }, 3000)
   } finally {
     isRecognizing.value = false
+    autoRecognizing.value = false
   }
 }
 
-// 获取相似度颜色
 const getSimilarityColor = () => {
-  const similarity = recognitionResult.value?.similarity || 0
-  if (similarity >= 80) return '#67C23A' // 绿色
-  if (similarity >= 60) return '#E6A23C' // 黄色
-  return '#F56C6C' // 红色
+  const similarity = recognitionResult.value?.averageSimilarity || 0
+  if (similarity >= 80) return '#67C23A'
+  if (similarity >= 70) return '#E6A23C'
+  return '#F56C6C'
 }
 
-// 在组件挂载时初始化
 onMounted(() => {
-  // 默认打开摄像头
   startCamera()
 })
 
-// 在组件卸载时清理
 onUnmounted(() => {
   stopCamera()
   if (faceDetectionInterval) {
@@ -375,6 +504,94 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
+.detection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.face-detection-box {
+  position: absolute;
+  border: 3px solid #67C23A;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(103, 194, 58, 0.3);
+  transition: all 0.1s ease-out;
+}
+
+.face-detection-box.static {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.face-detection-box.dynamic {
+  opacity: 1;
+  border-style: solid;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 20px rgba(103, 194, 58, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(103, 194, 58, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(103, 194, 58, 0.3);
+  }
+}
+
+.detection-progress {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.progress-text {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.progress-count {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #67C23A;
+}
+
+.face-detected-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #67C23A;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 15px rgba(103, 194, 58, 0.5);
+}
+
+.check-icon {
+  font-size: 24px;
+}
+
 .camera-controls {
   display: flex;
   justify-content: center;
@@ -386,6 +603,64 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.status-display {
+  margin-bottom: 20px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.status-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.status-icon.warning {
+  color: #E6A23C;
+}
+
+.status-icon.info {
+  color: #409EFF;
+}
+
+.status-icon.loading {
+  color: #909399;
+  animation: rotate 2s linear infinite;
+}
+
+.status-icon.success {
+  color: #67C23A;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.instruction-text {
+  background-color: #f0f9ff;
+  border-left: 4px solid #409EFF;
+  padding: 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.instruction-text p {
+  margin: 0;
+  margin-bottom: 8px;
+}
+
+.instruction-text p:last-child {
+  margin-bottom: 0;
 }
 
 .face-frame {
@@ -464,6 +739,12 @@ onUnmounted(() => {
   flex: 1;
 }
 
+.similarity-text {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #606266;
+}
+
 .indicator-light {
   width: 60px;
   height: 60px;
@@ -478,6 +759,23 @@ onUnmounted(() => {
 
 .indicator-light.success {
   background-color: #67C23A;
+}
+
+.verification-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+}
+
+.detail-item span {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #606266;
 }
 
 .result-empty {

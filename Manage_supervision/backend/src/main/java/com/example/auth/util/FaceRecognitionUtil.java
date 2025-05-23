@@ -23,6 +23,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 
 import static org.bytedeco.opencv.global.opencv_core.*;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.*;
@@ -160,6 +164,19 @@ public class FaceRecognitionUtil {
      * @return 如果检测到人脸，返回处理后的人脸图像的Base64编码；否则返回null
      */
     public static String detectFace(String base64Image) {
+        Map<String, Object> result = detectFaceWithPosition(base64Image);
+        if (result != null) {
+            return (String) result.get("faceData");
+        }
+        return null;
+    }
+    
+    /**
+     * 从Base64编码的图像数据中检测人脸，并返回人脸位置信息
+     * @param base64Image Base64编码的图像数据（不含前缀）
+     * @return 包含人脸图像和位置信息的Map，如果未检测到人脸返回null
+     */
+    public static Map<String, Object> detectFaceWithPosition(String base64Image) {
         try {
             // 确保人脸检测器已加载
             CascadeClassifier detector = getFaceDetector();
@@ -184,9 +201,14 @@ public class FaceRecognitionUtil {
                 return null;
             }
             
+            // 获取原始图像尺寸
+            int originalWidth = image.cols();
+            int originalHeight = image.rows();
+            
             // 检测人脸
             RectVector faceDetections = new RectVector();
-            detector.detectMultiScale(image, faceDetections);
+            // 使用多尺度检测参数，提高检测准确度
+            detector.detectMultiScale(image, faceDetections, 1.1, 3, 0, new Size(80, 80), new Size(500, 500));
             
             if (faceDetections.empty() || faceDetections.size() <= 0) {
                 logger.warn("未检测到人脸");
@@ -195,6 +217,12 @@ public class FaceRecognitionUtil {
             
             // 提取最大的人脸
             Rect maxFace = getMaxFace(faceDetections);
+            
+            // 计算人脸在原图中的相对位置（百分比）
+            double relativeX = (double) maxFace.x() / originalWidth;
+            double relativeY = (double) maxFace.y() / originalHeight;
+            double relativeWidth = (double) maxFace.width() / originalWidth;
+            double relativeHeight = (double) maxFace.height() / originalHeight;
             
             // 裁剪并调整人脸区域
             Mat faceROI = new Mat(image, maxFace);
@@ -211,7 +239,6 @@ public class FaceRecognitionUtil {
             equalizeHist(grayFace, equalizedFace);
             
             // 将灰度均衡化图像编码为JPG格式
-            // 使用JavaCV 1.5.9兼容的方法
             String tempFileName = Loader.getTempDir() + "/face_" + System.currentTimeMillis() + ".jpg";
             
             // 将矩阵保存为JPG格式的图像文件
@@ -223,7 +250,22 @@ public class FaceRecognitionUtil {
             // 删除临时文件
             new File(tempFileName).delete();
             
-            return Base64.getEncoder().encodeToString(resultArray);
+            // 构建返回结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("faceData", Base64.getEncoder().encodeToString(resultArray));
+            result.put("position", Map.of(
+                "x", relativeX,
+                "y", relativeY,
+                "width", relativeWidth,
+                "height", relativeHeight,
+                "absoluteX", maxFace.x(),
+                "absoluteY", maxFace.y(),
+                "absoluteWidth", maxFace.width(),
+                "absoluteHeight", maxFace.height()
+            ));
+            result.put("detectedFaces", (long) faceDetections.size());
+            
+            return result;
         } catch (Exception e) {
             logger.error("人脸检测过程中发生异常", e);
             return null;
@@ -231,12 +273,20 @@ public class FaceRecognitionUtil {
     }
     
     /**
-     * 比较两个人脸是否匹配
+     * 多次比较人脸并取平均值，提高识别准确性
      * @param storedFaceBase64 存储的人脸数据（Base64编码）
      * @param capturedFaceBase64 当前捕获的人脸数据（Base64编码）
-     * @return 如果匹配返回true，否则返回false
+     * @param verificationTimes 验证次数（建议3-5次）
+     * @return 包含验证结果的Map，包括平均相似度、各次相似度、是否通过验证等
      */
-    public static boolean compareFaces(String storedFaceBase64, String capturedFaceBase64) {
+    public static Map<String, Object> compareMultipleFaces(String storedFaceBase64, String capturedFaceBase64, int verificationTimes) {
+        Map<String, Object> result = new HashMap<>();
+        List<Double> similarities = new ArrayList<>();
+        List<Double> structuralSimilarities = new ArrayList<>(); // 添加结构相似度列表
+        List<Boolean> verificationResults = new ArrayList<>();
+        
+        logger.info("开始进行{}次人脸识别验证", verificationTimes);
+        
         try {
             // 解码Base64字符串
             byte[] storedImageBytes = Base64.getDecoder().decode(storedFaceBase64);
@@ -256,7 +306,9 @@ public class FaceRecognitionUtil {
             
             if (storedImage.empty() || capturedImage.empty()) {
                 logger.error("图像解码失败");
-                return false;
+                result.put("success", false);
+                result.put("message", "图像解码失败");
+                return result;
             }
             
             // 确保两个图像大小相同
@@ -264,63 +316,172 @@ public class FaceRecognitionUtil {
                 resize(capturedImage, capturedImage, new Size(storedImage.cols(), storedImage.rows()));
             }
             
-            // 转换为浮点型Mat以便计算
-            Mat storedImageFloat = new Mat();
-            Mat capturedImageFloat = new Mat();
-            storedImage.convertTo(storedImageFloat, CV_32F);
-            capturedImage.convertTo(capturedImageFloat, CV_32F);
+            // 进行多次验证
+            for (int i = 0; i < verificationTimes; i++) {
+                logger.info("执行第{}次人脸识别", i + 1);
+                
+                try {
+                    // 对捕获的图像进行轻微的随机变换，增加验证的鲁棒性
+                    Mat transformedCaptured = applySafeTransformation(capturedImage, i);
+                    
+                    // 转换为浮点型Mat以便计算
+                    Mat storedImageFloat = new Mat();
+                    Mat capturedImageFloat = new Mat();
+                    storedImage.convertTo(storedImageFloat, CV_32F);
+                    transformedCaptured.convertTo(capturedImageFloat, CV_32F);
+                    
+                    // 使用LBPH人脸识别器
+                    LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
+                    
+                    // 准备训练数据和标签
+                    MatVector images = new MatVector(1);
+                    images.put(0, storedImage);
+                    
+                    Mat labelsMat = new Mat(1, 1, CV_32SC1);
+                    IntBuffer intBuf = labelsMat.createBuffer();
+                    intBuf.put(0, 1);
+                    
+                    // 训练模型
+                    recognizer.train(images, labelsMat);
+                    
+                    // 预测
+                    int[] label = new int[1];
+                    double[] confidence = new double[1];
+                    recognizer.predict(transformedCaptured, label, confidence);
+                    
+                    // 计算本次相似度
+                    double lbphSimilarity = Math.max(0.0, 1.0 - confidence[0] / 100.0);
+                    double structuralSimilarity = calculateStructuralSimilarity(storedImageFloat, capturedImageFloat);
+                    double combinedSimilarity = 0.6 * lbphSimilarity + 0.4 * structuralSimilarity;
+                    
+                    similarities.add(combinedSimilarity);
+                    structuralSimilarities.add(structuralSimilarity); // 记录结构相似度
+                    
+                    // 本次验证是否通过（调整为更合理的单次验证阈值）
+                    double singleVerificationThreshold = 0.65; // 单次验证阈值降低到65%
+                    boolean singleResult = combinedSimilarity >= singleVerificationThreshold;
+                    verificationResults.add(singleResult);
+                    
+                    logger.info("第{}次验证 - LBPH相似度: {}, 结构相似度: {}, 综合相似度: {}, 单次结果: {}", 
+                               i + 1, lbphSimilarity, structuralSimilarity, combinedSimilarity, singleResult);
+                    
+                    // 清理资源
+                    storedImageFloat.release();
+                    capturedImageFloat.release();
+                    transformedCaptured.release();
+                    
+                    // 添加小延迟，避免过快连续处理
+                    Thread.sleep(50);
+                    
+                } catch (Exception e) {
+                    logger.warn("第{}次验证失败: {}", i + 1, e.getMessage());
+                    similarities.add(0.0);
+                    structuralSimilarities.add(0.0); // 失败时添加0
+                    verificationResults.add(false);
+                }
+            }
             
-            // 使用LBPH人脸识别器
-            LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
-            
-            // 准备训练数据和标签
-            MatVector images = new MatVector(1);
-            images.put(0, storedImage);
-            
-            // 创建标签矩阵并设置值 - 创建一个带有单个元素的Mat，值为1
-            Mat labelsMat = new Mat(1, 1, CV_32SC1);
-            // 使用JavaCV 1.5.9兼容方式设置值
-            IntBuffer intBuf = labelsMat.createBuffer();
-            intBuf.put(0, 1);
-            
-            // 训练模型
-            recognizer.train(images, labelsMat);
-            
-            // 预测 - 使用JavaCV 1.5.9版本兼容的方法
-            int[] label = new int[1];
-            double[] confidence = new double[1];
-            recognizer.predict(capturedImage, label, confidence);
-            
-            // 置信度阈值（较低的值表示更高的匹配度）
-            // 阈值越低，匹配要求越严格，值范围通常为0-100
-            // 40.0是一个非常严格的阈值，可以大幅提高准确率，确保只有本人人脸才能通过验证
-            // 原来的70.0和60.0阈值太宽松，导致误识别率高
-            double threshold = 40.0; // 大幅降低阈值，提高匹配严格程度
-            double confidenceValue = confidence[0];
-            logger.info("人脸匹配置信度: {}", confidenceValue);
-            
-            // 增加额外的相似度检查来提高安全性
-            double imageSimilarity = calculateStructuralSimilarity(storedImageFloat, capturedImageFloat);
-            logger.info("人脸结构相似度: {}", imageSimilarity);
-            
-            // 清理本地资源
+            // 清理资源
             storedPointer.close();
             capturedPointer.close();
-            storedImageFloat.release();
-            capturedImageFloat.release();
             
-            boolean lbphResult = confidenceValue < threshold;
-            // 对于简化的相似度计算方法，阈值应该更高
-            boolean ssimResult = imageSimilarity > 0.75;
+            // 计算统计结果
+            double averageSimilarity = similarities.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            double maxSimilarity = similarities.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+            double minSimilarity = similarities.stream().mapToDouble(Double::doubleValue).min().orElse(0.0);
             
-            logger.info("LBPH验证结果: {}, SSIM验证结果: {}", lbphResult, ssimResult);
+            // 计算结构相似度统计
+            double averageStructuralSimilarity = structuralSimilarities.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            double maxStructuralSimilarity = structuralSimilarities.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+            double minStructuralSimilarity = structuralSimilarities.stream().mapToDouble(Double::doubleValue).min().orElse(0.0);
             
-            // 必须同时满足LBPH算法的置信度阈值和结构相似度阈值
-            return lbphResult && ssimResult;
+            long successCount = verificationResults.stream().mapToLong(b -> b ? 1 : 0).sum();
+            double successRate = (double) successCount / verificationTimes;
+            
+            // 最终验证结果判定（调整为更合理的阈值）
+            double finalThreshold = 0.60; // 平均相似度阈值降低到60%
+            double minSuccessRate = 0.4; // 最低成功率降低到40%（5次中至少2次通过）
+            
+            boolean finalResult = averageSimilarity >= finalThreshold && successRate >= minSuccessRate;
+            
+            // 构建结果
+            result.put("success", true);
+            result.put("verified", finalResult);
+            result.put("averageSimilarity", Math.round(averageSimilarity * 10000.0) / 10000.0);
+            result.put("maxSimilarity", Math.round(maxSimilarity * 10000.0) / 10000.0);
+            result.put("minSimilarity", Math.round(minSimilarity * 10000.0) / 10000.0);
+            
+            // 添加结构相似度统计
+            result.put("averageStructuralSimilarity", Math.round(averageStructuralSimilarity * 10000.0) / 10000.0);
+            result.put("maxStructuralSimilarity", Math.round(maxStructuralSimilarity * 10000.0) / 10000.0);
+            result.put("minStructuralSimilarity", Math.round(minStructuralSimilarity * 10000.0) / 10000.0);
+            
+            result.put("successCount", successCount);
+            result.put("totalAttempts", verificationTimes);
+            result.put("successRate", Math.round(successRate * 10000.0) / 10000.0);
+            result.put("similarities", similarities);
+            result.put("structuralSimilarities", structuralSimilarities); // 添加结构相似度列表
+            result.put("threshold", finalThreshold);
+            result.put("minSuccessRate", minSuccessRate);
+            
+            logger.info("多次验证完成 - 平均相似度: {}, 平均结构相似度: {}, 成功率: {}, 最终结果: {}", 
+                       averageSimilarity, averageStructuralSimilarity, successRate, finalResult);
+            
+            return result;
+            
         } catch (Exception e) {
-            logger.error("人脸比较过程中发生异常", e);
-            return false;
+            logger.error("多次人脸比较过程中发生异常", e);
+            result.put("success", false);
+            result.put("message", "人脸验证失败: " + e.getMessage());
+            return result;
         }
+    }
+    
+    /**
+     * 对图像应用安全的轻微变换，增加验证的鲁棒性
+     */
+    private static Mat applySafeTransformation(Mat image, int transformIndex) {
+        Mat result = image.clone();
+        
+        try {
+            switch (transformIndex % 4) {
+                case 0:
+                    // 不做变换
+                    break;
+                case 1:
+                    // 轻微的亮度调整
+                    result.convertTo(result, -1, 1.0, 2.0);
+                    break;
+                case 2:
+                    // 轻微的对比度调整
+                    result.convertTo(result, -1, 1.05, 0.0);
+                    break;
+                case 3:
+                    // 轻微的高斯模糊
+                    Mat temp = new Mat();
+                    GaussianBlur(result, temp, new Size(3, 3), 0.5);
+                    temp.copyTo(result);
+                    temp.release();
+                    break;
+            }
+        } catch (Exception e) {
+            logger.warn("图像变换失败，使用原图: {}", e.getMessage());
+            return image.clone();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 比较两个人脸是否匹配（保持向后兼容，内部调用多次验证）
+     * @param storedFaceBase64 存储的人脸数据（Base64编码）
+     * @param capturedFaceBase64 当前捕获的人脸数据（Base64编码）
+     * @return 如果匹配返回true，否则返回false
+     */
+    public static boolean compareFaces(String storedFaceBase64, String capturedFaceBase64) {
+        // 使用3次验证确保准确性
+        Map<String, Object> result = compareMultipleFaces(storedFaceBase64, capturedFaceBase64, 3);
+        return (Boolean) result.getOrDefault("verified", false);
     }
     
     /**
