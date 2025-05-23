@@ -60,8 +60,8 @@ export const useUserStore = defineStore('user', {
       }
       return false
     },
-    isStudent: (state) => {
-      console.log('检查学生权限，当前角色:', state.user.roles)
+    isRunner: (state) => {
+      console.log('检查跑步爱好者权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
         role === 'USER' || role === 'user'
       ) && !state.user.roles.some((role: string) => 
@@ -73,7 +73,7 @@ export const useUserStore = defineStore('user', {
       if (role === 'ADMIN') {
         return 'ADMIN'
       } else {
-        return 'STUDENT'
+        return 'RUNNER'
       }
     },
     userRole(): string | null {

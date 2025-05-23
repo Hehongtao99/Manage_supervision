@@ -139,8 +139,8 @@ public class AdminServiceImpl implements AdminService {
                 roleMapper.insert(userRole);
             }
             
-            // 生成学生编号
-            String userNumber = userNumberGenerator.generateStudentNumber();
+            // 生成用户编号
+            String userNumber = userNumberGenerator.generateUserNumber();
             user.setUserNumber(userNumber);
             
             // 保存用户
@@ -192,7 +192,7 @@ public class AdminServiceImpl implements AdminService {
                     
                     // 检查是否需要更新用户编号
                     if (!currentRoleNames.contains(newRoleName) && 
-                        userNumberGenerator.needsNumberUpdate(user.getUserNumber(), newRoleName)) {
+                        userNumberGenerator.needsNumberChange(user.getUserNumber(), newRoleName)) {
                         // 生成新的用户编号
                         String newUserNumber = userNumberGenerator.generateUserNumberByRole(newRoleName);
                         user.setUserNumber(newUserNumber);
@@ -238,7 +238,9 @@ public class AdminServiceImpl implements AdminService {
     
     @Override
     public List<RoleDTO> getAllRoles() {
+        // 只获取有效的角色（ADMIN和USER），排除SUPERVISOR
         LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Role::getName, "ADMIN", "USER");
         List<Role> roles = roleMapper.selectList(queryWrapper);
         return roles.stream()
                 .map(this::convertToRoleDTO)
@@ -396,19 +398,28 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Long countTotalRoles() {
-        return roleMapper.selectCount(null);
+        // 只统计有效的角色（ADMIN和USER），排除SUPERVISOR
+        LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Role::getName, "ADMIN", "USER");
+        return roleMapper.selectCount(queryWrapper);
     }
 
     @Override
     public Map<String, Long> getUserRoleDistribution() {
-        // 获取所有角色
-        List<Role> allRoles = roleMapper.selectList(null);
+        // 只获取有效的角色（ADMIN和USER），排除SUPERVISOR
+        LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Role::getName, "ADMIN", "USER");
+        List<Role> validRoles = roleMapper.selectList(queryWrapper);
+        
         Map<String, Long> distribution = new HashMap<>();
         
-        // 为每个角色查询用户数量
-        for (Role role : allRoles) {
+        // 为每个有效角色查询用户数量
+        for (Role role : validRoles) {
             Long userCount = (long) userRoleMapper.countUsersByRoleId(role.getId());
-            distribution.put(role.getName(), userCount);
+            // 只有当角色有用户时才加入分布统计
+            if (userCount > 0) {
+                distribution.put(role.getName(), userCount);
+            }
         }
         
         return distribution;
@@ -430,8 +441,10 @@ public class AdminServiceImpl implements AdminService {
             datesList.add(formattedDate);
             
             // 在真实环境中，应该从日志表中查询每天的登录用户数
-            // 这里使用模拟数据
-            int randomCount = new Random().nextInt(70) + 120; // 生成120-190之间的随机数
+            // 这里使用模拟数据，基于当前系统的实际用户数量
+            Long totalActiveUsers = countActiveUsers();
+            int maxDailyActive = Math.max(1, Math.min(totalActiveUsers.intValue(), 10));
+            int randomCount = new Random().nextInt(maxDailyActive) + 1; // 生成1到实际活跃用户数之间的随机数
             countsList.add(randomCount);
         }
         

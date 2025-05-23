@@ -1,28 +1,24 @@
-// 该文件是为了兼容性而创建的，实际上重新导出student.ts中的内容
-
-import { getStudents as _getStudents } from './student';
+// 该文件是为了兼容性而创建的，实际上重新导出runner.ts中的内容
+// 注意：这只是一个临时措施，请尽快更新所有导入到直接使用runner.ts
+import { getRunners as _getRunners } from './runner';
 import instance from '../utils/axios'
 import { getAuthHeader } from '../utils/auth'
 
-// 将getStudents作为getAllStudents导出，以便兼容旧代码
-export const getAllStudents = _getStudents;
+// 为兼容性重新导出
+export { getRunnerDetail as getUserDetail } from './runner';
+// 将getRunners作为getAllRunners导出，以便兼容旧代码
+export const getAllRunners = _getRunners;
 
-// 直接在此处定义Student类型，而不是导入StudentDTO
-export interface Student {
+// 直接在此处定义Runner类型，而不是导入RunnerDTO
+export interface Runner {
   id: number;
+  username: string;
+  runnerId?: string;
   name: string;
-  studentId?: string;
-  userNumber: string; // 添加userNumber字段作为学号
-  class?: string; // 注意：这里用class而不是className，与StudentManagement.vue中使用一致
   email: string;
   phone: string;
   status: string;
-  lastLogin?: string;
-  progress?: number;
-  username?: string;
-  realName?: string;
-  roles?: string[];
-  createTime?: string;
+  createTime: string;
 }
 
 /**

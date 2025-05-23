@@ -1,4 +1,46 @@
 import request from '../utils/request'
+import axios from 'axios'
+import { getAuthHeader } from '../utils/auth'
+
+// 类型定义
+export interface RunningRecordRequest {
+  distance: number;
+  duration: number;
+  pace: string;
+  recordDate?: string;
+}
+
+export interface RunningRecordResponse {
+  id: number;
+  userId: number;
+  distance: number;
+  duration: number;
+  pace: string;
+  calories: number;
+  createTime: string;
+  recordDate: string;
+}
+
+export interface RunningStatsResponse {
+  totalDistance: number;
+  totalDuration: number;
+  totalCalories: number;
+  recordCount: number;
+  averagePace: string;
+  weeklyDistance: number;
+  monthlyDistance: number;
+}
+
+export interface AchievementResponse {
+  totalDistance: number;
+  totalDuration: number;
+  totalRecords: number;
+  longestDistance: number;
+  fastestPace: string;
+  consecutiveDays: number;
+  weeklyGoalStreak: number;
+  monthlyGoalStreak: number;
+}
 
 // 获取用户跑步偏好
 export function getRunningPreference() {
@@ -27,47 +69,52 @@ export function saveMotto(motto: string) {
 }
 
 // 添加跑步记录
-export function addRunningRecord(data: {
-  distance: number,
-  duration: number,
-  pace: string,
-  recordDate?: string
-}) {
-  return request({
-    url: '/api/student/running/record',
-    method: 'post',
-    data
+export const addRunningRecord = async (record: RunningRecordRequest): Promise<RunningRecordResponse> => {
+  const response = await axios({
+    method: 'POST',
+    url: '/api/runner/running/record',
+    data: record,
+    headers: getAuthHeader()
   })
+  return response.data
 }
 
-// 获取跑步记录列表
-export function getRunningRecords() {
-  return request({
-    url: '/api/student/running/records',
-    method: 'get'
+// 获取用户跑步记录
+export const getUserRunningRecords = async (): Promise<RunningRecordResponse[]> => {
+  const response = await axios({
+    method: 'GET',
+    url: '/api/runner/running/records',
+    headers: getAuthHeader()
   })
+  return response.data
 }
 
-// 获取特定跑步记录
-export function getRunningRecord(id: number) {
-  return request({
-    url: `/api/student/running/record/${id}`,
-    method: 'get'
+// 获取跑步记录详情
+export const getRunningRecordById = async (id: number): Promise<RunningRecordResponse> => {
+  const response = await axios({
+    method: 'GET',
+    url: `/api/runner/running/record/${id}`,
+    headers: getAuthHeader()
   })
+  return response.data
 }
 
 // 获取跑步统计数据
-export function getRunningStats() {
-  return request({
-    url: '/api/student/running/stats',
-    method: 'get'
+export const getRunningStats = async (): Promise<RunningStatsResponse> => {
+  const response = await axios({
+    method: 'GET',
+    url: '/api/runner/running/stats',
+    headers: getAuthHeader()
   })
+  return response.data
 }
 
 // 获取用户成就信息
-export function getUserAchievements() {
-  return request({
-    url: '/api/student/running/achievements',
-    method: 'get'
+export const getUserAchievements = async (): Promise<AchievementResponse> => {
+  const response = await axios({
+    method: 'GET',
+    url: '/api/runner/running/achievements',
+    headers: getAuthHeader()
   })
+  return response.data
 } 

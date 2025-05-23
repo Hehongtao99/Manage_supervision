@@ -36,39 +36,22 @@
         </el-card>
       </el-col>
 
-      <!-- 学生信息卡片 - 只对普通学生显示 -->
-      <el-col :span="24" v-if="userStore.isStudent">
-        <el-card class="student-card">
-          <template #header>
-            <div class="card-header">
-              <h3>个人学习概览</h3>
+      <!-- 跑步爱好者信息卡片 - 只对普通用户显示 -->
+      <el-col :span="24" v-if="userStore.isRunner">
+        <el-card class="user-info-card">
+          <div class="info-header">
+            <el-avatar :size="60" :src="userStore.user.avatar" class="user-avatar">
+              <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
+            </el-avatar>
+            <div class="info-content">
+              <h3>{{ userStore.user.name || userStore.user.username }}</h3>
+              <p class="user-role">
+                <el-tag type="success" size="small">
+                  {{ userStore.user.roles.includes('ADMIN') ? '管理员' : userStore.user.roles.includes('USER') ? '跑步爱好者' : '教师' }}
+                </el-tag>
+              </p>
+              <p class="user-number">编号: {{ userStore.user.userNumber || '未设置' }}</p>
             </div>
-          </template>
-          <div class="student-info">
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <div class="info-card">
-                  <div class="info-icon">
-                    <el-icon><Calendar /></el-icon>
-                  </div>
-                  <div class="info-content">
-                    <div class="info-value">{{ studentStats.totalTasks }}</div>
-                    <div class="info-label">任务总数</div>
-                  </div>
-                </div>
-              </el-col>
-              <el-col :span="12">
-                <div class="info-card">
-                  <div class="info-icon">
-                    <el-icon><Document /></el-icon>
-                  </div>
-                  <div class="info-content">
-                    <div class="info-value">{{ studentStats.completedTasks }}</div>
-                    <div class="info-label">已完成任务</div>
-                  </div>
-                </div>
-              </el-col>
-            </el-row>
           </div>
         </el-card>
       </el-col>
@@ -94,7 +77,7 @@
                   :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
                   style="margin-right: 5px"
                 >
-                  {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+                  {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : '教师' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -104,8 +87,8 @@
       </el-col>
     </el-row>
 
-    <!-- 学生任务概览 - 只对学生显示 -->
-    <el-row style="margin-top: 20px" v-if="userStore.isStudent">
+    <!-- 跑步爱好者任务概览 - 只对跑步爱好者显示 -->
+    <el-row style="margin-top: 20px" v-if="userStore.isRunner">
       <el-col :span="24">
         <el-card class="task-card">
           <template #header>
@@ -200,13 +183,13 @@ const router = useRouter()
 const userStore = useUserStore()
 const stats = ref<DashboardStats>()
 
-// 学生统计数据
+// 跑步爱好者统计数据
 const studentStats = ref({
   totalTasks: 0,
   completedTasks: 0
 })
 
-// 学生任务数据
+// 跑步爱好者任务数据
 const myTasks = ref([])
 const tasksLoading = ref(false)
 
@@ -217,7 +200,7 @@ const getDashboardTitle = computed(() => {
   } else if (userStore.isSupervisor) {
     return '督导工作台'
   } else {
-    return '学生首页'
+    return '跑步爱好者首页'
   }
 })
 
@@ -238,9 +221,9 @@ const fetchDashboardData = async () => {
   }
 }
 
-// 获取学生任务数据
+// 获取跑步爱好者任务数据
 const fetchMyTasks = async () => {
-  if (userStore.isStudent) {
+  if (userStore.isRunner) {
     tasksLoading.value = true
     try {
       const tasks = await getMyTasks()
@@ -429,43 +412,39 @@ const handleLogout = () => {
   margin-top: 20px;
 }
 
-/* 学生信息卡片样式 */
-.student-card {
+/* 跑步爱好者信息卡片样式 */
+.user-info-card {
   margin-bottom: 20px;
 }
 
-.student-info {
+.info-header {
+  display: flex;
+  align-items: center;
   padding: 10px;
 }
 
-.info-card {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.info-icon {
-  font-size: 30px;
-  color: #409EFF;
-  margin-right: 15px;
+.user-avatar {
+  margin-right: 10px;
 }
 
 .info-content {
   flex: 1;
 }
 
-.info-value {
-  font-size: 24px;
+.info-content h3 {
+  margin: 0;
+  font-size: 18px;
   font-weight: bold;
-  color: #303133;
 }
 
-.info-label {
-  color: #606266;
+.user-role {
+  margin: 5px 0;
+}
+
+.user-number {
+  margin: 5px 0;
   font-size: 14px;
+  color: #909399;
 }
 
 /* 任务列表样式 */

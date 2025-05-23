@@ -2,96 +2,82 @@ package com.example.auth.util;
 
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 用户编号生成工具类
- * 用于生成学号和教师号
+ * 用户编号生成器
  */
 @Component
 public class UserNumberGenerator {
     
-    private static final String STUDENT_PREFIX = "S"; // 学生前缀
-    private static final String TEACHER_PREFIX = "T"; // 教师前缀
-    private static final Random random = new Random();
+    private static final String USER_PREFIX = "R"; // Runner前缀
+    private static final int RANDOM_LENGTH = 4; // 随机数长度
+    
+    // 用于缓存已生成的编号，防止重复
+    private final ConcurrentHashMap<String, Boolean> generatedNumbers = new ConcurrentHashMap<>();
     
     /**
-     * 生成学生学号
-     * 格式：S + 年份后两位 + 随机6位数字
-     * 示例：S23123456
+     * 生成用户编号
+     * 格式：R + 年份后两位 + 4位随机数
+     * 例如：R240001
      */
-    public String generateStudentNumber() {
-        String yearSuffix = getYearSuffix();
-        String randomDigits = generateRandomDigits(6);
-        return STUDENT_PREFIX + yearSuffix + randomDigits;
+    public String generateUserNumber() {
+        String yearSuffix = String.valueOf(LocalDateTime.now().getYear()).substring(2);
+        String randomDigits = generateRandomDigits();
+        return USER_PREFIX + yearSuffix + randomDigits;
     }
     
     /**
-     * 生成教师工号
-     * 格式：T + 年份后两位 + 随机5位数字
-     * 示例：T2312345
-     */
-    public String generateTeacherNumber() {
-        String yearSuffix = getYearSuffix();
-        String randomDigits = generateRandomDigits(5);
-        return TEACHER_PREFIX + yearSuffix + randomDigits;
-    }
-    
-    /**
-     * 根据角色生成对应的用户编号
+     * 根据角色生成用户编号
+     * @param role 用户角色
+     * @return 用户编号
      */
     public String generateUserNumberByRole(String role) {
-        if ("SUPERVISOR".equalsIgnoreCase(role)) {
-            return generateTeacherNumber();
-        } else {
-            return generateStudentNumber();
-        }
+        // 统一使用同一种编号格式
+        return generateUserNumber();
     }
     
     /**
-     * 获取当前年份后两位
+     * 生成指定长度的随机数字串
      */
-    private String getYearSuffix() {
-        int year = LocalDateTime.now().getYear();
-        return String.valueOf(year).substring(2);
-    }
-    
-    /**
-     * 生成指定长度的随机数字
-     */
-    private String generateRandomDigits(int length) {
+    private String generateRandomDigits() {
+        Random random = new Random();
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(random.nextInt(10)); // 0-9的随机数字
+        
+        // 确保不以0开头
+        sb.append(random.nextInt(9) + 1);
+        
+        // 生成剩余的随机数字
+        for (int i = 1; i < RANDOM_LENGTH; i++) {
+            sb.append(random.nextInt(10));
         }
+        
         return sb.toString();
     }
     
     /**
-     * 检查是否需要更新用户编号（角色改变）
-     * @param currentNumber 当前编号
-     * @param role 目标角色
-     * @return 是否需要更新
+     * 检查编号是否已存在
      */
-    public boolean needsNumberUpdate(String currentNumber, String role) {
-        if (currentNumber == null || currentNumber.isEmpty()) {
-            return true;
-        }
-        
-        // 根据前缀检查当前编号类型
-        boolean isStudentNumber = currentNumber.startsWith(STUDENT_PREFIX);
-        boolean isTeacherNumber = currentNumber.startsWith(TEACHER_PREFIX);
-        
-        // 角色与编号类型不匹配，需要更新
-        if (isStudentNumber && "SUPERVISOR".equalsIgnoreCase(role)) {
-            return true;
-        }
-        
-        if (isTeacherNumber && !"SUPERVISOR".equalsIgnoreCase(role)) {
-            return true;
-        }
-        
+    public boolean isNumberExists(String number) {
+        return generatedNumbers.containsKey(number);
+    }
+    
+    /**
+     * 添加已使用的编号到缓存
+     */
+    public void addUsedNumber(String number) {
+        generatedNumbers.put(number, true);
+    }
+    
+    /**
+     * 验证用户编号是否需要更改
+     * @param currentNumber 当前编号
+     * @param newRole 新角色
+     * @return 是否需要更改
+     */
+    public boolean needsNumberChange(String currentNumber, String newRole) {
+        // 统一使用同一种编号格式，不需要根据角色更改
         return false;
     }
 } 

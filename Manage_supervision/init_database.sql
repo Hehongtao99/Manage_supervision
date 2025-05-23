@@ -2,7 +2,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 删除已有表（如果存在）
-DROP TABLE IF EXISTS teacher_student_relations;
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS conversations;
 DROP TABLE IF EXISTS task_evaluations;
@@ -81,31 +80,17 @@ CREATE TABLE chat_messages (
     CONSTRAINT FK_chat_messages_recipient FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 创建教师-学生关系表
-CREATE TABLE teacher_student_relations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id BIGINT NOT NULL,
-    student_id BIGINT NOT NULL,
-    assign_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'active',
-    CONSTRAINT FK_teacher_student_teacher FOREIGN KEY (teacher_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT FK_teacher_student_student FOREIGN KEY (student_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT UK_teacher_student UNIQUE (teacher_id, student_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 -- 创建索引以提高查询性能
 CREATE INDEX idx_conversations_user1_id ON conversations(user1_id);
 CREATE INDEX idx_conversations_user2_id ON conversations(user2_id);
 CREATE INDEX idx_chat_messages_conversation_id ON chat_messages(conversation_id);
 CREATE INDEX idx_chat_messages_sender_id ON chat_messages(sender_id);
 CREATE INDEX idx_chat_messages_recipient_id ON chat_messages(recipient_id);
-CREATE INDEX idx_teacher_student_teacher_id ON teacher_student_relations(teacher_id);
-CREATE INDEX idx_teacher_student_student_id ON teacher_student_relations(student_id);
 
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 
 ('ADMIN', '管理员角色，拥有最高权限', ',USER_VIEW,ROLE_VIEW,LOG_VIEW,USER_EDIT,ROLE_EDIT,SYSTEM_SETTINGS,USER_DELETE,ROLE_DELETE', NOW()),
-('USER', '学生角色，基本用户权限', '', NOW());
+('USER', '跑步爱好者角色，基本用户权限', '', NOW());
 
 -- 插入管理员用户 (username: admin, password: 123456)
 -- 密码使用BCrypt加密，这里是"123456"的BCrypt哈希值

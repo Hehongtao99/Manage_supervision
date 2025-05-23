@@ -15,7 +15,7 @@ import java.util.List;
  * 跑步记录控制器
  */
 @RestController
-@RequestMapping("/api/student/running")
+@RequestMapping("/api/runner/running")
 public class RunningRecordController {
 
     @Autowired

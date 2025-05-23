@@ -70,8 +70,8 @@ public class UserServiceImpl implements UserService {
             user.setStatus("active");
             user.setCreateTime(LocalDateTime.now());
             
-            // 生成学生编号(默认注册用户为学生)
-            String userNumber = userNumberGenerator.generateStudentNumber();
+            // 生成用户编号(默认注册用户为跑步爱好者)
+            String userNumber = userNumberGenerator.generateUserNumber();
             user.setUserNumber(userNumber);
             
             // 保存用户基本信息
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
             // 添加用户-角色关联
             userRoleMapper.insertUserRole(user.getId(), userRole.getId());
             
-            logger.info("用户 {} 注册成功，学号: {}", username, userNumber);
+            logger.info("用户 {} 注册成功，用户编号: {}", username, userNumber);
             return user;
         } catch (Exception e) {
             logger.error("用户注册过程中发生异常", e);

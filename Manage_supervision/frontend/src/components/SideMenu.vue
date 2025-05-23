@@ -63,8 +63,8 @@
       </el-sub-menu>
     </template>
 
-    <!-- 学生菜单 -->
-    <template v-else>
+    <!-- 跑步爱好者菜单 -->
+    <template v-else-if="userStore.isRunner">
       <el-menu-item index="/chat" @click="handleRoute('/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
@@ -101,7 +101,7 @@
         </el-menu-item>
       </el-sub-menu>
       
-      <!-- 社交系统菜单 - 学生 -->
+      <!-- 社交系统菜单 - 跑步爱好者 -->
       <el-sub-menu index="social-management">
         <template #title>
           <el-icon><Connection /></el-icon>

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 成就控制器
  */
 @RestController
-@RequestMapping("/api/student/running")
+@RequestMapping("/api/runner/running")
 @RequiredArgsConstructor
 public class AchievementController {
 

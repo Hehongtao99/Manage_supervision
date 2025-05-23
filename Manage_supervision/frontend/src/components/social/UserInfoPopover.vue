@@ -25,7 +25,7 @@
                 size="small"
                 :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'success' : 'info'"
               >
-                {{ role === 'USER' ? '学生' : role === 'ADMIN' ? '管理员' : '教师' }}
+                {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : '教师' }}
               </el-tag>
             </div>
           </div>

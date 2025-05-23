@@ -111,7 +111,7 @@ const permissionLabels = {
   'ROLE_DELETE': '删除角色',
   'LOG_VIEW': '查看日志',
   'SYSTEM_SETTINGS': '系统设置',
-  'STUDENT_MANAGEMENT': '学生管理'
+  'STUDENT_MANAGEMENT': '跑步爱好者管理'
 }
 
 // 权限树形结构
@@ -144,9 +144,9 @@ const permissionTree = [
   },
   {
     id: 'student_management',
-    label: '学生管理',
+    label: '跑步爱好者管理',
     children: [
-      { id: 'STUDENT_MANAGEMENT', label: '学生管理' }
+      { id: 'STUDENT_MANAGEMENT', label: '跑步爱好者管理' }
     ]
   }
 ]

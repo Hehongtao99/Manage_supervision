@@ -118,7 +118,7 @@ export const updatePost = async (postData: {
  * 获取用户跑步记录列表
  */
 export const getRunningRecordsList = async (): Promise<AxiosResponse> => {
-  return axios.get('/api/student/running/records', { headers: getAuthHeader() })
+  return axios.get('/api/runner/running/records', { headers: getAuthHeader() })
 }
 
 /**

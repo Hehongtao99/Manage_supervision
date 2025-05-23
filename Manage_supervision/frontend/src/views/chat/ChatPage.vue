@@ -10,7 +10,7 @@
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-if="isSupervisor" command="showStudentList">选择学生</el-dropdown-item>
+                <el-dropdown-item v-if="isSupervisor" command="showStudentList">选择跑步爱好者</el-dropdown-item>
                 <el-dropdown-item command="showFriendList">选择好友</el-dropdown-item>
                 <el-dropdown-item command="goToFriendsPage">管理好友</el-dropdown-item>
               </el-dropdown-menu>
@@ -30,18 +30,18 @@
       </div>
     </div>
 
-    <!-- 学生选择对话框 -->
+    <!-- 跑步爱好者选择对话框 -->
     <el-dialog
       v-model="showStudentDialog"
-      title="选择学生"
-      width="500px"
+      title="选择跑步爱好者"
+      width="400px"
     >
       <el-input
-        v-model="searchKeyword"
-        placeholder="搜索学生"
+        v-model="studentSearchKeyword"
+        placeholder="搜索跑步爱好者"
         prefix-icon="Search"
         clearable
-        @input="handleSearch"
+        style="margin-bottom: 10px"
       />
       
       <el-table
@@ -113,9 +113,9 @@ const chatStore = useChatStore();
 const activeConversationId = ref<number | null>(null);
 const loadingConversations = computed(() => chatStore.loadingConversations);
 
-// 学生选择对话框
+// 跑步爱好者选择对话框
 const showStudentDialog = ref(false);
-const searchKeyword = ref('');
+const studentSearchKeyword = ref('');
 const students = ref<any[]>([]);
 const filteredStudents = ref<any[]>([]);
 const loadingStudents = ref(false);
@@ -145,7 +145,7 @@ const handleCommand = (command: string) => {
   }
 };
 
-// 加载学生列表
+// 加载跑步爱好者列表
 const loadStudents = async () => {
   loadingStudents.value = true;
   
@@ -198,18 +198,18 @@ const loadFriends = async () => {
   }
 };
 
-// 搜索学生
+// 搜索跑步爱好者
 const handleSearch = () => {
-  const keyword = searchKeyword.value.toLowerCase();
+  const keyword = studentSearchKeyword.value.toLowerCase();
   
   if (!keyword) {
     filteredStudents.value = students.value;
     return;
   }
   
-  filteredStudents.value = students.value.filter(student => 
-    (student.name && student.name.toLowerCase().includes(keyword)) ||
-    (student.studentId && student.studentId.toLowerCase().includes(keyword))
+  filteredStudents.value = students.value.filter(student =>
+    student.username.toLowerCase().includes(keyword) ||
+    (student.realName && student.realName.toLowerCase().includes(keyword))
   );
 };
 
@@ -228,7 +228,7 @@ const handleFriendSearch = () => {
   );
 };
 
-// 开始与学生聊天
+// 开始与跑步爱好者聊天
 const startChatWithStudent = async (student: any) => {
   if (!student || !student.id) {
     console.error('Student data incomplete, cannot start chat:', student);

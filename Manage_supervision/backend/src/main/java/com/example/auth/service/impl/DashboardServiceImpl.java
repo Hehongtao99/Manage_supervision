@@ -121,14 +121,14 @@ public class DashboardServiceImpl implements DashboardService {
         
         if (userRole != null) {
             // 查找所有拥有USER角色的用户
-            List<User> students = userMapper.findByRoleId(userRole.getId());
+            List<User> runners = userMapper.findByRoleId(userRole.getId());
             
-            // 设置学生总数
-            stats.setStudentCount(students.size());
+            // 设置跑步爱好者总数
+            stats.setStudentCount(runners.size());
             
-            // 计算今日活跃学生数（使用状态字段代替登录时间）
-            int activeTodayCount = (int) students.stream()
-                .filter(student -> "active".equals(student.getStatus()))
+            // 计算今日活跃跑步爱好者数（使用状态字段代替登录时间）
+            int activeTodayCount = (int) runners.stream()
+                .filter(runner -> "active".equals(runner.getStatus()))
                 .count();
             stats.setActiveToday(activeTodayCount);
         } else {
