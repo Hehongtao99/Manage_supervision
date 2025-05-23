@@ -15,17 +15,17 @@ export default defineConfig({
     port: 8089,       // 设置前端端口为8089
     proxy: {
       '/api': {
-        target: 'http://localhost:8999',
+        target: 'http://localhost:8992',
         changeOrigin: true,
         secure: false
       },
       '/uploads': {
-        target: 'http://localhost:8999',
+        target: 'http://localhost:8992',
         changeOrigin: true,
         secure: false
       },
       '/ws': {
-        target: 'http://localhost:8999',
+        target: 'http://localhost:8992',
         changeOrigin: true,
         secure: false,
         ws: true  // 启用WebSocket代理

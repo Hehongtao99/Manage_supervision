@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import BaseLayout from '../layouts/BaseLayout.vue'
+import UserLayout from '../layouts/UserLayout.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -18,16 +19,25 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    component: BaseLayout,
+    component: UserLayout,
     redirect: to => {
       const userStore = useUserStore()
       if (userStore.isAdmin) {
         return '/admin/dashboard'
       } else {
-        return '/chat'
+        return '/home'
       }
     },
     children: [
+      {
+        path: 'home',
+        name: 'Home',
+        component: () => import('../views/HomePage.vue'),
+        meta: { 
+          title: '首页',
+          requiresAuth: true 
+        }
+      },
       {
         path: 'profile',
         name: 'Profile',
@@ -291,7 +301,7 @@ router.beforeEach(async (to, from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/chat')
+      next('/home')
       return
     }
   }
@@ -301,13 +311,13 @@ router.beforeEach(async (to, from, next) => {
     if (userStore.isAdmin) {
       next('/admin/dashboard')
     } else {
-      next('/chat')
+      next('/home')
     }
     return
   }
   
   // 设置页面标题
-  document.title = `${to.meta.title || '首页'} - 毕业设计督导系统`
+  document.title = `${to.meta.title || '首页'} - Run2gather跑步平台`
   
   // 放行路由
   console.log('路由检查通过，允许导航到:', to.path)
