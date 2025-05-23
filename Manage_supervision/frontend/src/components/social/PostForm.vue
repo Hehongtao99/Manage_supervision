@@ -116,8 +116,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Timer } from '@element-plus/icons-vue'
 import type { FormInstance, UploadUserFile, UploadFile } from 'element-plus'
-import { createPost, uploadImage } from '@/api/social'
-import { getRunningRecords } from '@/api/running'
+import { createPost, uploadImage, getRunningRecordsList } from '@/api/social'
 import type { PostCreateRequest } from '@/types/social'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
@@ -212,7 +211,7 @@ const handleRunningRecordChange = (recordId: number) => {
 // 获取跑步记录
 const fetchRunningRecords = async () => {
   try {
-    const response = await getRunningRecords()
+    const response = await getRunningRecordsList()
     console.log('跑步记录响应:', response)
     
     // 检查response的数据结构

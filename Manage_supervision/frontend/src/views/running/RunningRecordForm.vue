@@ -83,7 +83,7 @@
 <script lang="ts" setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, FormInstance } from 'element-plus'
-import { addRunningRecord, getRunningRecords } from '@/api/running'
+import { addRunningRecord, getUserRunningRecords } from '@/api/running'
 import dayjs from 'dayjs'
 
 // 表单引用
@@ -190,7 +190,7 @@ const resetForm = () => {
 // 获取记录列表
 const fetchRecords = async () => {
   try {
-    const { data } = await getRunningRecords()
+    const { data } = await getUserRunningRecords()
     recordList.value = data || []
   } catch (error) {
     console.error('获取跑步记录列表失败:', error)

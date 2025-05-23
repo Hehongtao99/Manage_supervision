@@ -8,18 +8,26 @@
       </div>
       
       <el-card class="register-card">
-        <el-form :model="form" @submit.prevent="handleRegister" class="register-form">
-          <el-form-item>
+        <el-form 
+          :model="form" 
+          :rules="rules"
+          ref="registerFormRef"
+          @submit.prevent="handleRegister" 
+          class="register-form"
+          label-width="0"
+        >
+          <el-form-item prop="username">
             <el-input 
               v-model="form.username" 
               placeholder="请输入用户名"
               prefix-icon="User"
               :size="'large'"
               class="custom-input"
+              clearable
             />
           </el-form-item>
           
-          <el-form-item>
+          <el-form-item prop="password">
             <el-input 
               v-model="form.password" 
               type="password" 
@@ -28,10 +36,11 @@
               :size="'large'"
               show-password
               class="custom-input"
+              clearable
             />
           </el-form-item>
           
-          <el-form-item>
+          <el-form-item prop="confirmPassword">
             <el-input 
               v-model="form.confirmPassword" 
               type="password" 
@@ -40,6 +49,7 @@
               :size="'large'"
               show-password
               class="custom-input"
+              clearable
             />
           </el-form-item>
 
@@ -76,16 +86,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { ElMessage } from 'element-plus'
+import { ElMessage, FormInstance } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const form = ref({
+// 表单引用
+const registerFormRef = ref<FormInstance>()
+
+// 表单数据
+const form = reactive({
   username: '',
   password: '',
   confirmPassword: ''
@@ -94,26 +108,91 @@ const form = ref({
 const loading = ref(false)
 const agreeToTerms = ref(false)
 
+// 自定义验证函数
+const validateUsername = (rule: any, value: any, callback: any) => {
+  if (!value) {
+    callback(new Error('请输入用户名'))
+  } else if (value.length < 3) {
+    callback(new Error('用户名长度至少3个字符'))
+  } else if (value.length > 20) {
+    callback(new Error('用户名长度不能超过20个字符'))
+  } else if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(value)) {
+    callback(new Error('用户名只能包含字母、数字、下划线和中文'))
+  } else {
+    callback()
+  }
+}
+
+const validatePassword = (rule: any, value: any, callback: any) => {
+  if (!value) {
+    callback(new Error('请输入密码'))
+  } else if (value.length < 6) {
+    callback(new Error('密码长度至少6个字符'))
+  } else if (value.length > 20) {
+    callback(new Error('密码长度不能超过20个字符'))
+  } else if (!/^(?=.*[a-zA-Z])(?=.*\d).+$/.test(value)) {
+    callback(new Error('密码必须包含至少一个字母和一个数字'))
+  } else {
+    // 如果确认密码已填写，重新验证确认密码
+    if (form.confirmPassword) {
+      registerFormRef.value?.validateField('confirmPassword')
+    }
+    callback()
+  }
+}
+
+const validateConfirmPassword = (rule: any, value: any, callback: any) => {
+  if (!value) {
+    callback(new Error('请确认密码'))
+  } else if (value !== form.password) {
+    callback(new Error('两次输入的密码不一致'))
+  } else {
+    callback()
+  }
+}
+
+// 表单验证规则
+const rules = {
+  username: [
+    { validator: validateUsername, trigger: 'blur' }
+  ],
+  password: [
+    { validator: validatePassword, trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { validator: validateConfirmPassword, trigger: 'blur' }
+  ]
+}
+
 const handleRegister = async () => {
+  if (!registerFormRef.value) return
+
+  // 验证服务条款
   if (!agreeToTerms.value) {
     ElMessage.warning('请阅读并同意服务条款和隐私政策')
     return
   }
 
-  if (form.value.password !== form.value.confirmPassword) {
-    ElMessage.warning('两次输入的密码不一致')
+  // 表单验证
+  try {
+    await registerFormRef.value.validate()
+  } catch (error) {
+    ElMessage.error('请检查输入信息')
     return
   }
 
   loading.value = true
   try {
-    const success = await userStore.register(form.value.username, form.value.password)
+    const success = await userStore.register(form.username, form.password)
     if (success) {
       ElMessage.success('注册成功，请登录')
       router.push('/login')
     } else {
       ElMessage.error(userStore.error || '注册失败')
     }
+  } catch (error) {
+    console.error('注册异常:', error)
+    ElMessage.error('注册失败，请稍后重试')
   } finally {
     loading.value = false
   }
