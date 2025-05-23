@@ -13,13 +13,6 @@
     <!-- 筛选条件 -->
     <el-card class="filter-card" shadow="never">
       <el-form :model="filterForm" inline>
-        <el-form-item label="记录类型">
-          <el-select v-model="filterForm.recordType" placeholder="请选择记录类型" clearable>
-            <el-option label="所有记录" value="all" />
-            <el-option label="普通考勤记录" value="normal" />
-            <el-option label="公共人脸识别记录" value="special" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="学生姓名">
           <el-input 
             v-model="filterForm.studentName" 
@@ -54,7 +47,7 @@
 
     <!-- 统计信息 -->
     <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
+      <el-col :span="12">
         <el-card class="stat-card">
           <div class="stat-item">
             <div class="stat-number">{{ stats.totalRecords }}</div>
@@ -62,23 +55,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-number">{{ stats.normalRecords }}</div>
-            <div class="stat-label">普通考勤记录</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-item">
-            <div class="stat-number">{{ stats.specialRecords }}</div>
-            <div class="stat-label">公共人脸记录</div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
+      <el-col :span="12">
         <el-card class="stat-card">
           <div class="stat-item">
             <div class="stat-number">{{ stats.todayRecords }}</div>
@@ -109,13 +86,10 @@
           </template>
         </el-table-column>
         
-        <el-table-column prop="attendanceTitle" label="考勤类型" width="180">
+        <el-table-column prop="attendanceTitle" label="记录类型" width="120">
           <template #default="{ row }">
-            <el-tag 
-              :type="row.attendanceTitle === '公共人脸识别记录' ? 'warning' : 'primary'"
-              effect="light"
-            >
-              {{ row.attendanceTitle || '未知类型' }}
+            <el-tag type="primary" effect="light">
+              打卡记录
             </el-tag>
           </template>
         </el-table-column>
@@ -156,26 +130,6 @@
             <span>{{ row.location || '-' }}</span>
           </template>
         </el-table-column>
-        
-        <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span>{{ row.notes || '-' }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
-            <el-button 
-              type="primary" 
-              link 
-              size="small"
-              @click="viewRecordDetail(row)"
-            >
-              <el-icon><View /></el-icon>
-              查看
-            </el-button>
-          </template>
-        </el-table-column>
       </el-table>
 
       <!-- 分页 -->
@@ -191,60 +145,6 @@
         />
       </div>
     </el-card>
-
-    <!-- 记录详情对话框 -->
-    <el-dialog 
-      v-model="detailDialogVisible" 
-      title="考勤记录详情" 
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="学生姓名">
-          {{ currentRecord?.realName || currentRecord?.username }}
-        </el-descriptions-item>
-        <el-descriptions-item label="学号">
-          {{ currentRecord?.userNumber || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="考勤类型" :span="2">
-          <el-tag 
-            :type="currentRecord?.attendanceTitle === '公共人脸识别记录' ? 'warning' : 'primary'"
-            effect="light"
-          >
-            {{ currentRecord?.attendanceTitle || '未知类型' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="签到时间" :span="2">
-          {{ currentRecord?.checkInTime }}
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag 
-            :type="getStatusType(currentRecord?.status)" 
-            effect="light"
-          >
-            {{ currentRecord?.status }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="人脸验证">
-          <el-tag 
-            :type="currentRecord?.faceVerified ? 'success' : 'info'" 
-            effect="light"
-          >
-            {{ currentRecord?.faceVerified ? '已验证' : '未验证' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="位置" :span="2">
-          {{ currentRecord?.location || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">
-          {{ currentRecord?.notes || '-' }}
-        </el-descriptions-item>
-      </el-descriptions>
-      
-      <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -254,20 +154,16 @@ import { ElMessage } from 'element-plus'
 import { 
   Refresh, 
   Search, 
-  Clock, 
-  View 
+  Clock
 } from '@element-plus/icons-vue'
 import * as attendanceApi from '@/api/attendance'
 
 // 响应式数据
 const loading = ref(false)
-const detailDialogVisible = ref(false)
 const recordsList = ref([])
-const currentRecord = ref(null)
 
 // 筛选表单
 const filterForm = reactive({
-  recordType: 'all',
   studentName: '',
   dateRange: []
 })
@@ -282,8 +178,6 @@ const pagination = reactive({
 // 统计信息
 const stats = reactive({
   totalRecords: 0,
-  normalRecords: 0,
-  specialRecords: 0,
   todayRecords: 0
 })
 
@@ -317,13 +211,7 @@ const loadAttendanceRecords = async () => {
     
     // 使用新的API方法获取所有打卡记录
     // 注意：后端现在会根据单个条件进行查询，所以我们需要优先级处理
-    let recordType = filterForm.recordType
     let username = filterForm.studentName
-    
-    // 如果有具体的记录类型筛选，优先使用记录类型
-    if (recordType && recordType !== 'all') {
-      username = '' // 清空用户名筛选
-    }
     
     const response = await attendanceApi.getAllAttendanceRecordsForAdmin(
       pagination.currentPage,
@@ -331,22 +219,13 @@ const loadAttendanceRecords = async () => {
       startDate,
       endDate,
       username,
-      recordType
+      'all'  // 固定为查询所有类型的记录
     )
     
     let records = response.content || []
     
-    // 如果后端没有进行用户名筛选，前端进行筛选
-    if (filterForm.studentName && (!recordType || recordType === 'all')) {
-      records = records.filter(record => 
-        (record.realName && record.realName.includes(filterForm.studentName)) ||
-        (record.username && record.username.includes(filterForm.studentName)) ||
-        (record.userNumber && record.userNumber.includes(filterForm.studentName))
-      )
-    }
-    
-    // 如果同时有记录类型和用户名筛选，前端进行二次筛选
-    if (filterForm.studentName && recordType && recordType !== 'all') {
+    // 如果有用户名筛选，进行前端筛选
+    if (filterForm.studentName) {
       records = records.filter(record => 
         (record.realName && record.realName.includes(filterForm.studentName)) ||
         (record.username && record.username.includes(filterForm.studentName)) ||
@@ -382,8 +261,6 @@ const loadStatistics = async () => {
     const statsResponse = await attendanceApi.getAttendanceRecordsStatistics(startDate, endDate)
     
     stats.totalRecords = statsResponse.totalRecords || 0
-    stats.normalRecords = statsResponse.normalRecords || 0
-    stats.specialRecords = statsResponse.specialRecords || 0
     
     // 计算今日记录
     const today = new Date().toISOString().split('T')[0]
@@ -403,19 +280,6 @@ const loadStatistics = async () => {
   }
 }
 
-// 更新统计信息
-const updateStats = (records: any[]) => {
-  stats.totalRecords = records.length
-  stats.specialRecords = records.filter(r => r.attendanceTitle === '公共人脸识别记录').length
-  stats.normalRecords = records.length - stats.specialRecords
-  
-  // 计算今日记录
-  const today = new Date().toISOString().split('T')[0]
-  stats.todayRecords = records.filter(r => 
-    r.checkInTime && r.checkInTime.startsWith(today)
-  ).length
-}
-
 // 搜索处理
 const handleSearch = () => {
   pagination.currentPage = 1
@@ -424,7 +288,6 @@ const handleSearch = () => {
 
 // 重置筛选
 const resetFilter = () => {
-  filterForm.recordType = 'all'
   filterForm.studentName = ''
   filterForm.dateRange = []
   pagination.currentPage = 1
@@ -447,12 +310,6 @@ const handleSizeChange = (newSize: number) => {
 const handleCurrentChange = (newPage: number) => {
   pagination.currentPage = newPage
   loadAttendanceRecords()
-}
-
-// 查看记录详情
-const viewRecordDetail = (record: any) => {
-  currentRecord.value = record
-  detailDialogVisible.value = true
 }
 
 // 组件挂载时加载数据
