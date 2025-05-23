@@ -74,10 +74,10 @@
             <el-tag
               v-for="role in row.roles"
               :key="role"
-              :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
+              :type="getRoleTagType(role)"
               class="role-tag"
             >
-              {{ role === 'ADMIN' ? '管理员' : role === 'SUPERVISOR' ? '教师' : role === 'USER' ? '学生' : role }}
+              {{ getRoleDisplayName(role) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -203,9 +203,9 @@
             placeholder="请选择角色"
           >
             <el-option
-              v-for="role in roles"
+              v-for="role in filteredRoles"
               :key="role.name"
-              :label="role.name"
+              :label="getRoleDisplayName(role.name)"
               :value="role.name"
             />
           </el-select>
@@ -548,6 +548,33 @@ const handleCurrentChange = (val: number) => {
   currentPage.value = val
   fetchUserList()
 }
+
+// 获取角色显示名称
+const getRoleDisplayName = (role: string) => {
+  const roleMap: Record<string, string> = {
+    'ADMIN_END': '管理员端',
+    'MERCHANT_END': '商家端',
+    'CITYIN_END': '城投端',
+    'ENTERPRISE_END': '企业端'
+  }
+  return roleMap[role] || role
+}
+
+// 获取角色标签类型
+const getRoleTagType = (role: string) => {
+  const typeMap: Record<string, string> = {
+    'ADMIN_END': 'danger',
+    'MERCHANT_END': 'warning',
+    'CITYIN_END': 'primary',
+    'ENTERPRISE_END': 'success'
+  }
+  return typeMap[role] || 'info'
+}
+
+// 过滤掉ADMIN_END角色不让普通管理员分配
+const filteredRoles = computed(() => {
+  return roles.value.filter(role => role.name !== 'ADMIN_END')
+})
 
 // 生命周期钩子
 onMounted(async () => {

@@ -28,6 +28,7 @@ C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\exa
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\mapper\ConversationMapper.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\dto\StudentDetailDTO.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\entity\Region.java
+C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\service\MinioService.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\controller\AdvertisementController.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\mapper\RoleMapper.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\dto\UserDTO.java
@@ -41,12 +42,14 @@ C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\exa
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\AuthApplication.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\entity\ChatMessage.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\service\impl\RegionServiceImpl.java
+C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\config\MinioConfig.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\entity\User.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\util\UserContext.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\service\AdminService.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\mapper\ChatMessageMapper.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\service\UserService.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\dto\ActivityDTO.java
+C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\service\impl\MinioServiceImpl.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\dto\ChatMessageDTO.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\controller\SupervisorController.java
 C:\Users\37602\Desktop\template\Manage_supervision\backend\src\main\java\com\example\auth\model\dto\CourseDTO.java

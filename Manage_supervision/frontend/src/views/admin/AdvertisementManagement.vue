@@ -10,52 +10,140 @@
           <el-button type="primary" @click="handleCreate">创建申请</el-button>
         </div>
       </div>
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="申请编号">
-          <el-input v-model="searchForm.applicationNumber" placeholder="请输入申请编号" clearable />
-        </el-form-item>
-        <el-form-item label="区域">
-          <el-input v-model="searchForm.area" placeholder="请输入区域" clearable />
-        </el-form-item>
-        <el-form-item label="广告位置">
-          <el-input v-model="searchForm.location" placeholder="请输入广告位置" clearable />
-        </el-form-item>
-        <el-form-item label="广告类型">
-          <el-select v-model="searchForm.adType" placeholder="请选择广告类型" clearable>
-            <el-option label="墙体广告" value="墙体广告" />
-            <el-option label="立柱广告" value="立柱广告" />
-            <el-option label="LED显示屏" value="LED显示屏" />
-            <el-option label="灯箱广告" value="灯箱广告" />
-            <el-option label="其他" value="其他" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="广告性质">
-          <el-select v-model="searchForm.adNature" placeholder="请选择广告性质" clearable>
-            <el-option label="商业" value="商业" />
-            <el-option label="公益" value="公益" />
-            <el-option label="政府" value="政府" />
-            <el-option label="其他" value="其他" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="面积范围">
-          <div class="size-range">
-            <el-input-number v-model="searchForm.minSize" :min="0" :precision="2" :step="0.1" placeholder="最小值" />
-            <span class="range-separator">-</span>
-            <el-input-number v-model="searchForm.maxSize" :min="0" :precision="2" :step="0.1" placeholder="最大值" />
+      
+      <!-- 优化后的筛选表单 -->
+      <div class="search-container">
+        <el-form :inline="false" :model="searchForm" class="search-form">
+          <div class="search-grid">
+            <el-form-item label="申请编号" class="search-item">
+              <el-input 
+                v-model="searchForm.applicationNumber" 
+                placeholder="请输入申请编号" 
+                clearable
+              >
+                <template #prefix>
+                  <el-icon><Document /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            
+            <el-form-item label="区域" class="search-item">
+              <el-input 
+                v-model="searchForm.area" 
+                placeholder="请输入区域" 
+                clearable
+              >
+                <template #prefix>
+                  <el-icon><Location /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            
+            <el-form-item label="广告位置" class="search-item">
+              <el-input 
+                v-model="searchForm.location" 
+                placeholder="请输入广告位置" 
+                clearable
+              >
+                <template #prefix>
+                  <el-icon><Position /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            
+            <el-form-item label="广告类型" class="search-item">
+              <el-select 
+                v-model="searchForm.adType" 
+                placeholder="请选择广告类型" 
+                clearable
+                style="width: 100%"
+              >
+                <el-option label="墙体广告" value="墙体广告" />
+                <el-option label="立柱广告" value="立柱广告" />
+                <el-option label="LED显示屏" value="LED显示屏" />
+                <el-option label="灯箱广告" value="灯箱广告" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item label="广告性质" class="search-item">
+              <el-select 
+                v-model="searchForm.adNature" 
+                placeholder="请选择广告性质" 
+                clearable
+                style="width: 100%"
+              >
+                <el-option label="商业" value="商业" />
+                <el-option label="公益" value="公益" />
+                <el-option label="政府" value="政府" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item label="面积范围 (㎡)" class="search-item size-range-item">
+              <div class="size-range-container">
+                <el-input-number 
+                  v-model="searchForm.minSize" 
+                  :min="0" 
+                  :precision="2" 
+                  :step="0.1" 
+                  placeholder="最小值"
+                  controls-position="right"
+                  class="size-input"
+                />
+                <div class="range-separator">
+                  <el-icon><Minus /></el-icon>
+                </div>
+                <el-input-number 
+                  v-model="searchForm.maxSize" 
+                  :min="0" 
+                  :precision="2" 
+                  :step="0.1" 
+                  placeholder="最大值"
+                  controls-position="right"
+                  class="size-input"
+                />
+              </div>
+            </el-form-item>
+            
+            <el-form-item label="状态" class="search-item">
+              <el-select 
+                v-model="searchForm.status" 
+                placeholder="请选择状态" 
+                clearable
+                style="width: 100%"
+              >
+                <el-option label="待审核" value="pending">
+                  <span class="status-option">
+                    <el-tag type="warning" size="small">待审核</el-tag>
+                  </span>
+                </el-option>
+                <el-option label="已批准" value="approved">
+                  <span class="status-option">
+                    <el-tag type="success" size="small">已批准</el-tag>
+                  </span>
+                </el-option>
+                <el-option label="已拒绝" value="rejected">
+                  <span class="status-option">
+                    <el-tag type="danger" size="small">已拒绝</el-tag>
+                  </span>
+                </el-option>
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item class="search-item search-buttons">
+              <div class="button-group">
+                <el-button type="primary" @click="handleSearch" :icon="Search">
+                  查询
+                </el-button>
+                <el-button @click="resetSearch" :icon="RefreshRight">
+                  重置
+                </el-button>
+              </div>
+            </el-form-item>
           </div>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="待审核" value="pending" />
-            <el-option label="已批准" value="approved" />
-            <el-option label="已拒绝" value="rejected" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="resetSearch">重置</el-button>
-        </el-form-item>
-      </el-form>
+        </el-form>
+      </div>
     </el-card>
 
     <el-card class="table-card">
@@ -294,7 +382,7 @@ import axios from '../../utils/axios'
 import { useUserStore } from '../../stores/user'
 
 // 添加图标组件导入
-import { Location, MapLocation } from '@element-plus/icons-vue'
+import { Location, MapLocation, Search, RefreshRight, Document, Minus, Position } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const currentUser = userStore.user
@@ -1087,9 +1175,218 @@ onMounted(() => {
   margin: 0;
 }
 
+.search-container {
+  background: linear-gradient(135deg, #f5f9ff 0%, #ebf4ff 100%);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e6f1fc;
+  box-shadow: 0 2px 12px rgba(44, 140, 240, 0.08);
+}
+
 .search-form {
+  width: 100%;
+}
+
+.search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px 16px;
+  align-items: end;
+}
+
+.search-item {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-item :deep(.el-form-item__label) {
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-item :deep(.el-input) {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-item :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-item :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 2px 8px rgba(44, 140, 240, 0.15);
+  border-color: #2c8cf0;
+}
+
+.search-item :deep(.el-input__wrapper.is-focus) {
+  border-color: #2c8cf0;
+  box-shadow: 0 0 0 3px rgba(44, 140, 240, 0.1);
+}
+
+.search-item :deep(.el-select) {
+  width: 100%;
+}
+
+.search-item :deep(.el-select .el-input__wrapper) {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-item :deep(.el-select .el-input__wrapper:hover) {
+  border-color: #2c8cf0;
+  box-shadow: 0 2px 8px rgba(44, 140, 240, 0.15);
+}
+
+.size-range-item {
+  grid-column: span 1;
+}
+
+.size-range-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.size-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.size-input :deep(.el-input-number) {
+  width: 100%;
+}
+
+.size-input :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.size-input :deep(.el-input__wrapper:hover) {
+  border-color: #2c8cf0;
+  box-shadow: 0 2px 8px rgba(44, 140, 240, 0.15);
+}
+
+.range-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #2c8cf0 0%, #43a6ff 100%);
+  border-radius: 50%;
+  color: white;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(44, 140, 240, 0.25);
+}
+
+.search-buttons {
+  grid-column: span 1;
+  display: flex;
+  align-items: end;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.button-group .el-button {
+  flex: 1;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 12px 20px;
+  min-width: 0;
+}
+
+.button-group .el-button--primary {
+  background: linear-gradient(135deg, #2c8cf0 0%, #43a6ff 100%);
+  border: none;
+  box-shadow: 0 3px 12px rgba(44, 140, 240, 0.3);
+}
+
+.button-group .el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(44, 140, 240, 0.4);
+}
+
+.button-group .el-button:not(.el-button--primary) {
+  background: white;
+  border: 1px solid #d4e6f1;
+  color: #4a5568;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.button-group .el-button:not(.el-button--primary):hover {
+  background: #f8fcff;
+  border-color: #2c8cf0;
+  color: #2c8cf0;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(44, 140, 240, 0.15);
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .search-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    padding: 16px;
+  }
+  
+  .search-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .size-range-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .size-input {
+    width: 100%;
+  }
+  
+  .range-separator {
+    transform: rotate(90deg);
+  }
+  
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-container {
+    padding: 12px;
+  }
+  
+  .button-group .el-button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
 }
 
 .table-card {
@@ -1100,20 +1397,6 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
-}
-
-.size-range {
-  display: flex;
-  align-items: center;
-  width: 220px;
-}
-
-.range-separator {
-  margin: 0 5px;
-}
-
-.address-cascader {
-  width: 100%;
 }
 
 .dialog-content {

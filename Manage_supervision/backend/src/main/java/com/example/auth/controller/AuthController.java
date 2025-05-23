@@ -190,11 +190,11 @@ public class AuthController {
         }
         
         // 如果用户是管理员，添加所有权限
-        if (currentUser.getRoles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()))) {
+        if (currentUser.getRoles().stream().anyMatch(role -> "ADMIN_END".equalsIgnoreCase(role.getName()))) {
             permissions.addAll(Arrays.asList(
                 "USER_VIEW", "USER_EDIT", "USER_DELETE",
                 "ROLE_VIEW", "ROLE_EDIT", "ROLE_DELETE",
-                "LOG_VIEW", "SYSTEM_SETTINGS"
+                "LOG_VIEW", "SYSTEM_SETTINGS", "AD_MANAGEMENT"
             ));
         }
         

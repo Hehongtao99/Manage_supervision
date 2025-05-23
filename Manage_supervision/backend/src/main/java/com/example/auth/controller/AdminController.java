@@ -20,7 +20,7 @@ public class AdminController {
 
     // 用户管理接口
     @GetMapping("/users")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<PageResponse<UserDTO>> getUserList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -33,7 +33,7 @@ public class AdminController {
     }
 
     @PostMapping("/users")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<UserDTO> createUser(@RequestBody Map<String, Object> request) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername((String) request.get("username"));
@@ -50,21 +50,21 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         UserDTO updatedUser = adminService.updateUser(id, userDTO);
         return ResponseEntity.ok(updatedUser);
     }
 
     @PostMapping("/users/{id}/toggle-status")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<?> toggleUserStatus(@PathVariable Long id) {
         adminService.toggleUserStatus(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/users/{id}/reset-password")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> request) {
         String password = request.get("password");
         adminService.resetPassword(id, password);
@@ -73,28 +73,28 @@ public class AdminController {
 
     // 角色管理接口
     @GetMapping("/roles")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<List<RoleDTO>> getAllRoles() {
         List<RoleDTO> roles = adminService.getAllRoles();
         return ResponseEntity.ok(roles);
     }
 
     @PostMapping("/roles")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<RoleDTO> createRole(@RequestBody RoleDTO roleDTO) {
         RoleDTO createdRole = adminService.createRole(roleDTO);
         return ResponseEntity.ok(createdRole);
     }
 
     @PutMapping("/roles/{id}")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<RoleDTO> updateRole(@PathVariable Long id, @RequestBody RoleDTO roleDTO) {
         RoleDTO updatedRole = adminService.updateRole(id, roleDTO);
         return ResponseEntity.ok(updatedRole);
     }
 
     @DeleteMapping("/roles/{id}")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<?> deleteRole(@PathVariable Long id) {
         adminService.deleteRole(id);
         return ResponseEntity.ok().build();
@@ -102,7 +102,7 @@ public class AdminController {
     
     // 控制台统计数据接口
     @GetMapping("/statistics")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<Map<String, Object>> getStatistics() {
         Map<String, Object> statistics = new HashMap<>();
         statistics.put("totalUsers", adminService.countTotalUsers());
@@ -114,7 +114,7 @@ public class AdminController {
     }
     
     @GetMapping("/statistics/role-distribution")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<List<Map<String, Object>>> getRoleDistribution() {
         List<Map<String, Object>> roleDistribution = new ArrayList<>();
         
@@ -133,7 +133,7 @@ public class AdminController {
     }
     
     @GetMapping("/statistics/user-activity")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<Map<String, List<Object>>> getUserActivity() {
         // 从service层获取近7天用户活跃数据
         Map<String, List<Object>> activityData = adminService.getUserActivityLastWeek();

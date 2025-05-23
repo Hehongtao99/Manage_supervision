@@ -55,33 +55,35 @@ export const useUserStore = defineStore('user', {
     userId: (state) => state.user.id,
     isAdmin: (state) => {
       console.log('检查管理员权限，当前角色:', state.user.roles)
-      if (state.user.roles.includes('ADMIN')) {
+      if (state.user.roles.includes('ADMIN_END')) {
         return true
       }
       return false
     },
     isSupervisor: (state) => {
-      console.log('检查教师权限，当前角色:', state.user.roles)
+      console.log('检查城投端权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
-        role === 'SUPERVISOR' || role === 'supervisor'
+        role === 'CITYIN_END' || role === 'cityin_end'
       )
     },
     isStudent: (state) => {
-      console.log('检查学生权限，当前角色:', state.user.roles)
+      console.log('检查企业端权限，当前角色:', state.user.roles)
       return state.user.roles.some((role: string) => 
-        role === 'USER' || role === 'user'
+        role === 'ENTERPRISE_END' || role === 'enterprise_end'
       ) && !state.user.roles.some((role: string) => 
-        role === 'ADMIN' || role === 'admin' || role === 'SUPERVISOR' || role === 'supervisor'
+        role === 'ADMIN_END' || role === 'admin_end' || role === 'CITYIN_END' || role === 'cityin_end' || role === 'MERCHANT_END' || role === 'merchant_end'
       )
     },
     getUserRole: (state) => {
       const role: string = state.user.roles[0]
-      if (role === 'ADMIN') {
-        return 'ADMIN'
-      } else if (role === 'STAFF') {
-        return 'STAFF'
+      if (role === 'ADMIN_END') {
+        return 'ADMIN_END'
+      } else if (role === 'MERCHANT_END') {
+        return 'MERCHANT_END'
+      } else if (role === 'CITYIN_END') {
+        return 'CITYIN_END'
       } else {
-        return 'STUDENT'
+        return 'ENTERPRISE_END'
       }
     },
     userRole(): string | null {
@@ -243,12 +245,9 @@ export const useUserStore = defineStore('user', {
       if (this.isAdmin) {
         console.log('用户是管理员，重定向到管理员仪表盘')
         router.push('/admin/dashboard')
-      } else if (this.isSupervisor) {
-        console.log('用户是教师，重定向到教师控制台')
-        router.push('/supervisor/students')
       } else {
-        console.log('用户是普通用户，重定向到普通仪表盘')
-        router.push('/dashboard')
+        console.log('用户是普通用户，重定向到聊天页面')
+        router.push('/chat')
       }
     },
 

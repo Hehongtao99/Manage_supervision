@@ -10,6 +10,7 @@ com\example\auth\controller\RegionController.class
 com\example\auth\model\dto\ChangePasswordRequest.class
 com\example\auth\controller\AdvertisementController.class
 com\example\auth\mapper\ConversationMapper.class
+com\example\auth\service\MinioService.class
 com\example\auth\model\dto\DashboardStats$UserInfo.class
 com\example\auth\service\impl\DashboardServiceImpl.class
 com\example\auth\model\dto\StudentAssignmentDTO.class
@@ -17,6 +18,7 @@ com\example\auth\controller\AuthController.class
 com\example\auth\mapper\AdvertisementApplicationMapper.class
 com\example\auth\model\dto\StudentProjectProgressDTO.class
 com\example\auth\AuthApplication.class
+com\example\auth\config\MinioConfig.class
 com\example\auth\service\TeacherStudentService.class
 com\example\auth\annotation\RequireRole.class
 com\example\auth\model\entity\TeacherStudentRelation.class
@@ -36,6 +38,7 @@ com\example\auth\model\entity\ChatMessage.class
 com\example\auth\config\WebConfig.class
 com\example\auth\service\AdvertisementService.class
 com\example\auth\controller\SupervisorController.class
+com\example\auth\service\impl\MinioServiceImpl.class
 com\example\auth\util\UserNumberGenerator.class
 com\example\auth\mapper\UserRoleMapper.class
 com\example\auth\controller\DashboardController.class

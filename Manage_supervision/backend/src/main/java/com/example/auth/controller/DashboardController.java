@@ -24,13 +24,13 @@ public class DashboardController {
     private UserContext userContext;
 
     @GetMapping("/admin/stats")
-    @RequireRole("ADMIN")
+    @RequireRole("ADMIN_END")
     public ResponseEntity<DashboardStats> getAdminDashboardStats() {
         return ResponseEntity.ok(dashboardService.getFullDashboardStats());
     }
 
     @GetMapping("/stats")
-    @RequireRole("USER")
+    @RequireRole("ENTERPRISE_END")
     public ResponseEntity<DashboardStats> getUserDashboardStats() {
         return ResponseEntity.ok(dashboardService.getBasicDashboardStats());
     }
@@ -40,7 +40,7 @@ public class DashboardController {
      * @return 督导员仪表盘数据
      */
     @GetMapping("/supervisor/stats")
-    @RequireRole("SUPERVISOR")
+    @RequireRole("CITYIN_END")
     public ResponseEntity<SupervisorDashboardDTO> getSupervisorDashboardStats() {
         // 获取当前登录的督导员ID
         Long supervisorId = userContext.getCurrentUser().getId();

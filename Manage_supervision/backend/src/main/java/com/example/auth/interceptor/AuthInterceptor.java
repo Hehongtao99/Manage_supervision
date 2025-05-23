@@ -89,13 +89,9 @@ public class AuthInterceptor implements HandlerInterceptor {
                 break;
             }
             
-            // 实现角色层级：ADMIN具有所有权限，SUPERVISOR具有USER权限
-            if (roleName.equalsIgnoreCase("ADMIN")) {
-                // 管理员拥有所有权限
-                hasRole = true;
-                break;
-            } else if (roleName.equalsIgnoreCase("SUPERVISOR") && requiredRole.equalsIgnoreCase("USER")) {
-                // 督导员拥有用户权限
+            // 实现角色层级：ADMIN_END具有所有权限
+            if (roleName.equalsIgnoreCase("ADMIN_END")) {
+                // 管理员端拥有所有权限
                 hasRole = true;
                 break;
             }

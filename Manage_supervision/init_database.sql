@@ -125,24 +125,26 @@ CREATE INDEX idx_ad_application_applicant ON advertisement_applications(applican
 
 -- 插入基本角色数据
 INSERT INTO roles (name, description, permissions, create_time) VALUES 
-('ADMIN', '管理员角色，拥有最高权限', ',USER_VIEW,ROLE_VIEW,LOG_VIEW,USER_EDIT,ROLE_EDIT,SYSTEM_SETTINGS,USER_DELETE,ROLE_DELETE,AD_MANAGEMENT', NOW()),
-('USER', '学生角色，基本用户权限', '', NOW()),
-('SUPERVISOR', '督导员角色，可以管理学生', ',USER_VIEW,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW', NOW());
+('ADMIN_END', '管理员端，拥有最高权限', 'USER_VIEW,USER_EDIT,USER_DELETE,ROLE_VIEW,ROLE_EDIT,ROLE_DELETE,LOG_VIEW,SYSTEM_SETTINGS,AD_MANAGEMENT', NOW()),
+('MERCHANT_END', '商家端，商家相关权限', 'USER_VIEW,AD_MANAGEMENT', NOW()),
+('CITYIN_END', '城投端，城投相关权限', 'USER_VIEW,AD_MANAGEMENT,REGION_MANAGEMENT', NOW()),
+('ENTERPRISE_END', '企业端，企业相关权限', 'USER_VIEW,AD_MANAGEMENT', NOW());
 
 -- 插入管理员用户 (username: admin, password: 123456)
 -- 密码使用BCrypt加密，这里是"123456"的BCrypt哈希值
 INSERT INTO users (username, password, real_name, nickname, email, status, create_time) VALUES 
 ('admin', '$2a$10$X7aPRYS9WF0cGHV9lOJhQO3YfpJiA4SZ5uE5MUmjHjjQEa5LsPzWe', '系统管理员', 'Admin', 'admin@example.com', 'active', NOW());
 
--- 为管理员用户分配ADMIN角色
+-- 为管理员用户分配ADMIN_END角色
 INSERT INTO user_roles (user_id, role_id) SELECT 
 (SELECT id FROM users WHERE username = 'admin'), 
-(SELECT id FROM roles WHERE name = 'ADMIN');
+(SELECT id FROM roles WHERE name = 'ADMIN_END');
 
 -- 确保roles表中的权限字段包含正确的权限设置
-UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,USER_DELETE,ROLE_VIEW,ROLE_EDIT,ROLE_DELETE,LOG_VIEW,SYSTEM_SETTINGS,AD_MANAGEMENT' WHERE name = 'ADMIN';
-UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,STUDENT_MANAGEMENT,STUDENT_PROGRESS_VIEW' WHERE name = 'SUPERVISOR';
-UPDATE roles SET permissions = 'USER_VIEW' WHERE name = 'USER';
+UPDATE roles SET permissions = 'USER_VIEW,USER_EDIT,USER_DELETE,ROLE_VIEW,ROLE_EDIT,ROLE_DELETE,LOG_VIEW,SYSTEM_SETTINGS,AD_MANAGEMENT' WHERE name = 'ADMIN_END';
+UPDATE roles SET permissions = 'USER_VIEW,AD_MANAGEMENT,REGION_MANAGEMENT' WHERE name = 'CITYIN_END';
+UPDATE roles SET permissions = 'USER_VIEW,AD_MANAGEMENT' WHERE name = 'MERCHANT_END';
+UPDATE roles SET permissions = 'USER_VIEW,AD_MANAGEMENT' WHERE name = 'ENTERPRISE_END';
 
 -- 创建省市区街道表
 CREATE TABLE region (

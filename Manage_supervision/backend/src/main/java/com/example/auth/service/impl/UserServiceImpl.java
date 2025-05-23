@@ -80,11 +80,13 @@ public class UserServiceImpl implements UserService {
             userMapper.insert(user);
             
             // 设置默认角色
-            Role userRole = roleMapper.findByName("USER");
+            Role userRole = roleMapper.findByName("ENTERPRISE_END");
             if (userRole == null) {
-                logger.warn("未找到USER角色，将创建新角色");
+                logger.warn("未找到ENTERPRISE_END角色，将创建新角色");
                 userRole = new Role();
-                userRole.setName("USER");
+                userRole.setName("ENTERPRISE_END");
+                userRole.setDescription("企业端，企业相关权限");
+                userRole.setPermissions("USER_VIEW,AD_MANAGEMENT");
                 userRole.setCreateTime(LocalDateTime.now());
                 roleMapper.insert(userRole);
             }
@@ -274,22 +276,24 @@ public class UserServiceImpl implements UserService {
     public List<StudentDTO> getAllStudents() {
         logger.info("获取所有学生列表");
         try {
-            // 获取USER角色
-            Role userRole = roleMapper.findByName("USER");
+            // 获取ENTERPRISE_END角色（企业端用户作为基础用户）
+            Role userRole = roleMapper.findByName("ENTERPRISE_END");
             if (userRole == null) {
-                logger.warn("未找到USER角色");
+                logger.warn("未找到ENTERPRISE_END角色");
                 return new ArrayList<>();
             }
             
-            // 获取所有具有USER角色的用户
+            // 获取所有具有ENTERPRISE_END角色的用户
             List<User> users = userMapper.findByRoleId(userRole.getId());
             
-            // 排除同时有ADMIN或SUPERVISOR角色的用户
-            Role adminRole = roleMapper.findByName("ADMIN");
-            Role supervisorRole = roleMapper.findByName("SUPERVISOR");
+            // 排除同时有ADMIN_END或其他管理角色的用户
+            Role adminRole = roleMapper.findByName("ADMIN_END");
+            Role merchantRole = roleMapper.findByName("MERCHANT_END");
+            Role cityinRole = roleMapper.findByName("CITYIN_END");
             
             final List<Long> adminUserIds = new ArrayList<>();
-            final List<Long> supervisorUserIds = new ArrayList<>();
+            final List<Long> merchantUserIds = new ArrayList<>();
+            final List<Long> cityinUserIds = new ArrayList<>();
             
             if (adminRole != null) {
                 adminUserIds.addAll(userMapper.findByRoleId(adminRole.getId())
@@ -298,15 +302,24 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList()));
             }
             
-            if (supervisorRole != null) {
-                supervisorUserIds.addAll(userMapper.findByRoleId(supervisorRole.getId())
+            if (merchantRole != null) {
+                merchantUserIds.addAll(userMapper.findByRoleId(merchantRole.getId())
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()));
+            }
+            
+            if (cityinRole != null) {
+                cityinUserIds.addAll(userMapper.findByRoleId(cityinRole.getId())
                         .stream()
                         .map(User::getId)
                         .collect(Collectors.toList()));
             }
             
             return users.stream()
-                .filter(user -> !adminUserIds.contains(user.getId()) && !supervisorUserIds.contains(user.getId()))
+                .filter(user -> !adminUserIds.contains(user.getId()) && 
+                               !merchantUserIds.contains(user.getId()) && 
+                               !cityinUserIds.contains(user.getId()))
                 .map(this::convertToStudentDTO)
                 .collect(Collectors.toList());
         } catch (Exception e) {
@@ -430,9 +443,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllSupervisors() {
-        Role supervisorRole = roleMapper.findByName("SUPERVISOR");
+        Role supervisorRole = roleMapper.findByName("CITYIN_END");
         if (supervisorRole == null) {
-            logger.warn("未找到SUPERVISOR角色");
+            logger.warn("未找到CITYIN_END角色");
             return new ArrayList<>();
         }
         

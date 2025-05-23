@@ -31,21 +31,6 @@
           <span>角色管理</span>
         </el-menu-item>
       </el-sub-menu>
-
-      <el-sub-menu index="teacher-student-management">
-        <template #title>
-          <el-icon><User /></el-icon>
-          <span>教学管理</span>
-        </template>
-        <el-menu-item index="/admin/teachers" @click="handleRoute('/admin/teachers')">
-          <el-icon><UserFilled /></el-icon>
-          <span>教师管理</span>
-        </el-menu-item>
-        <el-menu-item index="/admin/students" @click="handleRoute('/admin/students')">
-          <el-icon><Avatar /></el-icon>
-          <span>学生管理</span>
-        </el-menu-item>
-      </el-sub-menu>
       
       <el-menu-item index="/admin/advertisements" @click="handleRoute('/admin/advertisements')">
         <el-icon><Picture /></el-icon>
@@ -58,30 +43,6 @@
         <el-icon><Location /></el-icon>
         <template #title>
           <span>区域管理</span>
-        </template>
-      </el-menu-item>
-    </template>
-
-    <!-- 督导员菜单 -->
-    <template v-else-if="userStore.isSupervisor">
-      <el-menu-item index="/supervisor/students" @click="handleRoute('/supervisor/students')">
-        <el-icon><User /></el-icon>
-        <template #title>
-          <span>学生管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/chat" @click="handleRoute('/supervisor/chat')">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>
-          <span>聊天</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="/supervisor/profile" @click="handleRoute('/supervisor/profile')">
-        <el-icon><UserFilled /></el-icon>
-        <template #title>
-          <span>教师信息</span>
         </template>
       </el-menu-item>
     </template>

@@ -57,7 +57,7 @@
             :data="filterPermissionTree(permissionTree, viewForm.permissions)"
             node-key="id"
             :props="{ label: 'label', children: 'children' }"
-            :default-expanded-keys="['user_management', 'role_management', 'system_management', 'student_management']"
+            :default-expanded-keys="['user_management', 'role_management', 'system_management', 'business_management']"
             :render-after-expand="false"
           >
           </el-tree>
@@ -92,26 +92,28 @@ const roleList = ref<Role[]>([])
 const availablePermissions = [
   'USER_VIEW',
   'USER_EDIT',
-  'USER_DISABLE',
+  'USER_DELETE',
   'ROLE_VIEW',
   'ROLE_EDIT',
   'ROLE_DELETE',
   'LOG_VIEW',
   'SYSTEM_SETTINGS',
-  'STUDENT_MANAGEMENT'
+  'AD_MANAGEMENT',
+  'REGION_MANAGEMENT'
 ]
 
 // 权限名称映射（英文到中文）
 const permissionLabels = {
   'USER_VIEW': '查看用户',
   'USER_EDIT': '编辑用户',
-  'USER_DISABLE': '禁用用户',
+  'USER_DELETE': '删除用户',
   'ROLE_VIEW': '查看角色',
   'ROLE_EDIT': '编辑角色',
   'ROLE_DELETE': '删除角色',
   'LOG_VIEW': '查看日志',
   'SYSTEM_SETTINGS': '系统设置',
-  'STUDENT_MANAGEMENT': '学生管理'
+  'AD_MANAGEMENT': '广告管理',
+  'REGION_MANAGEMENT': '区域管理'
 }
 
 // 权限树形结构
@@ -122,7 +124,7 @@ const permissionTree = [
     children: [
       { id: 'USER_VIEW', label: '查看用户' },
       { id: 'USER_EDIT', label: '编辑用户' },
-      { id: 'USER_DISABLE', label: '禁用用户' }
+      { id: 'USER_DELETE', label: '删除用户' }
     ]
   },
   {
@@ -143,10 +145,11 @@ const permissionTree = [
     ]
   },
   {
-    id: 'student_management',
-    label: '学生管理',
+    id: 'business_management',
+    label: '业务管理',
     children: [
-      { id: 'STUDENT_MANAGEMENT', label: '学生管理' }
+      { id: 'AD_MANAGEMENT', label: '广告管理' },
+      { id: 'REGION_MANAGEMENT', label: '区域管理' }
     ]
   }
 ]
