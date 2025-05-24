@@ -69,7 +69,8 @@ const apiService = {
     },
     
     register(userData) {
-      return api.post('/api/auth/register', userData);
+      // 注册功能已禁用
+      return Promise.reject(new Error('注册功能已关闭，请联系管理员'));
     },
     
     getCurrentUser() {

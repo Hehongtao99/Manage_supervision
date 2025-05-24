@@ -17,12 +17,6 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '考勤面板' }
   },
   {
-    path: '/register',
-    name: 'register',
-    component: () => import('../views/Register.vue'),
-    meta: { title: '注册' }
-  },
-  {
     path: '/',
     component: BaseLayout,
     redirect: to => {
@@ -231,7 +225,7 @@ router.beforeEach(async (to, from, next) => {
   }
   
   // 如果用户已登录且访问登录页，根据角色重定向到对应页面
-  if (userStore.isLoggedIn && (to.path === '/login' || to.path === '/register')) {
+  if (userStore.isLoggedIn && to.path === '/login') {
     if (userStore.isAdmin) {
       next('/admin/dashboard')
     } else {

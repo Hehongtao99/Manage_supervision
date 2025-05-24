@@ -30,7 +30,6 @@ const loading = ref(true)
 const statistics = ref({
   totalUsers: 0,
   activeUsers: 0,
-  totalRoles: 0,
   systemHealth: '正常'
 })
 
@@ -175,7 +174,6 @@ const mockDashboardData = () => {
   statistics.value = {
     totalUsers: 0,
     activeUsers: 0,
-    totalRoles: 2, // 只有两种角色：管理员和学生
     systemHealth: '正常'
   }
   
@@ -218,11 +216,6 @@ onMounted(async () => {
           <div class="stat-card">
             <h3>活跃用户</h3>
             <div class="stat-value">{{ statistics.activeUsers }}</div>
-          </div>
-          
-          <div class="stat-card">
-            <h3>角色数量</h3>
-            <div class="stat-value">{{ statistics.totalRoles }}</div>
           </div>
           
           <div class="stat-card">

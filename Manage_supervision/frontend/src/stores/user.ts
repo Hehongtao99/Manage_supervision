@@ -248,26 +248,9 @@ export const useUserStore = defineStore('user', {
     },
 
     async register(username: string, password: string) {
-      try {
-        this.error = null
-        await axios.post('/api/auth/register', {
-          username,
-          password
-        })
-        return true
-      } catch (error: any) {
-        console.error('Registration failed:', error)
-        
-        if (error.response?.data?.message) {
-          this.error = error.response.data.message
-        } else if (error.message) {
-          this.error = `注册失败: ${error.message}`
-        } else {
-          this.error = '注册失败，请稍后重试'
-        }
-        
-        return false
-      }
+      // 注册功能已禁用
+      this.error = '注册功能已关闭，请联系管理员'
+      return false
     },
 
     async fetchUserInfo(forceRefresh = false) {

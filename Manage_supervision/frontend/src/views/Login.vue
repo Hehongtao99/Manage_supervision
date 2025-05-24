@@ -65,13 +65,6 @@
             </el-button>
           </el-form-item>
         </el-form>
-
-        <div class="register-link">
-          还没有账号?
-          <el-link type="primary" @click="$router.push('/register')" :underline="false" class="signup-link">
-            立即注册
-          </el-link>
-        </div>
       </el-card>
     </div>
   </div>
@@ -267,23 +260,6 @@ const handleLogin = async () => {
 
 .submit-btn:active {
   transform: translateY(0);
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 2rem;
-  color: #666;
-  font-size: 0.95rem;
-}
-
-.signup-link {
-  font-weight: 500;
-  margin-left: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-.signup-link:hover {
-  color: #4facfe;
 }
 
 .forgot-link {

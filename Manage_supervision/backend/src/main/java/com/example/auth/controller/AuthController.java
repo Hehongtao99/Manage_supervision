@@ -32,23 +32,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
-        String password = request.get("password");
-
-        try {
-            User user = userService.register(username, password);
-            return ResponseEntity.ok(Map.of(
-                "message", "注册成功",
-                "user", Map.of(
-                    "id", user.getId(),
-                    "username", user.getUsername()
-                )
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "message", e.getMessage()
-            ));
-        }
+        // 禁用注册功能
+        return ResponseEntity.badRequest().body(Map.of(
+            "message", "注册功能已关闭，请联系管理员"
+        ));
     }
 
     @PostMapping("/login")
@@ -67,6 +54,16 @@ public class AuthController {
         if ("inactive".equals(user.getStatus())) {
             return ResponseEntity.badRequest().body(Map.of(
                 "message", "账号已被禁用，请联系管理员"
+            ));
+        }
+
+        // 检查用户是否为管理员
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
+        
+        if (!isAdmin) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "只允许管理员账号登录"
             ));
         }
 
