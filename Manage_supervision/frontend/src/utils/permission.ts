@@ -15,11 +15,52 @@ export function hasPermission(permission: string): boolean {
   
   // 如果是管理员，直接返回true
   if (userStore.isAdmin) {
+    console.log('用户是管理员，自动拥有权限:', permission)
     return true
   }
   
   // 检查用户是否有该权限
-  return userStore.permissions.includes(permission)
+  if (!userStore.permissions || userStore.permissions.length === 0) {
+    console.log('用户没有任何权限')
+    return false
+  }
+  
+  // 直接检查权限编码
+  if (userStore.permissions.includes(permission)) {
+    return true
+  }
+  
+  // 检查兼容格式
+  let hasCompatiblePermission = false
+  
+  // 如果是新格式(user:view)，检查旧格式(USER_VIEW)
+  if (permission.includes(':')) {
+    const compatibleCode = permission.toUpperCase().replace(':', '_')
+    if (userStore.permissions.includes(compatibleCode)) {
+      hasCompatiblePermission = true
+    }
+  } 
+  // 如果是旧格式(USER_VIEW)，检查新格式(user:view)
+  else if (permission.includes('_')) {
+    const compatibleCode = permission.toLowerCase().replace('_', ':')
+    if (userStore.permissions.includes(compatibleCode)) {
+      hasCompatiblePermission = true
+    }
+  }
+  
+  // 检查简单格式(如"system", "user"等)
+  if (!hasCompatiblePermission && !permission.includes(':') && !permission.includes('_')) {
+    for (const userCode of userStore.permissions) {
+      if (userCode.startsWith(permission + ':') || 
+          userCode.startsWith(permission.toUpperCase() + '_')) {
+        hasCompatiblePermission = true
+        break
+      }
+    }
+  }
+  
+  console.log('检查权限:', permission, '结果:', hasCompatiblePermission)
+  return hasCompatiblePermission
 }
 
 /**
@@ -37,11 +78,12 @@ export function hasAnyPermission(permissions: string[]): boolean {
   
   // 如果是管理员，直接返回true
   if (userStore.isAdmin) {
+    console.log('用户是管理员，自动拥有任意权限')
     return true
   }
   
   // 检查用户是否有任一权限
-  return permissions.some(permission => userStore.permissions.includes(permission))
+  return permissions.some(permission => hasPermission(permission))
 }
 
 /**
@@ -59,9 +101,10 @@ export function hasAllPermissions(permissions: string[]): boolean {
   
   // 如果是管理员，直接返回true
   if (userStore.isAdmin) {
+    console.log('用户是管理员，自动拥有所有权限')
     return true
   }
   
   // 检查用户是否有所有权限
-  return permissions.every(permission => userStore.permissions.includes(permission))
+  return permissions.every(permission => hasPermission(permission))
 } 

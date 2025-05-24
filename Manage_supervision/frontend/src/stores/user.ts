@@ -55,7 +55,7 @@ export const useUserStore = defineStore('user', {
     userId: (state) => state.user.id,
     isAdmin: (state) => {
       console.log('检查管理员权限，当前角色:', state.user.roles)
-      if (state.user.roles.includes('ADMIN')) {
+      if (state.user.roles.some(role => role.toUpperCase() === 'ADMIN')) {
         return true
       }
       return false
@@ -337,8 +337,69 @@ export const useUserStore = defineStore('user', {
           return false
         }
         
-        this.permissions = response.data
+        // 确保权限数据是字符串数组
+        this.permissions = response.data.map(item => String(item))
         console.log('获取用户权限成功:', this.permissions)
+        
+        // 如果是管理员，添加所有权限
+        if (this.isAdmin) {
+          console.log('用户是管理员，添加所有基础权限')
+          const adminPermissions = [
+            'USER_VIEW', 'USER_EDIT', 'USER_DELETE', 'USER_ADD',
+            'ROLE_VIEW', 'ROLE_EDIT', 'ROLE_DELETE', 'ROLE_ADD',
+            'STUDENT_VIEW', 'STUDENT_EDIT', 'STUDENT_DELETE', 'STUDENT_ADD',
+            'user:view', 'user:edit', 'user:delete', 'user:add',
+            'role:view', 'role:edit', 'role:delete', 'role:add',
+            'student:view', 'student:edit', 'student:delete', 'student:add',
+            'system', 'dashboard'
+          ]
+          
+          // 确保不重复添加
+          adminPermissions.forEach(perm => {
+            if (!this.permissions.includes(perm)) {
+              this.permissions.push(perm)
+            }
+          })
+        }
+        
+        // 如果是督导员，添加学生管理权限
+        if (this.isSupervisor) {
+          console.log('用户是督导员，添加学生管理权限')
+          const supervisorPermissions = [
+            'STUDENT_VIEW', 'student:view',
+            'STUDENT_EDIT', 'student:edit'
+          ]
+          
+          // 确保不重复添加
+          supervisorPermissions.forEach(perm => {
+            if (!this.permissions.includes(perm)) {
+              this.permissions.push(perm)
+            }
+          })
+        }
+        
+        // 确保每个权限都有新旧两种格式
+        const additionalPermissions: string[] = []
+        
+        this.permissions.forEach(permission => {
+          if (permission.includes(':')) {
+            // 如果是新格式(user:view)，添加旧格式(USER_VIEW)
+            const oldFormat = permission.toUpperCase().replace(':', '_')
+            if (!this.permissions.includes(oldFormat)) {
+              additionalPermissions.push(oldFormat)
+            }
+          } else if (permission.includes('_')) {
+            // 如果是旧格式(USER_VIEW)，添加新格式(user:view)
+            const newFormat = permission.toLowerCase().replace('_', ':')
+            if (!this.permissions.includes(newFormat)) {
+              additionalPermissions.push(newFormat)
+            }
+          }
+        })
+        
+        // 添加额外的权限格式
+        this.permissions.push(...additionalPermissions)
+        console.log('添加兼容格式后的权限列表:', this.permissions)
         
         return true
       } catch (error) {

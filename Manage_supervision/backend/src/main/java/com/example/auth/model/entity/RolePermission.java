@@ -5,42 +5,36 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
-import java.util.List;
 
-@TableName("roles")
-public class Role {
+@TableName("role_permissions")
+public class RolePermission {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String name;
-    
-    private String description;
-    
+    @TableField("role_id")
+    private Long roleId;
+
+    @TableField("permission_id")
+    private Long permissionId;
+
     @TableField("create_time")
     private LocalDateTime createTime;
-    
-    @TableField(exist = false)
-    private List<Permission> permissions;
 
     // Getters
     public Long getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Long getRoleId() {
+        return roleId;
     }
-    
-    public String getDescription() {
-        return description;
+
+    public Long getPermissionId() {
+        return permissionId;
     }
-    
+
     public LocalDateTime getCreateTime() {
         return createTime;
-    }
-    
-    public List<Permission> getPermissions() {
-        return permissions;
     }
 
     // Setters
@@ -48,19 +42,15 @@ public class Role {
         this.id = id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
     }
-    
-    public void setDescription(String description) {
-        this.description = description;
+
+    public void setPermissionId(Long permissionId) {
+        this.permissionId = permissionId;
     }
-    
+
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
-    }
-    
-    public void setPermissions(List<Permission> permissions) {
-        this.permissions = permissions;
     }
 } 

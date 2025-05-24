@@ -67,6 +67,7 @@
               link
               @click="handleShowTeacher(row)"
               v-if="row.assignStatus"
+              v-permission="'student:view'"
             >
               查看教师
             </el-button>
@@ -117,6 +118,7 @@
           <el-button
             type="danger"
             @click="handleUnassignStudent"
+            v-permission="'student:edit'"
           >
             取消分配
           </el-button>
@@ -141,6 +143,7 @@ import { getStudents } from '../../api/student'
 import { unassignStudent } from '../../api/teacher'
 import type { UserProfile } from '../../types/user'
 import axios from '../../utils/axios'
+import { hasPermission } from '../../utils/permission'
 
 // 状态
 const loading = ref(false)

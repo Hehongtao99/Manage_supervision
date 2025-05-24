@@ -5,11 +5,13 @@ import com.example.auth.model.dto.CourseDTO;
 import com.example.auth.model.dto.StudentDTO;
 import com.example.auth.model.dto.StudentDetailDTO;
 import com.example.auth.model.dto.UserDTO;
+import com.example.auth.model.entity.Permission;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
+import com.example.auth.service.PermissionService;
 import com.example.auth.service.UserService;
 import com.example.auth.service.TeacherStudentService;
 import com.example.auth.util.PasswordUtils;
@@ -48,6 +50,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private TeacherStudentService teacherStudentService;
+    
+    @Autowired
+    private PermissionService permissionService;
 
     @Override
     @Transactional
@@ -569,5 +574,272 @@ public class UserServiceImpl implements UserService {
         activities.sort((a1, a2) -> a2.getTime().compareTo(a1.getTime()));
         
         return activities;
+    }
+
+    @Override
+    public User loadUserPermissions(User user) {
+        if (user == null) {
+            return null;
+        }
+        
+        // 加载用户角色
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            List<Role> roles = roleMapper.findRolesByUserId(user.getId());
+            user.setRoles(new HashSet<>(roles));
+        }
+        
+        // 加载用户权限
+        List<Permission> permissions = permissionService.findByUserId(user.getId());
+        user.setPermissions(permissions);
+        
+        return user;
+    }
+    
+    @Override
+    public boolean hasPermission(User user, String permissionCode) {
+        if (user == null || permissionCode == null || permissionCode.isEmpty()) {
+            return false;
+        }
+        
+        // 如果用户还没有加载权限，则加载权限
+        if (user.getPermissions() == null) {
+            loadUserPermissions(user);
+        }
+        
+        // 管理员拥有所有权限
+        if (user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()))) {
+            return true;
+        }
+        
+        // 检查用户是否有指定权限
+        if (user.getPermissions() == null) {
+            return false;
+        }
+        
+        // 获取用户所有权限编码及其兼容格式
+        final List<String> userPermissionCodes = new ArrayList<>();
+        for (Permission permission : user.getPermissions()) {
+            String code = permission.getCode();
+            if (code == null || code.isEmpty()) {
+                continue;
+            }
+            
+            userPermissionCodes.add(code);
+            
+            // 同时添加兼容格式的权限编码
+            if (code.contains(":")) {
+                // 如果是新格式(user:view)，添加旧格式(USER_VIEW)
+                userPermissionCodes.add(code.toUpperCase().replace(":", "_"));
+            } else if (code.contains("_")) {
+                // 如果是旧格式(USER_VIEW)，添加新格式(user:view)
+                userPermissionCodes.add(code.toLowerCase().replace("_", ":"));
+            }
+        }
+        
+        // 直接检查权限编码
+        if (userPermissionCodes.contains(permissionCode)) {
+            return true;
+        }
+        
+        // 检查兼容格式
+        String compatibleCode = null;
+        if (permissionCode.contains(":")) {
+            // 如果是新格式(user:view)，检查旧格式(USER_VIEW)
+            compatibleCode = permissionCode.toUpperCase().replace(":", "_");
+            if (userPermissionCodes.contains(compatibleCode)) {
+                return true;
+            }
+        } else if (permissionCode.contains("_")) {
+            // 如果是旧格式(USER_VIEW)，检查新格式(user:view)
+            compatibleCode = permissionCode.toLowerCase().replace("_", ":");
+            if (userPermissionCodes.contains(compatibleCode)) {
+                return true;
+            }
+        }
+        
+        // 检查简单格式(如"system", "user"等)
+        if (!permissionCode.contains(":") && !permissionCode.contains("_")) {
+            for (String userCode : userPermissionCodes) {
+                if (userCode.startsWith(permissionCode + ":") || 
+                    userCode.startsWith(permissionCode.toUpperCase() + "_")) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    @Override
+    public boolean hasAnyPermission(User user, String[] permissionCodes) {
+        if (user == null || permissionCodes == null || permissionCodes.length == 0) {
+            return false;
+        }
+        
+        // 如果用户还没有加载权限，则加载权限
+        if (user.getPermissions() == null) {
+            loadUserPermissions(user);
+        }
+        
+        // 管理员拥有所有权限
+        if (user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()))) {
+            return true;
+        }
+        
+        // 用户必须拥有任意一个指定权限
+        if (user.getPermissions() == null) {
+            return false;
+        }
+        
+        // 获取用户所有权限编码及其兼容格式
+        final List<String> userPermissionCodes = new ArrayList<>();
+        for (Permission permission : user.getPermissions()) {
+            String code = permission.getCode();
+            if (code == null || code.isEmpty()) {
+                continue;
+            }
+            
+            userPermissionCodes.add(code);
+            
+            // 同时添加兼容格式的权限编码
+            if (code.contains(":")) {
+                // 如果是新格式(user:view)，添加旧格式(USER_VIEW)
+                userPermissionCodes.add(code.toUpperCase().replace(":", "_"));
+            } else if (code.contains("_")) {
+                // 如果是旧格式(USER_VIEW)，添加新格式(user:view)
+                userPermissionCodes.add(code.toLowerCase().replace("_", ":"));
+            }
+        }
+        
+        // 检查是否有任意一个权限匹配（包括兼容格式）
+        for (String code : permissionCodes) {
+            if (code == null || code.isEmpty()) {
+                continue;
+            }
+            
+            // 直接检查权限编码
+            if (userPermissionCodes.contains(code)) {
+                return true;
+            }
+            
+            // 创建兼容的权限编码
+            String compatibleCode = null;
+            if (code.contains(":")) {
+                // 如果是新格式(user:view)，检查旧格式(USER_VIEW)
+                compatibleCode = code.toUpperCase().replace(":", "_");
+                if (userPermissionCodes.contains(compatibleCode)) {
+                    return true;
+                }
+            } else if (code.contains("_")) {
+                // 如果是旧格式(USER_VIEW)，检查新格式(user:view)
+                compatibleCode = code.toLowerCase().replace("_", ":");
+                if (userPermissionCodes.contains(compatibleCode)) {
+                    return true;
+                }
+            }
+            
+            // 检查简单格式(如"system", "user"等)
+            if (!code.contains(":") && !code.contains("_")) {
+                for (String userCode : userPermissionCodes) {
+                    if (userCode.startsWith(code + ":") || userCode.startsWith(code.toUpperCase() + "_")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    @Override
+    public boolean hasAllPermissions(User user, String[] permissionCodes) {
+        if (user == null || permissionCodes == null || permissionCodes.length == 0) {
+            return false;
+        }
+        
+        // 如果用户还没有加载权限，则加载权限
+        if (user.getPermissions() == null) {
+            loadUserPermissions(user);
+        }
+        
+        // 管理员拥有所有权限
+        if (user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()))) {
+            return true;
+        }
+        
+        // 确保用户拥有所有指定权限
+        if (user.getPermissions() == null) {
+            return false;
+        }
+        
+        // 获取用户所有权限编码及其兼容格式
+        final List<String> userPermissionCodes = new ArrayList<>();
+        for (Permission permission : user.getPermissions()) {
+            String code = permission.getCode();
+            if (code == null || code.isEmpty()) {
+                continue;
+            }
+            
+            userPermissionCodes.add(code);
+            
+            // 同时添加兼容格式的权限编码
+            if (code.contains(":")) {
+                // 如果是新格式(user:view)，添加旧格式(USER_VIEW)
+                userPermissionCodes.add(code.toUpperCase().replace(":", "_"));
+            } else if (code.contains("_")) {
+                // 如果是旧格式(USER_VIEW)，添加新格式(user:view)
+                userPermissionCodes.add(code.toLowerCase().replace("_", ":"));
+            }
+        }
+        
+        // 检查是否拥有所有指定权限
+        for (String permissionCode : permissionCodes) {
+            if (permissionCode == null || permissionCode.isEmpty()) {
+                continue;
+            }
+            
+            // 直接检查权限编码
+            if (userPermissionCodes.contains(permissionCode)) {
+                continue;
+            }
+            
+            // 检查兼容格式
+            boolean hasCompatiblePermission = false;
+            
+            if (permissionCode.contains(":")) {
+                // 如果是新格式(user:view)，检查旧格式(USER_VIEW)
+                String compatibleCode = permissionCode.toUpperCase().replace(":", "_");
+                if (userPermissionCodes.contains(compatibleCode)) {
+                    hasCompatiblePermission = true;
+                }
+            } else if (permissionCode.contains("_")) {
+                // 如果是旧格式(USER_VIEW)，检查新格式(user:view)
+                String compatibleCode = permissionCode.toLowerCase().replace("_", ":");
+                if (userPermissionCodes.contains(compatibleCode)) {
+                    hasCompatiblePermission = true;
+                }
+            }
+            
+            // 检查简单格式(如"system", "user"等)
+            if (!hasCompatiblePermission && !permissionCode.contains(":") && !permissionCode.contains("_")) {
+                for (String userCode : userPermissionCodes) {
+                    if (userCode.startsWith(permissionCode + ":") || 
+                        userCode.startsWith(permissionCode.toUpperCase() + "_")) {
+                        hasCompatiblePermission = true;
+                        break;
+                    }
+                }
+            }
+            
+            // 如果没有匹配的权限，返回false
+            if (!hasCompatiblePermission) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }

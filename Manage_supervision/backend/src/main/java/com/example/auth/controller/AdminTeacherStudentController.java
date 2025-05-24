@@ -1,6 +1,6 @@
 package com.example.auth.controller;
 
-import com.example.auth.annotation.RequireRole;
+import com.example.auth.annotation.RequirePermission;
 import com.example.auth.model.dto.PageResponse;
 import com.example.auth.model.dto.StudentAssignmentDTO;
 import com.example.auth.model.dto.TeacherWithStudentsDTO;
@@ -34,7 +34,7 @@ public class AdminTeacherStudentController {
 
     // 获取所有教师列表（带分页）
     @GetMapping("/teachers")
-    @RequireRole("ADMIN")
+    @RequirePermission({"teacher:view", "TEACHER_VIEW"})
     public ResponseEntity<PageResponse<UserDTO>> getAllTeachers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -46,7 +46,7 @@ public class AdminTeacherStudentController {
 
     // 获取所有学生列表（带分页）
     @GetMapping("/students")
-    @RequireRole("ADMIN")
+    @RequirePermission({"student:view", "STUDENT_VIEW"})
     public ResponseEntity<PageResponse<UserDTO>> getAllStudents(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -58,7 +58,7 @@ public class AdminTeacherStudentController {
 
     // 获取未分配学生列表
     @GetMapping("/students/unassigned")
-    @RequireRole("ADMIN")
+    @RequirePermission({"student:view", "STUDENT_VIEW"})
     public ResponseEntity<List<UserDTO>> getUnassignedStudents() {
         List<UserDTO> students = teacherStudentService.getUnassignedStudents();
         return ResponseEntity.ok(students);
@@ -66,7 +66,7 @@ public class AdminTeacherStudentController {
 
     // 获取特定教师的学生列表
     @GetMapping("/teachers/{teacherId}/students")
-    @RequireRole("ADMIN")
+    @RequirePermission({"teacher:view", "student:view", "TEACHER_VIEW", "STUDENT_VIEW"})
     public ResponseEntity<List<UserDTO>> getStudentsByTeacher(@PathVariable Long teacherId) {
         List<UserDTO> students = teacherStudentService.getStudentsByTeacher(teacherId);
         return ResponseEntity.ok(students);
@@ -74,7 +74,7 @@ public class AdminTeacherStudentController {
     
     // 获取特定学生的教师列表
     @GetMapping("/teachers/student/{studentId}")
-    @RequireRole("ADMIN")
+    @RequirePermission({"teacher:view", "student:view", "TEACHER_VIEW", "STUDENT_VIEW"})
     public ResponseEntity<List<UserDTO>> getTeachersByStudent(@PathVariable Long studentId) {
         User student = userMapper.selectById(studentId);
         if (student == null) {
@@ -109,7 +109,7 @@ public class AdminTeacherStudentController {
 
     // 分配学生给教师
     @PostMapping("/teachers/assign-students")
-    @RequireRole("ADMIN")
+    @RequirePermission({"teacher:edit", "student:edit", "TEACHER_EDIT", "STUDENT_EDIT"})
     public ResponseEntity<Map<String, Object>> assignStudentsToTeacher(@RequestBody StudentAssignmentDTO assignmentDTO) {
         boolean success = teacherStudentService.assignStudentsToTeacher(
                 assignmentDTO.getTeacherId(), assignmentDTO.getStudentIds());
@@ -123,7 +123,7 @@ public class AdminTeacherStudentController {
 
     // 取消分配学生
     @PostMapping("/teachers/{teacherId}/unassign/{studentId}")
-    @RequireRole("ADMIN")
+    @RequirePermission({"teacher:edit", "student:edit", "TEACHER_EDIT", "STUDENT_EDIT"})
     public ResponseEntity<Map<String, Object>> unassignStudent(
             @PathVariable Long teacherId, @PathVariable Long studentId) {
         
@@ -138,7 +138,7 @@ public class AdminTeacherStudentController {
 
     // 获取教师详情（包含学生列表）
     @GetMapping("/teachers/{teacherId}/details")
-    @RequireRole("ADMIN")
+    @RequirePermission({"teacher:view", "TEACHER_VIEW"})
     public ResponseEntity<TeacherWithStudentsDTO> getTeacherDetails(@PathVariable Long teacherId) {
         TeacherWithStudentsDTO teacher = teacherStudentService.getTeacherWithStudents(teacherId);
         return ResponseEntity.ok(teacher);

@@ -2,8 +2,9 @@ package com.example.auth.controller;
 
 import com.example.auth.annotation.RequireRole;
 import com.example.auth.model.dto.ChangePasswordRequest;
+import com.example.auth.model.entity.Permission;
 import com.example.auth.model.entity.User;
-import com.example.auth.model.entity.Role;
+import com.example.auth.service.PermissionService;
 import com.example.auth.service.UserService;
 import com.example.auth.util.JwtUtil;
 import com.example.auth.util.UserContext;
@@ -11,11 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,6 +27,9 @@ public class AuthController {
     
     @Autowired
     private UserContext userContext;
+    
+    @Autowired
+    private PermissionService permissionService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
@@ -177,26 +178,69 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("message", "未登录"));
         }
         
-        // 获取用户所有角色的权限
+        // 加载用户权限
+        currentUser = userService.loadUserPermissions(currentUser);
+        
+        // 获取用户所有权限编码
         Set<String> permissions = new HashSet<>();
-        for (Role role : currentUser.getRoles()) {
-            // 角色权限是以逗号分隔的字符串，需要转换为列表
-            if (role.getPermissions() != null && !role.getPermissions().isEmpty()) {
-                String[] rolePermissions = role.getPermissions().split(",");
-                for (String permission : rolePermissions) {
-                    permissions.add(permission.trim());
-                }
+        if (currentUser.getPermissions() != null) {
+            permissions.addAll(currentUser.getPermissions().stream()
+                    .map(Permission::getCode)
+                    .collect(Collectors.toSet()));
+        }
+        
+        // 根据角色添加对应的权限
+        boolean isAdmin = currentUser.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
+        
+        boolean isSupervisor = currentUser.getRoles().stream()
+                .anyMatch(role -> "SUPERVISOR".equalsIgnoreCase(role.getName()));
+        
+        // 如果用户是管理员，添加所有权限
+        if (isAdmin) {
+            permissions.addAll(Arrays.asList(
+                "USER_VIEW", "USER_EDIT", "USER_DELETE", "USER_ADD",
+                "ROLE_VIEW", "ROLE_EDIT", "ROLE_DELETE", "ROLE_ADD",
+                "LOG_VIEW", "SYSTEM_SETTINGS",
+                "user:view", "user:edit", "user:delete", "user:add",
+                "role:view", "role:edit", "role:delete", "role:add",
+                "system", "dashboard",
+                "STUDENT_VIEW", "STUDENT_EDIT", "STUDENT_DELETE", "STUDENT_ADD",
+                "student:view", "student:edit", "student:delete", "student:add",
+                "TEACHER_VIEW", "TEACHER_EDIT", "TEACHER_DELETE", "TEACHER_ADD",
+                "teacher:view", "teacher:edit", "teacher:delete", "teacher:add"
+            ));
+        }
+        
+        // 如果用户是督导员，添加学生管理权限
+        if (isSupervisor) {
+            permissions.addAll(Arrays.asList(
+                "STUDENT_VIEW", "student:view",
+                "STUDENT_EDIT", "student:edit"
+            ));
+        }
+        
+        // 确保所有权限都有新旧两种格式
+        Set<String> additionalPermissions = new HashSet<>();
+        
+        for (String permission : permissions) {
+            // 如果是旧格式(大写带下划线)，添加新格式
+            if (permission.contains("_")) {
+                String newFormat = permission.toLowerCase().replace("_", ":");
+                additionalPermissions.add(newFormat);
+            } 
+            // 如果是新格式(小写带冒号)，添加旧格式
+            else if (permission.contains(":")) {
+                String oldFormat = permission.toUpperCase().replace(":", "_");
+                additionalPermissions.add(oldFormat);
             }
         }
         
-        // 如果用户是管理员，添加所有权限
-        if (currentUser.getRoles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()))) {
-            permissions.addAll(Arrays.asList(
-                "USER_VIEW", "USER_EDIT", "USER_DELETE",
-                "ROLE_VIEW", "ROLE_EDIT", "ROLE_DELETE",
-                "LOG_VIEW", "SYSTEM_SETTINGS"
-            ));
-        }
+        // 添加额外的权限
+        permissions.addAll(additionalPermissions);
+        
+        // 打印调试信息
+        System.out.println("用户 " + currentUser.getUsername() + " 的权限: " + String.join(", ", permissions));
         
         return ResponseEntity.ok(permissions.toArray(new String[0]));
     }

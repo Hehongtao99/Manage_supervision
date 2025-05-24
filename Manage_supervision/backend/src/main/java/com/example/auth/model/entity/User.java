@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @TableName("users")
@@ -39,6 +40,9 @@ public class User {
 
     @TableField(exist = false)
     private Set<Role> roles;
+    
+    @TableField(exist = false)
+    private List<Permission> permissions;
 
     // Getters
     public Long getId() {
@@ -59,6 +63,10 @@ public class User {
 
     public Set<Role> getRoles() {
         return roles;
+    }
+    
+    public List<Permission> getPermissions() {
+        return permissions;
     }
 
     public String getAvatar() {
@@ -112,6 +120,10 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+    
+    public void setPermissions(List<Permission> permissions) {
+        this.permissions = permissions;
     }
 
     public void setAvatar(String avatar) {

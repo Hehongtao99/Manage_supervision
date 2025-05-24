@@ -7,10 +7,12 @@ import com.example.auth.model.dto.RoleDTO;
 import com.example.auth.model.dto.UserDTO;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
+import com.example.auth.model.entity.Permission;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
 import com.example.auth.service.AdminService;
+import com.example.auth.service.PermissionService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,9 @@ public class AdminServiceImpl implements AdminService {
     
     @Autowired
     private UserNumberGenerator userNumberGenerator;
+    
+    @Autowired
+    private PermissionService permissionService;
     
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
@@ -251,16 +256,23 @@ public class AdminServiceImpl implements AdminService {
         Role role = new Role();
         role.setName(roleDTO.getName());
         role.setDescription(roleDTO.getDescription());
-        
-        if (roleDTO.getPermissions() != null) {
-            role.setPermissions(String.join(",", roleDTO.getPermissions()));
-        } else {
-            role.setPermissions("");
-        }
-        
         role.setCreateTime(LocalDateTime.now());
         
         roleMapper.insert(role);
+        
+        // 处理权限分配
+        if (roleDTO.getPermissions() != null && !roleDTO.getPermissions().isEmpty()) {
+            List<Long> permissionIds = roleDTO.getPermissions().stream()
+                    .map(code -> {
+                        Permission permission = permissionService.findByCode(code);
+                        return permission != null ? permission.getId() : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            
+            permissionService.assignToRole(role.getId(), permissionIds);
+        }
+        
         return convertToRoleDTO(role);
     }
     
@@ -270,14 +282,21 @@ public class AdminServiceImpl implements AdminService {
         Role role = roleMapper.selectById(id);
         if (role != null) {
             role.setDescription(roleDTO.getDescription());
+            roleMapper.updateById(role);
             
+            // 处理权限分配
             if (roleDTO.getPermissions() != null) {
-                role.setPermissions(String.join(",", roleDTO.getPermissions()));
-            } else {
-                role.setPermissions("");
+                List<Long> permissionIds = roleDTO.getPermissions().stream()
+                        .map(code -> {
+                            Permission permission = permissionService.findByCode(code);
+                            return permission != null ? permission.getId() : null;
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                
+                permissionService.assignToRole(role.getId(), permissionIds);
             }
             
-            roleMapper.updateById(role);
             return convertToRoleDTO(role);
         }
         return null;
@@ -289,7 +308,7 @@ public class AdminServiceImpl implements AdminService {
         roleMapper.deleteById(id);
     }
     
-    // 添加初始化方法，在服务启动时修复数据
+    // 修改初始化方法，移除permissions相关的处理
     @PostConstruct
     @Transactional
     public void initializeRoles() {
@@ -298,11 +317,6 @@ public class AdminServiceImpl implements AdminService {
         boolean hasChanges = false;
         
         for (Role role : roles) {
-            if (role.getPermissions() == null) {
-                role.setPermissions(""); // 设置默认值为空字符串
-                hasChanges = true;
-            }
-            
             if (role.getCreateTime() == null) {
                 role.setCreateTime(LocalDateTime.now()); // 为空的createTime设置当前时间
                 hasChanges = true;
@@ -371,11 +385,19 @@ public class AdminServiceImpl implements AdminService {
         dto.setName(role.getName());
         dto.setDescription(role.getDescription());
         
-        // 将权限字符串转换为列表
-        if (role.getPermissions() != null && !role.getPermissions().isEmpty()) {
-            dto.setPermissions(List.of(role.getPermissions().split(",")));
+        // 获取角色的权限
+        List<Permission> permissions = permissionService.findByRoleId(role.getId());
+        if (permissions != null && !permissions.isEmpty()) {
+            dto.setPermissions(permissions.stream()
+                    .map(Permission::getCode)
+                    .collect(Collectors.toList()));
         } else {
             dto.setPermissions(new ArrayList<>());
+        }
+        
+        // 格式化创建时间
+        if (role.getCreateTime() != null) {
+            dto.setCreateTime(role.getCreateTime().format(formatter));
         }
         
         return dto;

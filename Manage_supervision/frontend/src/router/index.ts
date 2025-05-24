@@ -115,7 +115,8 @@ const routes: RouteRecordRaw[] = [
         meta: { 
           title: '角色管理',
           requiresAuth: true,
-          requiresAdmin: true
+          requiresAdmin: true,
+          permissions: ['role:view', 'ROLE_VIEW']
         }
       },
       {
@@ -200,41 +201,77 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // 检查特定角色要求之前，强制刷新用户信息以确保权限是最新的
-    if (to.meta.requiresAdmin || to.meta.requiresSupervisor) {
-      console.log('页面需要特定角色权限，刷新用户信息...')
+    if (to.meta.requiresAdmin || to.meta.requiresSupervisor || to.meta.permissions) {
+      console.log('页面需要特定权限，刷新用户信息...')
       try {
-        // 尝试刷新用户信息，但不强制刷新以避免可能的循环
-        // 只有当实际角色与预期角色不匹配时才强制刷新
-        let needsForceRefresh = false
-        
-        if (to.meta.requiresAdmin && !userStore.isAdmin) {
-          console.log('需要管理员权限但当前不是管理员，尝试强制刷新')
-          needsForceRefresh = true
-        } else if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-          console.log('需要教师权限但当前不是教师，尝试强制刷新')
-          needsForceRefresh = true
-        }
-        
-        if (needsForceRefresh) {
-          await userStore.fetchUserInfo(true)
-        }
+        // 尝试刷新用户信息和权限
+        await userStore.fetchUserInfo(true)
+        await userStore.fetchUserPermissions()
       } catch (error) {
-        console.error('刷新用户信息失败:', error)
+        console.error('刷新用户权限失败:', error)
       }
     }
     
-    // 检查管理员权限
-    if (to.meta.requiresAdmin && !userStore.isAdmin) {
-      console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/chat')
-      return
+    // 检查管理员权限 - 修改为检查是否有对应的权限
+    if (to.meta.requiresAdmin) {
+      // 如果用户是管理员，直接允许访问
+      if (userStore.isAdmin) {
+        console.log('用户是管理员，允许访问')
+      } 
+      // 如果用户不是管理员，但路径有对应的权限要求
+      else if (to.path.includes('/admin/users') && 
+          (userStore.permissions.includes('user:view') || userStore.permissions.includes('USER_VIEW'))) {
+        console.log('用户有用户管理权限，允许访问')
+      }
+      else if (to.path.includes('/admin/roles') && 
+          (userStore.permissions.includes('role:view') || userStore.permissions.includes('ROLE_VIEW'))) {
+        console.log('用户有角色管理权限，允许访问')
+      }
+      else if (to.path.includes('/admin/teachers') && 
+          (userStore.permissions.includes('teacher:view') || userStore.permissions.includes('TEACHER_VIEW'))) {
+        console.log('用户有教师管理权限，允许访问')
+      }
+      else if (to.path.includes('/admin/students') && 
+          (userStore.permissions.includes('student:view') || userStore.permissions.includes('STUDENT_VIEW'))) {
+        console.log('用户有学生管理权限，允许访问')
+      }
+      else if (to.path.includes('/admin/dashboard') && 
+          (userStore.permissions.includes('dashboard') || userStore.permissions.includes('DASHBOARD'))) {
+        console.log('用户有仪表盘权限，允许访问')
+      }
+      else {
+        console.log('用户没有访问此管理页面的权限，重定向到首页')
+        next('/chat')
+        return
+      }
     }
     
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
-      console.log('需要教师权限，但用户不是教师，重定向到首页')
-      next('/chat')
-      return
+      // 如果用户有学生管理权限，允许访问
+      if (to.path.includes('/supervisor/students') && 
+          (userStore.permissions.includes('student:view') || userStore.permissions.includes('STUDENT_VIEW'))) {
+        console.log('用户有学生管理权限，允许访问督导员页面')
+      } else {
+        console.log('需要教师权限，但用户不是教师，重定向到首页')
+        next('/chat')
+        return
+      }
+    }
+    
+    // 检查特定权限要求
+    if (to.meta.permissions) {
+      const requiredPermissions = to.meta.permissions as string[]
+      const hasRequiredPermission = requiredPermissions.some(permission => 
+        userStore.permissions.includes(permission)
+      )
+      
+      // 管理员始终有权限
+      if (!userStore.isAdmin && !hasRequiredPermission) {
+        console.log('用户没有访问此页面的权限，重定向到首页')
+        next('/chat')
+        return
+      }
     }
   }
   

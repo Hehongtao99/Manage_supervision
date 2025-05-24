@@ -2,7 +2,7 @@
   <div class="user-management">
     <div class="page-header">
       <h2>用户管理</h2>
-      <el-button type="primary" @click="handleAdd">
+      <el-button type="primary" @click="handleAdd" v-permission="'user:add'">
         <el-icon><Plus /></el-icon>添加用户
       </el-button>
     </div>
@@ -97,6 +97,7 @@
               type="primary"
               link
               @click="handleEdit(row)"
+              v-permission="'user:edit'"
             >
               编辑
             </el-button>
@@ -104,6 +105,7 @@
               type="primary"
               link
               @click="handleResetPassword(row)"
+              v-permission="'user:edit'"
             >
               重置密码
             </el-button>
@@ -111,6 +113,7 @@
               :type="row.status === 'active' ? 'danger' : 'success'"
               link
               @click="handleToggleStatus(row)"
+              v-permission="'user:edit'"
             >
               {{ row.status === 'active' ? '禁用' : '启用' }}
             </el-button>
@@ -287,6 +290,7 @@ import type {
 } from '../../types/user'
 import axios from '../../utils/axios'
 import { useUserStore } from '../../stores/user'
+import { hasPermission } from '../../utils/permission'
 
 // 状态
 const loading = ref(false)

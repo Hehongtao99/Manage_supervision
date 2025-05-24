@@ -4,7 +4,7 @@
       <div class="chat-sidebar">
         <div class="sidebar-header">
           <h2>消息</h2>
-          <el-dropdown v-if="isSupervisor" @command="handleCommand">
+          <el-dropdown v-if="isSupervisor" @command="handleCommand" v-permission="'chat:send'">
             <el-button type="primary" size="small">
               新建聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
@@ -14,7 +14,7 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-dropdown v-else @command="handleCommand">
+          <el-dropdown v-else @command="handleCommand" v-permission="'chat:send'">
             <el-button type="primary" size="small">
               新建聊天 <el-icon><ArrowDown /></el-icon>
             </el-button>
@@ -62,7 +62,7 @@
         <el-table-column prop="studentId" label="学号" width="180" />
         <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
-            <el-button link type="primary" @click="startChatWithStudent(scope.row)">
+            <el-button link type="primary" @click="startChatWithStudent(scope.row)" v-permission="'chat:send'">
               开始聊天
             </el-button>
           </template>
@@ -93,7 +93,7 @@
         <el-table-column prop="name" label="姓名" width="180" />
         <el-table-column fixed="right" label="操作" width="120">
           <template #default="scope">
-            <el-button link type="primary" @click="startChatWithSupervisor(scope.row)">
+            <el-button link type="primary" @click="startChatWithSupervisor(scope.row)" v-permission="'chat:send'">
               开始聊天
             </el-button>
           </template>
@@ -112,6 +112,7 @@ import ChatWindow from '../../components/chat/ChatWindow.vue';
 import { ArrowDown, Search } from '@element-plus/icons-vue';
 import axios from '../../utils/axios';
 import { getSupervisors } from '../../api/supervisor';
+import { hasPermission } from '../../utils/permission';
 
 const userStore = useUserStore();
 const chatStore = useChatStore();

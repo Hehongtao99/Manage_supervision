@@ -57,6 +57,7 @@
               type="primary"
               link
               @click="handleViewStudents(row)"
+              v-permission="'teacher:view'"
             >
               学生管理
             </el-button>
@@ -88,7 +89,7 @@
         <h3>{{ selectedTeacher.realName }} 的学生列表</h3>
         
         <div class="action-bar">
-          <el-button type="primary" @click="handleAssignStudents">
+          <el-button type="primary" @click="handleAssignStudents" v-permission="'student:assign'">
             分配学生
           </el-button>
         </div>
@@ -111,6 +112,7 @@
                 type="danger"
                 link
                 @click="handleUnassignStudent(row)"
+                v-permission="'student:assign'"
               >
                 取消分配
               </el-button>
@@ -169,6 +171,7 @@
             @click="confirmAssignStudents"
             :disabled="selectedStudents.length === 0"
             :loading="assignLoading"
+            v-permission="'teacher:edit'"
           >
             确认分配
           </el-button>
@@ -189,6 +192,7 @@ import { getTeachers, getTeacherStudents, assignStudentsToTeacher, unassignStude
 import { getUnassignedStudents } from '../../api/student'
 import { Student } from '../../api/student'
 import type { UserProfile } from '../../types/user'
+import { hasPermission } from '../../utils/permission'
 
 // 状态
 const loading = ref(false)
