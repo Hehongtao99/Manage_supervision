@@ -142,7 +142,7 @@ const navigateToProfile = () => {
   } else if (userStore.isSupervisor) {
     router.push('/supervisor/profile')
   } else {
-    router.push('/profile')
+    router.push('/student/profile')
   }
 }
 
@@ -151,7 +151,7 @@ const navigateToChat = () => {
   if (userStore.isSupervisor) {
     router.push('/supervisor/chat')
   } else {
-    router.push('/chat')
+    router.push('/student/chat')
   }
 }
 

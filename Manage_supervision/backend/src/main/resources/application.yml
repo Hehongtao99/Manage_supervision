@@ -8,14 +8,14 @@ spring:
       strict: false
       datasource:
         master:
-          url: jdbc:mysql://115.120.221.163:3306/template?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+          url: jdbc:mysql://127.0.0.1:3306/560?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
           username: root
-          password: hht500234
+          password: 123456
           driver-class-name: com.mysql.cj.jdbc.Driver
     # 默认数据源配置
-    url: jdbc:mysql://115.120.221.163:3306/template?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://127.0.0.1:3306/560?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
     username: root
-    password: hht500234
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   
 

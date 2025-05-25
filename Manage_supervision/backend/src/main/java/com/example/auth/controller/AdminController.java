@@ -5,18 +5,25 @@ import com.example.auth.model.dto.PageResponse;
 import com.example.auth.model.dto.RoleDTO;
 import com.example.auth.model.dto.UserDTO;
 import com.example.auth.service.AdminService;
+import com.example.auth.model.entity.User;
+import com.example.auth.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
 
     @Autowired
     private AdminService adminService;
+
+    @Autowired
+    private UserService userService;
 
     // 用户管理接口
     @GetMapping("/users")
@@ -139,5 +146,20 @@ public class AdminController {
         Map<String, List<Object>> activityData = adminService.getUserActivityLastWeek();
         
         return ResponseEntity.ok(activityData);
+    }
+
+    /**
+     * 获取所有教师列表（用于下拉框）
+     */
+    @GetMapping("/teachers/all")
+    @RequireRole("ADMIN")
+    public ResponseEntity<List<User>> getAllTeachers() {
+        try {
+            List<User> teachers = userService.getTeacherList();
+            return ResponseEntity.ok(teachers);
+        } catch (Exception e) {
+            log.error("获取教师列表失败", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 } 

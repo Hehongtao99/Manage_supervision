@@ -450,6 +450,25 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public List<User> getTeacherList() {
+        logger.info("获取所有教师列表");
+        try {
+            Role supervisorRole = roleMapper.findByName("SUPERVISOR");
+            if (supervisorRole == null) {
+                logger.warn("未找到SUPERVISOR角色");
+                return new ArrayList<>();
+            }
+            
+            List<User> teachers = userMapper.findByRoleId(supervisorRole.getId());
+            logger.info("找到{}个教师", teachers.size());
+            return teachers;
+        } catch (Exception e) {
+            logger.error("获取教师列表失败", e);
+            return new ArrayList<>();
+        }
+    }
+
     // ==================== 辅助方法 ====================
 
     /**

@@ -45,6 +45,14 @@
           <el-icon><Avatar /></el-icon>
           <span>学生管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/courses" @click="handleRoute('/admin/courses')">
+          <el-icon><Reading /></el-icon>
+          <span>课程管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/organization" @click="handleRoute('/admin/organization')">
+          <el-icon><OfficeBuilding /></el-icon>
+          <span>组织管理</span>
+        </el-menu-item>
       </el-sub-menu>
     </template>
 
@@ -54,6 +62,13 @@
         <el-icon><User /></el-icon>
         <template #title>
           <span>学生管理</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/supervisor/courses" @click="handleRoute('/supervisor/courses')">
+        <el-icon><Reading /></el-icon>
+        <template #title>
+          <span>课程管理</span>
         </template>
       </el-menu-item>
 
@@ -74,14 +89,21 @@
 
     <!-- 学生菜单 -->
     <template v-else>
-      <el-menu-item index="/chat" @click="handleRoute('/chat')">
+      <el-menu-item index="/student/courses" @click="handleRoute('/student/courses')">
+        <el-icon><Reading /></el-icon>
+        <template #title>
+          <span>课程列表</span>
+        </template>
+      </el-menu-item>
+
+      <el-menu-item index="/student/chat" @click="handleRoute('/student/chat')">
         <el-icon><ChatDotRound /></el-icon>
         <template #title>
           <span>聊天</span>
         </template>
       </el-menu-item>
 
-      <el-menu-item index="/profile" @click="handleRoute('/profile')">
+      <el-menu-item index="/student/profile" @click="handleRoute('/student/profile')">
         <el-icon><UserFilled /></el-icon>
         <template #title>
           <span>个人信息</span>
@@ -106,7 +128,9 @@ import {
   Document,
   List,
   Folder,
-  ChatDotRound
+  ChatDotRound,
+  Reading,
+  OfficeBuilding
 } from '@element-plus/icons-vue'
 
 const props = defineProps<{

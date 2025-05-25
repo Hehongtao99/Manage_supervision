@@ -26,7 +26,7 @@ const routes: RouteRecordRaw[] = [
       } else if (userStore.isSupervisor) {
         return '/supervisor/students'
       } else {
-        return '/chat'
+        return '/student/courses'
       }
     },
     children: [
@@ -127,6 +127,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'courses',
+        name: 'AdminCourseManagement',
+        component: () => import('../views/admin/CourseManagement.vue'),
+        meta: { 
+          title: '课程管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'organization',
+        name: 'OrganizationManagement',
+        component: () => import('../views/admin/OrganizationManagement.vue'),
+        meta: { 
+          title: '组织架构管理',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },
@@ -150,6 +170,16 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'courses',
+        name: 'SupervisorCourseManagement',
+        component: () => import('../views/supervisor/CourseManagement.vue'),
+        meta: { 
+          title: '课程管理',
+          requiresAuth: true,
+          requiresSupervisor: true
+        }
+      },
+      {
         path: 'profile',
         name: 'SupervisorProfile',
         component: () => import('../views/supervisor/Profile.vue'),
@@ -167,6 +197,43 @@ const routes: RouteRecordRaw[] = [
           title: '聊天',
           requiresAuth: true,
           requiresSupervisor: true
+        }
+      }
+    ]
+  },
+  {
+    path: '/student',
+    component: BaseLayout,
+    redirect: '/student/courses',
+    meta: { 
+      requiresAuth: true
+    },
+    children: [
+      {
+        path: 'courses',
+        name: 'StudentCourseList',
+        component: () => import('../views/student/CourseList.vue'),
+        meta: { 
+          title: '课程列表',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'chat',
+        name: 'StudentChat',
+        component: () => import('../views/chat/ChatPage.vue'),
+        meta: {
+          title: '聊天',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'profile',
+        name: 'StudentProfile',
+        component: () => import('../views/Profile.vue'),
+        meta: {
+          title: '个人信息',
+          requiresAuth: true
         }
       }
     ]
@@ -226,14 +293,14 @@ router.beforeEach(async (to, from, next) => {
     // 检查管理员权限
     if (to.meta.requiresAdmin && !userStore.isAdmin) {
       console.log('需要管理员权限，但用户不是管理员，重定向到首页')
-      next('/chat')
+      next('/student/courses')
       return
     }
     
     // 检查教师权限
     if (to.meta.requiresSupervisor && !userStore.isSupervisor) {
       console.log('需要教师权限，但用户不是教师，重定向到首页')
-      next('/chat')
+      next('/student/courses')
       return
     }
   }
@@ -245,7 +312,7 @@ router.beforeEach(async (to, from, next) => {
     } else if (userStore.isSupervisor) {
       next('/supervisor/students')
     } else {
-      next('/chat')
+      next('/student/courses')
     }
     return
   }
