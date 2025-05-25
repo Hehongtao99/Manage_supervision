@@ -16,4 +16,10 @@ public class UserDTO {
     private String createTime;
     private String userNumber;
     private String avatar;
+    private Long collegeId;
+    private Long majorId;
+    private Long classId;
+    private String collegeName;
+    private String majorName;
+    private String className;
 }

@@ -52,7 +52,7 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         // 使用UserMapper中的方法进行分页查询
         IPage<User> resultPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            resultPage = userMapper.findByConditions(
+            resultPage = userMapper.findByConditionsWithOrganization(
                     pageParam, 
                     keyword, 
                     "SUPERVISOR", 
@@ -82,7 +82,7 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
         // 使用UserMapper中的方法进行分页查询
         IPage<User> resultPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            resultPage = userMapper.findByConditions(
+            resultPage = userMapper.findByConditionsWithOrganization(
                     pageParam, 
                     keyword, 
                     "USER", 

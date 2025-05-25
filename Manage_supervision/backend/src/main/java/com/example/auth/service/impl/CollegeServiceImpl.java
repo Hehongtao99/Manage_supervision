@@ -8,6 +8,7 @@ import com.example.auth.model.College;
 import com.example.auth.service.CollegeService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,6 +27,8 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
     @Override
     public boolean saveCollege(College college) {
         college.setStatus("active");
+        college.setCreateTime(LocalDateTime.now());
+        college.setUpdateTime(LocalDateTime.now());
         return this.save(college);
     }
     

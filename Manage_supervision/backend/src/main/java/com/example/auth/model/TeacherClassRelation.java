@@ -20,7 +20,7 @@ public class TeacherClassRelation {
     @TableField("class_id")
     private Long classId;
     
-    @TableField(value = "assign_time", fill = FieldFill.INSERT)
+    @TableField("assign_time")
     private LocalDateTime assignTime;
     
     @TableField("status")

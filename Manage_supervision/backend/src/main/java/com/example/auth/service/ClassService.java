@@ -19,4 +19,6 @@ public interface ClassService extends IService<ClassEntity> {
     List<ClassEntity> getClassesByMajorId(Long majorId);
     
     List<ClassEntity> getClassesByCollegeId(Long collegeId);
+    
+    List<ClassEntity> getAllActiveClasses();
 }

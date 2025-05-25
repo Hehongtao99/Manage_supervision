@@ -69,6 +69,9 @@
         <el-table-column prop="nickname" label="昵称" width="120" />
         <el-table-column prop="email" label="邮箱" width="180" />
         <el-table-column prop="phone" label="手机号" width="120" />
+        <el-table-column prop="collegeName" label="学院" width="120" />
+        <el-table-column prop="majorName" label="专业" width="120" />
+        <el-table-column prop="className" label="班级" width="120" />
         <el-table-column label="角色" width="150">
           <template #default="{ row }">
             <el-tag
@@ -136,7 +139,7 @@
     <el-dialog
       :title="dialogTitle"
       v-model="dialogVisible"
-      width="500px"
+      width="600px"
     >
       <el-form
         ref="formRef"
@@ -201,12 +204,79 @@
           <el-select
             v-model="form.roles"
             placeholder="请选择角色"
+            @change="onRoleChange"
           >
             <el-option
               v-for="role in roles"
               :key="role.name"
               :label="role.name"
               :value="role.name"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <!-- 学院专业班级选择 -->
+        <el-form-item label="学院" prop="collegeId">
+          <el-select
+            v-model="form.collegeId"
+            placeholder="请选择学院"
+            @change="onCollegeChange"
+            clearable
+          >
+            <el-option
+              v-for="college in colleges"
+              :key="college.id"
+              :label="college.collegeName"
+              :value="college.id"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="专业" prop="majorId">
+          <el-select
+            v-model="form.majorId"
+            placeholder="请选择专业"
+            @change="onMajorChange"
+            clearable
+          >
+            <el-option
+              v-for="major in filteredMajors"
+              :key="major.id"
+              :label="major.majorName"
+              :value="major.id"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="班级" prop="classId" v-if="showClassSelect">
+          <!-- 学生单选班级 -->
+          <el-select
+            v-if="form.roles === 'USER'"
+            v-model="form.classId"
+            placeholder="请选择班级"
+            clearable
+          >
+            <el-option
+              v-for="classItem in filteredClasses"
+              :key="classItem.id"
+              :label="classItem.className"
+              :value="classItem.id"
+            />
+          </el-select>
+          
+          <!-- 教师多选班级 -->
+          <el-select
+            v-else-if="form.roles === 'SUPERVISOR'"
+            v-model="form.classIds"
+            placeholder="请选择班级（可多选）"
+            multiple
+            clearable
+          >
+            <el-option
+              v-for="classItem in filteredClasses"
+              :key="classItem.id"
+              :label="classItem.className"
+              :value="classItem.id"
             />
           </el-select>
         </el-form-item>
@@ -287,6 +357,8 @@ import type {
 } from '../../types/user'
 import axios from '../../utils/axios'
 import { useUserStore } from '../../stores/user'
+import { getAllColleges, getAllMajors, getAllClasses } from '../../api/organization'
+import type { College, Major, ClassEntity } from '../../api/organization'
 
 // 状态
 const loading = ref(false)
@@ -301,6 +373,11 @@ const total = ref(0)
 const userList = ref<UserProfile[]>([])
 const roles = ref<Role[]>([])
 
+// 学院专业班级数据
+const colleges = ref<College[]>([])
+const majors = ref<Major[]>([])
+const classes = ref<ClassEntity[]>([])
+
 // 表单
 const formRef = ref<FormInstance>()
 const resetPasswordFormRef = ref<FormInstance>()
@@ -311,14 +388,24 @@ const searchForm = reactive({
   status: ''
 })
 
-const form = reactive<Omit<CreateUserRequest & UpdateUserRequest, 'roles'> & { roles: string | string[] }>({
+const form = reactive<Omit<CreateUserRequest & UpdateUserRequest, 'roles'> & { 
+  roles: string | string[]
+  collegeId?: number
+  majorId?: number
+  classId?: number
+  classIds?: number[]  // 教师多班级选择
+}>({
   username: '',
   password: '',
   realName: '',
   nickname: '',
   email: '',
   phone: '',
-  roles: ''
+  roles: '',
+  collegeId: undefined,
+  majorId: undefined,
+  classId: undefined,
+  classIds: []
 })
 
 const resetPasswordForm = reactive({
@@ -330,6 +417,25 @@ const resetPasswordForm = reactive({
 // 计算属性
 const dialogTitle = computed(() => {
   return dialogType.value === 'add' ? '添加用户' : '编辑用户'
+})
+
+// 根据选择的学院过滤专业
+const filteredMajors = computed(() => {
+  if (!form.collegeId) return []
+  return majors.value.filter(major => major.collegeId === form.collegeId)
+})
+
+// 根据选择的学院和专业过滤班级
+const filteredClasses = computed(() => {
+  if (!form.collegeId || !form.majorId) return []
+  return classes.value.filter(classItem => 
+    classItem.collegeId === form.collegeId && classItem.majorId === form.majorId
+  )
+})
+
+// 是否显示班级选择（学生和教师都显示）
+const showClassSelect = computed(() => {
+  return form.roles === 'USER' || form.roles === 'SUPERVISOR'
 })
 
 // 表单验证规则
@@ -404,6 +510,36 @@ const fetchRoles = async () => {
   }
 }
 
+// 获取学院列表
+const fetchColleges = async () => {
+  try {
+    const response = await getAllColleges()
+    colleges.value = response.data
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '获取学院列表失败')
+  }
+}
+
+// 获取专业列表
+const fetchMajors = async () => {
+  try {
+    const response = await getAllMajors()
+    majors.value = response.data
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '获取专业列表失败')
+  }
+}
+
+// 获取班级列表
+const fetchClasses = async () => {
+  try {
+    const response = await getAllClasses()
+    classes.value = response.data
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '获取班级列表失败')
+  }
+}
+
 const resetForm = () => {
   if (formRef.value) {
     formRef.value.resetFields()
@@ -415,6 +551,10 @@ const resetForm = () => {
   form.email = ''
   form.phone = ''
   form.roles = ''
+  form.collegeId = undefined
+  form.majorId = undefined
+  form.classId = undefined
+  form.classIds = []
 }
 
 const handleAdd = () => {
@@ -423,7 +563,7 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-const handleEdit = (row: UserProfile) => {
+const handleEdit = async (row: UserProfile) => {
   dialogType.value = 'edit'
   const userData = { ...row };
   
@@ -432,6 +572,24 @@ const handleEdit = (row: UserProfile) => {
     userData.roles = userData.roles[0];
   } else {
     userData.roles = '';
+  }
+  
+  // 设置学院专业班级信息
+  userData.collegeId = row.collegeId
+  userData.majorId = row.majorId
+  userData.classId = row.classId
+  userData.classIds = []
+  
+  // 如果是教师角色，获取班级关系
+  if (userData.roles === 'SUPERVISOR') {
+    try {
+      const response = await axios.get(`/api/admin/users/${row.id}/classes`)
+      userData.classIds = response.data || []
+    } catch (error: any) {
+      console.error('获取教师班级关系失败:', error)
+      ElMessage.warning('获取教师班级关系失败')
+      userData.classIds = []
+    }
   }
   
   Object.assign(form, userData);
@@ -453,6 +611,11 @@ const handleSubmit = async () => {
           formData.roles = [formData.roles];
         } else if (!formData.roles) {
           formData.roles = [];
+        }
+        
+        // 添加班级关系数据
+        if (form.roles === 'SUPERVISOR' && form.classIds) {
+          formData.classIds = form.classIds
         }
         
         if (dialogType.value === 'add') {
@@ -549,6 +712,34 @@ const handleCurrentChange = (val: number) => {
   fetchUserList()
 }
 
+const onRoleChange = () => {
+  // 角色变化时清空班级选择
+  if (form.roles === 'USER') {
+    // 学生角色：清空多选班级，保留单选班级
+    form.classIds = []
+  } else if (form.roles === 'SUPERVISOR') {
+    // 教师角色：清空单选班级，保留多选班级
+    form.classId = undefined
+  } else {
+    // 管理员角色：清空所有班级选择
+    form.classId = undefined
+    form.classIds = []
+  }
+}
+
+const onCollegeChange = () => {
+  // 学院变化时清空专业和班级选择
+  form.majorId = undefined
+  form.classId = undefined
+  form.classIds = []
+}
+
+const onMajorChange = () => {
+  // 专业变化时清空班级选择
+  form.classId = undefined
+  form.classIds = []
+}
+
 // 生命周期钩子
 onMounted(async () => {
   console.log('===== UserManagement组件挂载 =====')
@@ -576,6 +767,16 @@ onMounted(async () => {
     
     await fetchRoles()
     console.log('请求角色列表成功')
+    
+    // 获取学院专业班级数据
+    await fetchColleges()
+    console.log('请求学院列表成功')
+    
+    await fetchMajors()
+    console.log('请求专业列表成功')
+    
+    await fetchClasses()
+    console.log('请求班级列表成功')
   } catch (error) {
     console.error('请求数据失败:', error)
   }

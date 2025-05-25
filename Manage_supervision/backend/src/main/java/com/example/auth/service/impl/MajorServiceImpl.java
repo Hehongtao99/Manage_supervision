@@ -8,6 +8,7 @@ import com.example.auth.model.Major;
 import com.example.auth.service.MajorService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,6 +23,8 @@ public class MajorServiceImpl extends ServiceImpl<MajorMapper, Major> implements
     @Override
     public boolean saveMajor(Major major) {
         major.setStatus("active");
+        major.setCreateTime(LocalDateTime.now());
+        major.setUpdateTime(LocalDateTime.now());
         return this.save(major);
     }
     
@@ -43,6 +46,14 @@ public class MajorServiceImpl extends ServiceImpl<MajorMapper, Major> implements
         LambdaQueryWrapper<Major> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Major::getStatus, "active")
                .eq(collegeId != null, Major::getCollegeId, collegeId)
+               .orderBy(true, true, Major::getMajorName);
+        return this.list(wrapper);
+    }
+    
+    @Override
+    public List<Major> getAllActiveMajors() {
+        LambdaQueryWrapper<Major> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Major::getStatus, "active")
                .orderBy(true, true, Major::getMajorName);
         return this.list(wrapper);
     }

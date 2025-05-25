@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.example.auth.model.College;
+import com.example.auth.model.Major;
+import com.example.auth.model.ClassEntity;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -36,9 +39,37 @@ public class User {
     
     @TableField("user_number")
     private String userNumber;
+    
+    @TableField("college_id")
+    private Long collegeId;
+    
+    @TableField("major_id")
+    private Long majorId;
+    
+    @TableField("class_id")
+    private Long classId;
 
     @TableField(exist = false)
     private Set<Role> roles;
+    
+    @TableField(exist = false)
+    private College college;
+    
+    @TableField(exist = false)
+    private Major major;
+    
+    @TableField(exist = false)
+    private ClassEntity classEntity;
+    
+    // 用于接收SQL查询中的学院专业班级名称字段
+    @TableField(exist = false)
+    private String collegeName;
+    
+    @TableField(exist = false)
+    private String majorName;
+    
+    @TableField(exist = false)
+    private String className;
 
     // Getters
     public Long getId() {
@@ -92,6 +123,42 @@ public class User {
     public String getUserNumber() {
         return userNumber;
     }
+    
+    public Long getCollegeId() {
+        return collegeId;
+    }
+    
+    public Long getMajorId() {
+        return majorId;
+    }
+    
+    public Long getClassId() {
+        return classId;
+    }
+    
+    public College getCollege() {
+        return college;
+    }
+    
+    public Major getMajor() {
+        return major;
+    }
+    
+    public ClassEntity getClassEntity() {
+        return classEntity;
+    }
+    
+    public String getCollegeName() {
+        return collegeName;
+    }
+    
+    public String getMajorName() {
+        return majorName;
+    }
+    
+    public String getClassName() {
+        return className;
+    }
 
     // Setters
     public void setId(Long id) {
@@ -144,5 +211,41 @@ public class User {
     
     public void setUserNumber(String userNumber) {
         this.userNumber = userNumber;
+    }
+    
+    public void setCollegeId(Long collegeId) {
+        this.collegeId = collegeId;
+    }
+    
+    public void setMajorId(Long majorId) {
+        this.majorId = majorId;
+    }
+    
+    public void setClassId(Long classId) {
+        this.classId = classId;
+    }
+    
+    public void setCollege(College college) {
+        this.college = college;
+    }
+    
+    public void setMajor(Major major) {
+        this.major = major;
+    }
+    
+    public void setClassEntity(ClassEntity classEntity) {
+        this.classEntity = classEntity;
+    }
+    
+    public void setCollegeName(String collegeName) {
+        this.collegeName = collegeName;
+    }
+    
+    public void setMajorName(String majorName) {
+        this.majorName = majorName;
+    }
+    
+    public void setClassName(String className) {
+        this.className = className;
     }
 }

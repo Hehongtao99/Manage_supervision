@@ -8,6 +8,7 @@ import com.example.auth.model.ClassEntity;
 import com.example.auth.service.ClassService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,6 +24,8 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, ClassEntity> impl
     public boolean saveClass(ClassEntity classEntity) {
         classEntity.setStatus("active");
         classEntity.setStudentCount(0);
+        classEntity.setCreateTime(LocalDateTime.now());
+        classEntity.setUpdateTime(LocalDateTime.now());
         return this.save(classEntity);
     }
     
@@ -53,6 +56,14 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, ClassEntity> impl
         LambdaQueryWrapper<ClassEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ClassEntity::getStatus, "active")
                .eq(collegeId != null, ClassEntity::getCollegeId, collegeId)
+               .orderBy(true, true, ClassEntity::getClassName);
+        return this.list(wrapper);
+    }
+    
+    @Override
+    public List<ClassEntity> getAllActiveClasses() {
+        LambdaQueryWrapper<ClassEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ClassEntity::getStatus, "active")
                .orderBy(true, true, ClassEntity::getClassName);
         return this.list(wrapper);
     }

@@ -17,4 +17,6 @@ public interface MajorService extends IService<Major> {
     boolean deleteMajor(Long id);
     
     List<Major> getMajorsByCollegeId(Long collegeId);
+    
+    List<Major> getAllActiveMajors();
 } 

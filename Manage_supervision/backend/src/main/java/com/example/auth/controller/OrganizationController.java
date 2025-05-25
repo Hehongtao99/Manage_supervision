@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/organization")
+@RequestMapping("/api")
 public class OrganizationController {
     
     @Autowired
@@ -29,9 +29,41 @@ public class OrganizationController {
     @Autowired
     private ClassService classService;
     
-    // ==================== 学院管理 ====================
+    // ==================== 公共接口（用于用户管理等功能） ====================
     
     @GetMapping("/colleges")
+    public ResponseEntity<?> getCollegesForPublic() {
+        try {
+            List<College> colleges = collegeService.getAllActiveColleges();
+            return ResponseEntity.ok(colleges);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "获取学院列表失败: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/majors")
+    public ResponseEntity<?> getMajorsForPublic() {
+        try {
+            List<Major> majors = majorService.getAllActiveMajors();
+            return ResponseEntity.ok(majors);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "获取专业列表失败: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/classes")
+    public ResponseEntity<?> getClassesForPublic() {
+        try {
+            List<ClassEntity> classes = classService.getAllActiveClasses();
+            return ResponseEntity.ok(classes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "获取班级列表失败: " + e.getMessage()));
+        }
+    }
+    
+    // ==================== 管理员接口 ====================
+    
+    @GetMapping("/admin/organization/colleges")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getColleges(
             @RequestParam(defaultValue = "1") int current,
@@ -94,7 +126,7 @@ public class OrganizationController {
         }
     }
     
-    @GetMapping("/colleges/all")
+    @GetMapping("/admin/organization/colleges/all")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getAllColleges() {
         try {
@@ -107,7 +139,7 @@ public class OrganizationController {
     
     // ==================== 专业管理 ====================
     
-    @GetMapping("/majors")
+    @GetMapping("/admin/organization/majors")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getMajors(
             @RequestParam(defaultValue = "1") int current,
@@ -125,7 +157,7 @@ public class OrganizationController {
         }
     }
     
-    @PostMapping("/majors")
+    @PostMapping("/admin/organization/majors")
     @RequireRole("ADMIN")
     public ResponseEntity<?> createMajor(@RequestBody Major major) {
         try {
@@ -140,7 +172,7 @@ public class OrganizationController {
         }
     }
     
-    @PutMapping("/majors/{id}")
+    @PutMapping("/admin/organization/majors/{id}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> updateMajor(@PathVariable Long id, @RequestBody Major major) {
         try {
@@ -156,7 +188,7 @@ public class OrganizationController {
         }
     }
     
-    @DeleteMapping("/majors/{id}")
+    @DeleteMapping("/admin/organization/majors/{id}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> deleteMajor(@PathVariable Long id) {
         try {
@@ -171,7 +203,7 @@ public class OrganizationController {
         }
     }
     
-    @GetMapping("/majors/by-college/{collegeId}")
+    @GetMapping("/admin/organization/majors/by-college/{collegeId}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getMajorsByCollege(@PathVariable Long collegeId) {
         try {
@@ -182,9 +214,20 @@ public class OrganizationController {
         }
     }
     
+    @GetMapping("/admin/organization/majors/all")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> getAllMajors() {
+        try {
+            List<Major> majors = majorService.getAllActiveMajors();
+            return ResponseEntity.ok(majors);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "获取专业列表失败: " + e.getMessage()));
+        }
+    }
+    
     // ==================== 班级管理 ====================
     
-    @GetMapping("/classes")
+    @GetMapping("/admin/organization/classes")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getClasses(
             @RequestParam(defaultValue = "1") int current,
@@ -203,7 +246,7 @@ public class OrganizationController {
         }
     }
     
-    @PostMapping("/classes")
+    @PostMapping("/admin/organization/classes")
     @RequireRole("ADMIN")
     public ResponseEntity<?> createClass(@RequestBody ClassEntity classEntity) {
         try {
@@ -218,7 +261,7 @@ public class OrganizationController {
         }
     }
     
-    @PutMapping("/classes/{id}")
+    @PutMapping("/admin/organization/classes/{id}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> updateClass(@PathVariable Long id, @RequestBody ClassEntity classEntity) {
         try {
@@ -234,7 +277,7 @@ public class OrganizationController {
         }
     }
     
-    @DeleteMapping("/classes/{id}")
+    @DeleteMapping("/admin/organization/classes/{id}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> deleteClass(@PathVariable Long id) {
         try {
@@ -249,7 +292,7 @@ public class OrganizationController {
         }
     }
     
-    @GetMapping("/classes/by-major/{majorId}")
+    @GetMapping("/admin/organization/classes/by-major/{majorId}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getClassesByMajor(@PathVariable Long majorId) {
         try {
@@ -260,11 +303,22 @@ public class OrganizationController {
         }
     }
     
-    @GetMapping("/classes/by-college/{collegeId}")
+    @GetMapping("/admin/organization/classes/by-college/{collegeId}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> getClassesByCollege(@PathVariable Long collegeId) {
         try {
             List<ClassEntity> classes = classService.getClassesByCollegeId(collegeId);
+            return ResponseEntity.ok(classes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "获取班级列表失败: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/admin/organization/classes/all")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> getAllClasses() {
+        try {
+            List<ClassEntity> classes = classService.getAllActiveClasses();
             return ResponseEntity.ok(classes);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "获取班级列表失败: " + e.getMessage()));

@@ -112,6 +112,11 @@ export const getMajorsByCollege = (collegeId: number) => {
   return axios.get<Major[]>(`/api/admin/organization/majors/by-college/${collegeId}`)
 }
 
+// 获取所有专业
+export const getAllMajors = () => {
+  return axios.get<Major[]>('/api/admin/organization/majors/all')
+}
+
 // ==================== 班级管理 API ====================
 
 // 获取班级分页列表
@@ -148,4 +153,9 @@ export const getClassesByMajor = (majorId: number) => {
 // 根据学院获取班级
 export const getClassesByCollege = (collegeId: number) => {
   return axios.get<ClassEntity[]>(`/api/admin/organization/classes/by-college/${collegeId}`)
+}
+
+// 获取所有班级
+export const getAllClasses = () => {
+  return axios.get<ClassEntity[]>('/api/admin/organization/classes/all')
 } 

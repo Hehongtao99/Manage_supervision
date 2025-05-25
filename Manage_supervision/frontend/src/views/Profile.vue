@@ -64,6 +64,19 @@
             <el-input v-model="form.phone" placeholder="请输入电话号码" />
           </el-form-item>
 
+          <!-- 学院专业班级信息 -->
+          <el-form-item label="学院" v-if="userStore.user.collegeName">
+            <el-input v-model="userStore.user.collegeName" disabled />
+          </el-form-item>
+
+          <el-form-item label="专业" v-if="userStore.user.majorName">
+            <el-input v-model="userStore.user.majorName" disabled />
+          </el-form-item>
+
+          <el-form-item label="班级" v-if="userStore.user.className && isStudent">
+            <el-input v-model="userStore.user.className" disabled />
+          </el-form-item>
+
           <el-form-item label="个人简介" prop="bio">
             <el-input
               v-model="form.bio"
@@ -262,6 +275,11 @@ const uploadHeaders = computed(() => {
   return {
     Authorization: `Bearer ${userStore.token}`
   }
+})
+
+// 判断是否为学生
+const isStudent = computed(() => {
+  return userStore.user.roles?.includes('USER')
 })
 
 // 保存个人信息

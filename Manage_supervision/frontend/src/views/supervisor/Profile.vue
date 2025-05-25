@@ -68,6 +68,31 @@
                     :rows="3"
                   />
                 </el-form-item>
+                
+                <!-- 学院专业班级信息 -->
+                <el-divider content-position="left">组织信息</el-divider>
+                
+                <el-form-item label="所属学院" v-if="teacherDetails.collegeName">
+                  <el-input v-model="teacherDetails.collegeName" disabled />
+                </el-form-item>
+                
+                <el-form-item label="所属专业" v-if="teacherDetails.majorName">
+                  <el-input v-model="teacherDetails.majorName" disabled />
+                </el-form-item>
+                
+                <el-form-item label="管理班级" v-if="teacherDetails.classes && teacherDetails.classes.length > 0">
+                  <div class="class-list">
+                    <el-tag
+                      v-for="classItem in teacherDetails.classes"
+                      :key="classItem.id"
+                      type="info"
+                      class="class-tag"
+                    >
+                      {{ classItem.className }} ({{ classItem.grade }}级)
+                    </el-tag>
+                  </div>
+                </el-form-item>
+                
                 <el-form-item>
                   <el-button type="primary" @click="handleSubmit">保存更改</el-button>
                 </el-form-item>
@@ -141,6 +166,18 @@ const fileInputRef = ref<HTMLInputElement | null>(null); // 文件输入引用
 // 用户统计数据
 const userStats = reactive({
   studentCount: 0 // 初始值设置为0，将通过API获取实际数据
+});
+
+// 教师详细信息
+const teacherDetails = reactive({
+  collegeName: '',
+  majorName: '',
+  classes: [] as Array<{
+    id: number;
+    className: string;
+    classCode: string;
+    grade: string;
+  }>
 });
 
 // 表单数据
@@ -233,6 +270,9 @@ onMounted(async () => {
       
       // 获取教师仪表盘数据，包括真实学生数量
       await fetchSupervisorStats()
+      
+      // 获取教师详细信息，包括学院、专业和班级信息
+      await fetchTeacherDetails()
     } else {
       // 不要显示错误消息，避免多次显示
       console.warn('获取用户信息未成功，可能需要重新登录')
@@ -364,6 +404,23 @@ const fetchSupervisorStats = async () => {
     statsLoading.value = false;
   }
 };
+
+// 获取教师详细信息
+const fetchTeacherDetails = async () => {
+  try {
+    const response = await axios.get('/api/supervisor/profile/details');
+    console.log('获取教师详细信息成功:', response.data);
+    
+    // 更新教师详细信息
+    teacherDetails.collegeName = response.data.collegeName || '';
+    teacherDetails.majorName = response.data.majorName || '';
+    teacherDetails.classes = response.data.classes || [];
+    
+  } catch (error) {
+    console.error('获取教师详细信息失败:', error);
+    // 不显示错误消息，避免干扰用户体验
+  }
+};
 </script>
 
 <style scoped>
@@ -412,5 +469,15 @@ const fetchSupervisorStats = async () => {
 .stat-label {
   font-size: 14px;
   color: #606266;
+}
+
+.class-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.class-tag {
+  margin: 0;
 }
 </style> 

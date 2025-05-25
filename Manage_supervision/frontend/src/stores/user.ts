@@ -25,6 +25,12 @@ interface UserState {
     bio?: string
     avatar?: string
     userNumber?: string
+    collegeId?: number
+    majorId?: number
+    classId?: number
+    collegeName?: string
+    majorName?: string
+    className?: string
   }
   token: string | null
   initialized: boolean
@@ -192,7 +198,13 @@ export const useUserStore = defineStore('user', {
           phone: response.data.user.phone,
           bio: response.data.user.bio,
           avatar: response.data.user.avatar || '',
-          userNumber: response.data.user.userNumber || ''
+          userNumber: response.data.user.userNumber || '',
+          collegeId: response.data.user.collegeId,
+          majorId: response.data.user.majorId,
+          classId: response.data.user.classId,
+          collegeName: response.data.user.collegeName,
+          majorName: response.data.user.majorName,
+          className: response.data.user.className
         }
         
         // 同时更新userInfo
@@ -308,7 +320,13 @@ export const useUserStore = defineStore('user', {
           phone: response.data.phone,
           bio: response.data.bio,
           avatar: response.data.avatar || '',
-          userNumber: response.data.userNumber || ''
+          userNumber: response.data.userNumber || '',
+          collegeId: response.data.collegeId,
+          majorId: response.data.majorId,
+          classId: response.data.classId,
+          collegeName: response.data.collegeName,
+          majorName: response.data.majorName,
+          className: response.data.className
         }
         
         // 获取用户角色的权限
@@ -377,7 +395,13 @@ export const useUserStore = defineStore('user', {
             bio: updatedUser.bio || this.user.bio,
             avatar: updatedUser.avatar || this.user.avatar,
             // 确保roles数组被正确处理
-            roles: Array.isArray(updatedUser.roles) ? updatedUser.roles : this.user.roles
+            roles: Array.isArray(updatedUser.roles) ? updatedUser.roles : this.user.roles,
+            collegeId: updatedUser.collegeId || this.user.collegeId,
+            majorId: updatedUser.majorId || this.user.majorId,
+            classId: updatedUser.classId || this.user.classId,
+            collegeName: updatedUser.collegeName || this.user.collegeName,
+            majorName: updatedUser.majorName || this.user.majorName,
+            className: updatedUser.className || this.user.className
           }
           
           console.log('个人信息更新成功，更新后的用户信息:', JSON.stringify(this.user))
@@ -448,7 +472,13 @@ export const useUserStore = defineStore('user', {
         name: '',
         email: '',
         roles: [],
-        userNumber: ''
+        userNumber: '',
+        collegeId: undefined,
+        majorId: undefined,
+        classId: undefined,
+        collegeName: undefined,
+        majorName: undefined,
+        className: undefined
       }
       this.userInfo = null
       localStorage.removeItem('token')

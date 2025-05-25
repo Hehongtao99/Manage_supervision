@@ -52,8 +52,8 @@ public class AdminServiceImpl implements AdminService {
                 // 获取该角色下的用户
                 Page<User> userPage;
                 if (username != null && !username.isEmpty() || status != null && !status.isEmpty()) {
-                    // 使用复杂查询
-                    userPage = (Page<User>) userMapper.findByConditions(pageParam, username, role, status);
+                    // 使用复杂查询（包含学院专业班级信息）
+                    userPage = (Page<User>) userMapper.findByConditionsWithOrganization(pageParam, username, role, status);
                 } else {
                     // 只按角色查询
                     userPage = (Page<User>) userMapper.findByRoleIdPage(pageParam, roleEntity.getId());
@@ -85,9 +85,15 @@ public class AdminServiceImpl implements AdminService {
             
             Page<User> userPage = userMapper.selectPage(pageParam, queryWrapper);
             
-            // 为每个用户设置角色
+            // 为每个用户设置角色和组织信息
             List<UserDTO> userDTOs = new ArrayList<>();
             for (User user : userPage.getRecords()) {
+                // 获取用户的完整信息（包含学院专业班级）
+                User userWithOrg = userMapper.findByIdWithOrganization(user.getId());
+                if (userWithOrg != null) {
+                    user = userWithOrg;
+                }
+                
                 List<Role> userRoles = roleMapper.findRolesByUserId(user.getId());
                 user.setRoles(new HashSet<>(userRoles));
                 userDTOs.add(convertToUserDTO(user));
@@ -113,6 +119,11 @@ public class AdminServiceImpl implements AdminService {
         user.setPhone(userDTO.getPhone());
         user.setStatus("active"); // 确保新创建的用户默认状态为active
         user.setCreateTime(LocalDateTime.now());
+        
+        // 设置学院专业班级信息
+        user.setCollegeId(userDTO.getCollegeId());
+        user.setMajorId(userDTO.getMajorId());
+        user.setClassId(userDTO.getClassId());
         
         // 设置角色
         if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
@@ -174,6 +185,19 @@ public class AdminServiceImpl implements AdminService {
             
             if (userDTO.getPhone() != null) {
                 user.setPhone(userDTO.getPhone());
+            }
+            
+            // 更新学院专业班级信息
+            if (userDTO.getCollegeId() != null) {
+                user.setCollegeId(userDTO.getCollegeId());
+            }
+            
+            if (userDTO.getMajorId() != null) {
+                user.setMajorId(userDTO.getMajorId());
+            }
+            
+            if (userDTO.getClassId() != null) {
+                user.setClassId(userDTO.getClassId());
             }
             
             // 更新角色
@@ -350,6 +374,22 @@ public class AdminServiceImpl implements AdminService {
         dto.setPhone(user.getPhone());
         dto.setStatus(user.getStatus());
         dto.setUserNumber(user.getUserNumber());
+        
+        // 设置学院专业班级信息
+        dto.setCollegeId(user.getCollegeId());
+        dto.setMajorId(user.getMajorId());
+        dto.setClassId(user.getClassId());
+        
+        // 设置学院专业班级名称（从关联查询结果中获取）
+        if (user.getCollege() != null) {
+            dto.setCollegeName(user.getCollege().getCollegeName());
+        }
+        if (user.getMajor() != null) {
+            dto.setMajorName(user.getMajor().getMajorName());
+        }
+        if (user.getClassEntity() != null) {
+            dto.setClassName(user.getClassEntity().getClassName());
+        }
         
         // 格式化创建时间
         if (user.getCreateTime() != null) {

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,9 @@ public class AuthController {
     
     @Autowired
     private UserContext userContext;
+    
+    @Autowired
+    private com.example.auth.mapper.UserMapper userMapper;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
@@ -106,7 +110,8 @@ public class AuthController {
             }
             
             String username = jwtUtil.getUsernameFromToken(token);
-            User user = userService.findByUsername(username);
+            // 使用包含组织信息的查询方法
+            User user = userMapper.findByUsernameWithOrganization(username);
             
             if (user == null) {
                 return ResponseEntity.status(404).body(Map.of(
@@ -114,11 +119,14 @@ public class AuthController {
                 ));
             }
 
+            // 获取用户角色信息
+            List<com.example.auth.model.entity.Role> roles = userService.findByUsername(username).getRoles().stream().toList();
+
             Map<String, Object> userData = new HashMap<>();
             userData.put("id", user.getId());
             userData.put("username", user.getUsername());
             userData.put("avatar", user.getAvatar());
-            userData.put("roles", user.getRoles().stream().map(role -> role.getName()).toList());
+            userData.put("roles", roles.stream().map(role -> role.getName()).toList());
             
             userData.put("realName", user.getRealName());
             userData.put("nickname", user.getNickname());
@@ -126,6 +134,15 @@ public class AuthController {
             userData.put("phone", user.getPhone());
             userData.put("bio", user.getBio());
             userData.put("userNumber", user.getUserNumber());
+            
+            // 添加学院专业班级信息
+            userData.put("collegeId", user.getCollegeId());
+            userData.put("majorId", user.getMajorId());
+            userData.put("classId", user.getClassId());
+            // 直接从查询结果中获取名称字段（UserMapper查询已经包含了这些字段）
+            userData.put("collegeName", user.getCollegeName());
+            userData.put("majorName", user.getMajorName());
+            userData.put("className", user.getClassName());
             
             return ResponseEntity.ok(userData);
         } catch (Exception e) {
