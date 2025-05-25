@@ -140,4 +140,31 @@ public class AdminController {
         
         return ResponseEntity.ok(activityData);
     }
+
+    // 课程统计接口
+    @GetMapping("/statistics/course-count")
+    @RequirePermission({"dashboard", "DASHBOARD"})
+    public ResponseEntity<Long> getTotalCourses() {
+        Long totalCourses = adminService.countTotalCourses();
+        return ResponseEntity.ok(totalCourses);
+    }
+    
+    @GetMapping("/statistics/course-distribution")
+    @RequirePermission({"dashboard", "DASHBOARD"})
+    public ResponseEntity<List<Map<String, Object>>> getCourseCategoryDistribution() {
+        List<Map<String, Object>> categoryDistribution = new ArrayList<>();
+        
+        // 从service层获取课程类别分布数据
+        Map<String, Long> distribution = adminService.getCourseCategoryDistribution();
+        
+        // 转换为前端所需的格式
+        for (Map.Entry<String, Long> entry : distribution.entrySet()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("name", entry.getKey());
+            item.put("value", entry.getValue());
+            categoryDistribution.add(item);
+        }
+        
+        return ResponseEntity.ok(categoryDistribution);
+    }
 } 

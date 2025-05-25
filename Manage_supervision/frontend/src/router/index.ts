@@ -128,6 +128,28 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: 'courses',
+        name: 'AdminCourseManagement',
+        component: () => import('../views/course/CourseList.vue'),
+        meta: { 
+          title: '课程管理',
+          requiresAuth: true,
+          requiresAdmin: true,
+          permissions: ['course:view', 'course:add', 'course:edit', 'course:delete']
+        }
+      },
+      {
+        path: 'course-categories',
+        name: 'CourseCategoryManagement',
+        component: () => import('../views/course/CategoryManagement.vue'),
+        meta: { 
+          title: '课程类别管理',
+          requiresAuth: true,
+          requiresAdmin: true,
+          permissions: ['course:add', 'course:edit', 'course:delete']
+        }
       }
     ]
   },
@@ -168,6 +190,67 @@ const routes: RouteRecordRaw[] = [
           title: '聊天',
           requiresAuth: true,
           requiresSupervisor: true
+        }
+      },
+      {
+        path: 'courses',
+        name: 'SupervisorCourseManagement',
+        component: () => import('../views/course/CourseList.vue'),
+        meta: { 
+          title: '我的课程',
+          requiresAuth: true,
+          requiresSupervisor: true,
+          permissions: ['course:view']
+        }
+      }
+    ]
+  },
+  {
+    path: '/course',
+    component: BaseLayout,
+    redirect: '/course/list',
+    meta: { 
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: 'list',
+        name: 'CourseList',
+        component: () => import('../views/course/CourseList.vue'),
+        meta: { 
+          title: '课程列表',
+          requiresAuth: true,
+          permissions: ['course:view']
+        }
+      },
+      {
+        path: 'create',
+        name: 'CourseCreate',
+        component: () => import('../views/course/CourseEdit.vue'),
+        meta: { 
+          title: '创建课程',
+          requiresAuth: true,
+          permissions: ['course:add']
+        }
+      },
+      {
+        path: ':id',
+        name: 'CourseDetail',
+        component: () => import('../views/course/CourseDetail.vue'),
+        meta: { 
+          title: '课程详情',
+          requiresAuth: true,
+          permissions: ['course:view']
+        }
+      },
+      {
+        path: ':id/edit',
+        name: 'CourseEdit',
+        component: () => import('../views/course/CourseEdit.vue'),
+        meta: { 
+          title: '编辑课程',
+          requiresAuth: true,
+          permissions: ['course:edit']
         }
       }
     ]

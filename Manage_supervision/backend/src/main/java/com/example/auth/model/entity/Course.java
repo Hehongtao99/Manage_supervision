@@ -1,37 +1,45 @@
-package com.example.auth.model.dto;
+package com.example.auth.model.entity;
 
-import lombok.Data;
-
-import java.io.Serializable;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-/**
- * 学生课程的数据传输对象
- */
-@Data
-public class CourseDTO implements Serializable {
+@TableName("courses")
+public class Course {
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
-    private String name;  // 课程名称（与courseName保持兼容）
+    
+    @TableField("course_name")
     private String courseName;
+    
     private String description;
+    
+    @TableField("teacher_id")
     private Long teacherId;
-    private String teacherName;
+    
     private Integer duration;
+    
     private String category;
+    
+    @TableField("cover_image")
     private String coverImage;
+    
     private String status;
-    private Integer credits;  // 学分
-    private Integer score;    // 分数
+    
+    @TableField("create_time")
     private LocalDateTime createTime;
+    
+    @TableField("update_time")
     private LocalDateTime updateTime;
+    
+    @TableField(exist = false)
+    private User teacher;
     
     // Getters
     public Long getId() {
         return id;
-    }
-    
-    public String getName() {
-        return name;
     }
     
     public String getCourseName() {
@@ -44,10 +52,6 @@ public class CourseDTO implements Serializable {
     
     public Long getTeacherId() {
         return teacherId;
-    }
-    
-    public String getTeacherName() {
-        return teacherName;
     }
     
     public Integer getDuration() {
@@ -66,14 +70,6 @@ public class CourseDTO implements Serializable {
         return status;
     }
     
-    public Integer getCredits() {
-        return credits;
-    }
-    
-    public Integer getScore() {
-        return score;
-    }
-    
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -82,19 +78,17 @@ public class CourseDTO implements Serializable {
         return updateTime;
     }
     
+    public User getTeacher() {
+        return teacher;
+    }
+    
     // Setters
     public void setId(Long id) {
         this.id = id;
     }
     
-    public void setName(String name) {
-        this.name = name;
-        this.courseName = name;  // 保持与courseName同步
-    }
-    
     public void setCourseName(String courseName) {
         this.courseName = courseName;
-        this.name = courseName;  // 保持与name同步
     }
     
     public void setDescription(String description) {
@@ -103,10 +97,6 @@ public class CourseDTO implements Serializable {
     
     public void setTeacherId(Long teacherId) {
         this.teacherId = teacherId;
-    }
-    
-    public void setTeacherName(String teacherName) {
-        this.teacherName = teacherName;
     }
     
     public void setDuration(Integer duration) {
@@ -125,19 +115,15 @@ public class CourseDTO implements Serializable {
         this.status = status;
     }
     
-    public void setCredits(Integer credits) {
-        this.credits = credits;
-    }
-    
-    public void setScore(Integer score) {
-        this.score = score;
-    }
-    
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
     
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+    
+    public void setTeacher(User teacher) {
+        this.teacher = teacher;
     }
 } 

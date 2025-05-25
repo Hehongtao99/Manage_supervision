@@ -8,9 +8,11 @@ import com.example.auth.model.dto.UserDTO;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.entity.Permission;
+import com.example.auth.model.entity.Course;
 import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
+import com.example.auth.mapper.CourseMapper;
 import com.example.auth.service.AdminService;
 import com.example.auth.service.PermissionService;
 import com.example.auth.util.PasswordUtils;
@@ -42,6 +44,9 @@ public class AdminServiceImpl implements AdminService {
     
     @Autowired
     private PermissionService permissionService;
+    
+    @Autowired
+    private CourseMapper courseMapper;
     
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
@@ -462,5 +467,31 @@ public class AdminServiceImpl implements AdminService {
         result.put("counts", countsList);
         
         return result;
+    }
+
+    @Override
+    public Long countTotalCourses() {
+        // 使用LambdaQueryWrapper查询所有非删除状态的课程数量
+        LambdaQueryWrapper<Course> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.ne(Course::getStatus, "deleted");
+        return courseMapper.selectCount(queryWrapper);
+    }
+    
+    @Override
+    public Map<String, Long> getCourseCategoryDistribution() {
+        // 获取所有非删除状态的课程
+        LambdaQueryWrapper<Course> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.ne(Course::getStatus, "deleted");
+        List<Course> courses = courseMapper.selectList(queryWrapper);
+        
+        // 按类别分组统计
+        Map<String, Long> distribution = courses.stream()
+                .filter(course -> course.getCategory() != null && !course.getCategory().isEmpty())
+                .collect(Collectors.groupingBy(
+                        Course::getCategory,
+                        Collectors.counting()
+                ));
+        
+        return distribution;
     }
 } 

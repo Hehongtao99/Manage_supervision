@@ -69,6 +69,23 @@ public class TeacherStudentServiceImpl implements TeacherStudentService {
     }
 
     @Override
+    public List<UserDTO> getAllTeachersWithoutPaging() {
+        // 获取教师角色
+        Role teacherRole = roleMapper.findByName("SUPERVISOR");
+        if (teacherRole == null) {
+            throw new RuntimeException("教师角色不存在");
+        }
+        
+        // 查询所有教师
+        List<User> teachers = userMapper.findByRoleId(teacherRole.getId());
+        
+        // 转换为DTO
+        return teachers.stream()
+                .map(this::convertToUserDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public PageResponse<UserDTO> getAllStudents(int page, int size, String keyword) {
         // 获取学生角色
         Role studentRole = roleMapper.findByName("USER");

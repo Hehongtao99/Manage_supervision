@@ -90,6 +90,17 @@ export const useUserStore = defineStore('user', {
   },
 
   actions: {
+    // 检查用户是否有指定权限
+    hasPermission(permission: string): boolean {
+      // 管理员默认拥有所有权限
+      if (this.isAdmin) {
+        return true;
+      }
+      
+      // 检查用户权限列表中是否包含指定权限
+      return this.permissions.includes(permission);
+    },
+    
     setAxiosAuthHeader() {
       if (this.token) {
         console.log('设置全局Authorization头:', this.token.substring(0, 10) + '...')

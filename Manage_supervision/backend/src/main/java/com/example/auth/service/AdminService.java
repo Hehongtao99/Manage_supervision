@@ -39,4 +39,9 @@ public interface AdminService {
     Map<String, Long> getUserRoleDistribution();
     
     Map<String, List<Object>> getUserActivityLastWeek();
+    
+    // 课程统计
+    Long countTotalCourses();
+    
+    Map<String, Long> getCourseCategoryDistribution();
 } 

@@ -4,11 +4,105 @@
     <div class="sidebar-container" :class="{ 'is-collapsed': isCollapsed }">
       <div class="logo-container">
         <img src="../assets/logo.png" alt="Logo" class="logo-image" />
-        <span class="logo-text" v-show="!isCollapsed">管理系统</span>
+        <span class="logo-text" v-show="!isCollapsed">学生督导系统</span>
       </div>
       
       <el-scrollbar>
-        <side-menu :is-collapsed="isCollapsed" />
+        <el-menu
+          :default-active="$route.path"
+          :collapse="isCollapsed"
+          :unique-opened="true"
+          background-color="#304156"
+          text-color="#bfcbd9"
+          active-text-color="#409EFF"
+          router
+        >
+          <!-- 管理员菜单 -->
+          <template v-if="userStore.isAdmin">
+            <el-menu-item index="/admin/dashboard">
+              <el-icon><Monitor /></el-icon>
+              <template #title>控制台</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/admin/users">
+              <el-icon><User /></el-icon>
+              <template #title>用户管理</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/admin/teachers">
+              <el-icon><User /></el-icon>
+              <template #title>教师管理</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/admin/students">
+              <el-icon><User /></el-icon>
+              <template #title>学生管理</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/admin/roles">
+              <el-icon><Setting /></el-icon>
+              <template #title>角色管理</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/admin/courses">
+              <el-icon><Document /></el-icon>
+              <template #title>课程管理</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/admin/course-categories">
+              <el-icon><List /></el-icon>
+              <template #title>课程类别管理</template>
+            </el-menu-item>
+          </template>
+          
+          <!-- 教师菜单 -->
+          <template v-else-if="userStore.isSupervisor">
+            <el-menu-item index="/supervisor/students">
+              <el-icon><User /></el-icon>
+              <template #title>学生管理</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/supervisor/courses">
+              <el-icon><Document /></el-icon>
+              <template #title>我的课程</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/supervisor/chat">
+              <el-icon><ChatDotRound /></el-icon>
+              <template #title>
+                <span>消息</span>
+                <el-badge v-if="unreadCount > 0" :value="unreadCount" class="unread-badge" />
+              </template>
+            </el-menu-item>
+          </template>
+          
+          <!-- 学生菜单 -->
+          <template v-else>
+            <el-menu-item index="/chat">
+              <el-icon><ChatDotRound /></el-icon>
+              <template #title>
+                <span>消息</span>
+                <el-badge v-if="unreadCount > 0" :value="unreadCount" class="unread-badge" />
+              </template>
+            </el-menu-item>
+            
+            <el-menu-item index="/course/list">
+              <el-icon><Document /></el-icon>
+              <template #title>课程列表</template>
+            </el-menu-item>
+          </template>
+          
+          <!-- 公共菜单 -->
+          <el-menu-item index="/profile">
+            <el-icon><UserFilled /></el-icon>
+            <template #title>个人信息</template>
+          </el-menu-item>
+          
+          <el-menu-item index="/settings">
+            <el-icon><Setting /></el-icon>
+            <template #title>账号设置</template>
+          </el-menu-item>
+        </el-menu>
       </el-scrollbar>
     </div>
 
@@ -18,21 +112,13 @@
       <div class="navbar">
         <div class="navbar-left">
           <div class="hamburger" @click="toggleSidebar">
-            <el-icon :size="20">
-              <component :is="isCollapsed ? 'Expand' : 'Fold'" />
-            </el-icon>
+            <el-icon :size="24" v-if="isCollapsed"><Expand /></el-icon>
+            <el-icon :size="24" v-else><Fold /></el-icon>
           </div>
           <breadcrumb />
         </div>
         
         <div class="navbar-right">
-          <!-- 聊天图标和未读消息提示 -->
-          <div class="notification-item" @click="navigateToChat">
-            <el-badge :value="unreadCount > 0 ? unreadCount : ''" :max="99" :hidden="unreadCount <= 0">
-              <el-icon :size="20"><ChatDotRound /></el-icon>
-            </el-badge>
-          </div>
-          
           <!-- 角色标识 -->
           <div class="role-indicator">
             <el-tag :type="roleTagType" effect="dark">
@@ -52,7 +138,7 @@
               <el-dropdown-menu>
                 <!-- 根据角色不同，跳转到不同的个人信息页面 -->
                 <el-dropdown-item @click="navigateToProfile">
-                  <el-icon><User /></el-icon>个人信息
+                  <el-icon><UserFilled /></el-icon>个人信息
                 </el-dropdown-item>
                 
                 <!-- 管理员可以直接进入管理页面 -->
@@ -63,6 +149,10 @@
                 <!-- 教师可以直接进入教师页面 -->
                 <el-dropdown-item v-if="userStore.isSupervisor" @click="$router.push('/supervisor/students')">
                   <el-icon><Monitor /></el-icon>学生管理
+                </el-dropdown-item>
+                
+                <el-dropdown-item @click="router.push('/settings')">
+                  <el-icon><Setting /></el-icon>账号设置
                 </el-dropdown-item>
                 
                 <el-dropdown-item divided @click="handleLogout">
@@ -91,18 +181,20 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useChatStore } from '../stores/chat'
-import SideMenu from '../components/SideMenu.vue'
 import Breadcrumb from '../components/Breadcrumb.vue'
 import { ElMessageBox } from 'element-plus'
 import {
   Fold,
   Expand,
+  UserFilled,
+  Document,
   User,
   SwitchButton,
   CaretBottom,
   Setting,
   Monitor,
-  ChatDotRound
+  ChatDotRound,
+  List
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

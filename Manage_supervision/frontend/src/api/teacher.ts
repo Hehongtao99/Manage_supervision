@@ -16,6 +16,17 @@ export const getTeachers = async (page = 1, size = 10, keyword?: string) => {
   }
 }
 
+// 获取所有教师（不分页）
+export const getAllTeachers = async () => {
+  try {
+    const response = await axios.get('/api/admin/teachers/all')
+    return response.data
+  } catch (error) {
+    console.error('获取所有教师失败:', error)
+    throw error
+  }
+}
+
 // 获取教师详情（包含学生列表）
 export const getTeacherDetails = async (teacherId: number) => {
   try {

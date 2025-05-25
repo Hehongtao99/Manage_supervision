@@ -44,6 +44,14 @@ public class AdminTeacherStudentController {
         return ResponseEntity.ok(response);
     }
 
+    // 获取所有教师列表（不分页）
+    @GetMapping("/teachers/all")
+    @RequirePermission({"teacher:view", "TEACHER_VIEW"})
+    public ResponseEntity<List<UserDTO>> getAllTeachersWithoutPaging() {
+        List<UserDTO> teachers = teacherStudentService.getAllTeachersWithoutPaging();
+        return ResponseEntity.ok(teachers);
+    }
+
     // 获取所有学生列表（带分页）
     @GetMapping("/students")
     @RequirePermission({"student:view", "STUDENT_VIEW"})

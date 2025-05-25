@@ -12,7 +12,8 @@ import {
 import VChart from 'vue-echarts'
 import axios from '../../utils/axios'
 import { ElMessage } from 'element-plus'
-import { getUserCreationTrend } from '../../api/dashboard'
+import { getUserCreationTrend, getCourseCount, getCourseCategoryDistribution } from '../../api/dashboard'
+import type { CourseDistribution } from '../../api/dashboard'
 
 // 注册 ECharts 组件
 use([
@@ -34,6 +35,11 @@ const statistics = ref({
   systemHealth: '正常'
 })
 
+// 课程统计数据
+const courseStatistics = ref({
+  totalCourses: 0
+})
+
 // 用户角色分布数据
 const userRoleDistribution = ref([
   { value: 0, name: '管理员' },
@@ -41,6 +47,9 @@ const userRoleDistribution = ref([
   { value: 0, name: '学生' },
   { value: 0, name: '普通用户' }
 ])
+
+// 课程分类分布数据
+const courseCategoryDistribution = ref<CourseDistribution[]>([])
 
 // 近7天用户创建趋势数据
 const userCreationData = ref({
@@ -89,6 +98,51 @@ const pieChartOption = computed(() => ({
         show: false
       },
       data: userRoleDistribution.value
+    }
+  ]
+}))
+
+// 课程分类分布饼图配置
+const coursePieChartOption = computed(() => ({
+  title: {
+    text: '课程分类分布',
+    left: 'center'
+  },
+  tooltip: {
+    trigger: 'item',
+    formatter: '{a} <br/>{b}: {c} ({d}%)'
+  },
+  legend: {
+    orient: 'vertical',
+    left: 'left',
+    data: courseCategoryDistribution.value.map(item => item.name)
+  },
+  series: [
+    {
+      name: '课程分类',
+      type: 'pie',
+      radius: ['40%', '70%'],
+      avoidLabelOverlap: false,
+      itemStyle: {
+        borderRadius: 10,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      label: {
+        show: false,
+        position: 'center'
+      },
+      emphasis: {
+        label: {
+          show: true,
+          fontSize: 16,
+          fontWeight: 'bold'
+        }
+      },
+      labelLine: {
+        show: false
+      },
+      data: courseCategoryDistribution.value
     }
   ]
 }))
@@ -163,6 +217,18 @@ const fetchDashboardData = async () => {
         counts: []
       }
     }
+    
+    // 4. 获取课程统计数据
+    try {
+      const totalCourses = await getCourseCount()
+      courseStatistics.value.totalCourses = totalCourses
+      
+      const categoryDist = await getCourseCategoryDistribution()
+      courseCategoryDistribution.value = categoryDist
+    } catch (error) {
+      console.error('获取课程统计数据失败:', error)
+      ElMessage.error('获取课程统计数据失败，请稍后再试')
+    }
   } catch (error) {
     console.error('获取控制台数据失败:', error)
     ElMessage.error('获取控制台数据失败，请稍后再试')
@@ -199,118 +265,152 @@ onMounted(async () => {
   <div class="admin-dashboard">
     <h1 class="dashboard-title">管理控制台</h1>
     
-    <el-skeleton :loading="loading" animated>
-      <template #template>
-        <div class="skeleton-container">
-          <el-skeleton-item variant="rect" style="width: 100%; height: 100px; margin-bottom: 20px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 400px" />
-        </div>
-      </template>
+    <el-row :gutter="20" v-loading="loading">
+      <!-- 用户统计卡片 -->
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <template #header>
+            <div class="card-header">
+              <span>总用户数</span>
+            </div>
+          </template>
+          <div class="stat-value">{{ statistics.totalUsers }}</div>
+        </el-card>
+      </el-col>
       
-      <template #default>
-        <div class="statistics-grid">
-          <div class="stat-card">
-            <h3>总用户数</h3>
-            <div class="stat-value">{{ statistics.totalUsers }}</div>
-          </div>
-          
-          <div class="stat-card">
-            <h3>活跃用户</h3>
-            <div class="stat-value">{{ statistics.activeUsers }}</div>
-          </div>
-          
-          <div class="stat-card">
-            <h3>角色数量</h3>
-            <div class="stat-value">{{ statistics.totalRoles }}</div>
-          </div>
-          
-          <div class="stat-card">
-            <h3>系统状态</h3>
-            <div class="stat-value">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <template #header>
+            <div class="card-header">
+              <span>活跃用户数</span>
+            </div>
+          </template>
+          <div class="stat-value">{{ statistics.activeUsers }}</div>
+        </el-card>
+      </el-col>
+      
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <template #header>
+            <div class="card-header">
+              <span>总角色数</span>
+            </div>
+          </template>
+          <div class="stat-value">{{ statistics.totalRoles }}</div>
+        </el-card>
+      </el-col>
+      
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <template #header>
+            <div class="card-header">
+              <span>总课程数</span>
+            </div>
+          </template>
+          <div class="stat-value">{{ courseStatistics.totalCourses }}</div>
+        </el-card>
+      </el-col>
+    </el-row>
+    
+    <el-row :gutter="20" class="chart-row">
+      <!-- 用户角色分布图 -->
+      <el-col :xs="24" :sm="12">
+        <el-card shadow="hover" class="chart-card">
+          <v-chart class="chart" :option="pieChartOption" autoresize />
+        </el-card>
+      </el-col>
+      
+      <!-- 课程分类分布图 -->
+      <el-col :xs="24" :sm="12">
+        <el-card shadow="hover" class="chart-card">
+          <v-chart class="chart" :option="coursePieChartOption" autoresize />
+        </el-card>
+      </el-col>
+    </el-row>
+    
+    <el-row>
+      <!-- 用户创建趋势图 -->
+      <el-col :span="24">
+        <el-card shadow="hover" class="chart-card line-chart-card">
+          <v-chart class="chart" :option="lineChartOption" autoresize />
+        </el-card>
+      </el-col>
+    </el-row>
+    
+    <el-row>
+      <el-col :span="24">
+        <el-card shadow="hover" class="system-info-card">
+          <template #header>
+            <div class="card-header">
+              <span>系统状态</span>
               <el-tag type="success" v-if="statistics.systemHealth === '正常'">{{ statistics.systemHealth }}</el-tag>
               <el-tag type="warning" v-else-if="statistics.systemHealth === '警告'">{{ statistics.systemHealth }}</el-tag>
               <el-tag type="danger" v-else>{{ statistics.systemHealth }}</el-tag>
             </div>
+          </template>
+          <div class="system-info">
+            <p>上次刷新时间: {{ new Date().toLocaleString() }}</p>
           </div>
-        </div>
-
-        <div class="charts-container">
-          <div class="chart-card">
-            <v-chart class="chart" :option="pieChartOption" autoresize />
-          </div>
-          
-          <div class="chart-card">
-            <v-chart class="chart" :option="lineChartOption" autoresize />
-          </div>
-        </div>
-      </template>
-    </el-skeleton>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <style scoped>
 .admin-dashboard {
-  padding: 24px;
+  padding: 20px;
 }
 
 .dashboard-title {
-  margin-bottom: 24px;
-  font-size: 24px;
+  margin-bottom: 20px;
   font-weight: 500;
-}
-
-.statistics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
 }
 
 .stat-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  transition: all 0.3s;
 }
 
-.stat-card h3 {
-  margin: 0 0 12px 0;
-  color: #666;
-  font-size: 14px;
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: 500;
-  color: #333;
+  font-size: 28px;
+  font-weight: bold;
+  color: #409EFF;
+  text-align: center;
 }
 
-.charts-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
+.chart-row {
+  margin-bottom: 20px;
 }
 
 .chart-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.line-chart-card {
+  height: 400px;
 }
 
 .chart {
-  height: 350px;
-  width: 100%;
+  height: 300px;
 }
 
-.skeleton-container {
-  width: 100%;
+.system-info-card {
+  margin-bottom: 20px;
 }
 
-@media (max-width: 1200px) {
-  .charts-container {
-    grid-template-columns: 1fr;
-  }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.system-info {
+  color: #606266;
 }
 </style> 

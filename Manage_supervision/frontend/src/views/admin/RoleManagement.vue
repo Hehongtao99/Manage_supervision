@@ -65,7 +65,7 @@
             :data="filterPermissionTree(permissionTree, viewForm.permissions || [])"
             node-key="id"
             :props="{ label: 'label', children: 'children' }"
-            :default-expanded-keys="['system', 'user', 'role', 'permission', 'teacher', 'student', 'chat']"
+            :default-expanded-keys="['system', 'user', 'role', 'permission', 'teacher', 'student', 'chat', 'course', 'category']"
             :render-after-expand="false"
             show-checkbox
             :default-checked-keys="viewForm.permissions || []"
@@ -101,7 +101,7 @@
             :data="permissionTree"
             node-key="id"
             :props="{ label: 'label', children: 'children' }"
-            :default-expanded-keys="['system', 'user', 'role', 'permission', 'teacher', 'student', 'chat']"
+            :default-expanded-keys="['system', 'user', 'role', 'permission', 'teacher', 'student', 'chat', 'course', 'category']"
             show-checkbox
             :default-checked-keys="editForm.permissions || []"
             :check-strictly="true"
@@ -176,13 +176,23 @@ const availablePermissions = [
   'chat:view',
   'chat:send',
   'chat:delete',
+  'course:view',
+  'course:add',
+  'course:edit',
+  'course:delete',
+  'category:view',
+  'category:add',
+  'category:edit',
+  'category:delete',
   'system',
   'user',
   'role',
   'permission',
   'teacher',
   'student',
-  'chat'
+  'chat',
+  'course',
+  'category'
 ]
 
 // 权限名称映射（英文到中文）
@@ -222,13 +232,23 @@ const permissionLabels = {
   'chat:view': '查看消息',
   'chat:send': '发送消息',
   'chat:delete': '删除消息',
+  'course:view': '查看课程',
+  'course:add': '添加课程',
+  'course:edit': '编辑课程',
+  'course:delete': '删除课程',
+  'category:view': '查看课程类别',
+  'category:add': '添加课程类别',
+  'category:edit': '编辑课程类别',
+  'category:delete': '删除课程类别',
   'system': '系统管理',
   'user': '用户管理',
   'role': '角色管理',
   'permission': '权限管理',
   'teacher': '教师管理',
   'student': '学生管理',
-  'chat': '对话管理'
+  'chat': '对话管理',
+  'course': '课程管理',
+  'category': '课程类别管理'
 }
 
 // 权限树形结构
@@ -299,6 +319,26 @@ const permissionTree = [
       { id: 'chat:send', label: '发送消息' },
       { id: 'chat:view', label: '查看消息' },
       { id: 'chat:delete', label: '删除消息' }
+    ]
+  },
+  {
+    id: 'course',
+    label: '课程管理',
+    children: [
+      { id: 'course:view', label: '查看课程' },
+      { id: 'course:add', label: '添加课程' },
+      { id: 'course:edit', label: '编辑课程' },
+      { id: 'course:delete', label: '删除课程' },
+      {
+        id: 'category',
+        label: '课程类别管理',
+        children: [
+          { id: 'category:view', label: '查看课程类别' },
+          { id: 'category:add', label: '添加课程类别' },
+          { id: 'category:edit', label: '编辑课程类别' },
+          { id: 'category:delete', label: '删除课程类别' }
+        ]
+      }
     ]
   }
 ]

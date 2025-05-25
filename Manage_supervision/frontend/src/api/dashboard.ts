@@ -29,6 +29,11 @@ export interface UserCreationTrend {
   counts: number[]
 }
 
+export interface CourseDistribution {
+  name: string
+  value: number
+}
+
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   const userStore = useUserStore()
   
@@ -52,5 +57,21 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
  */
 export const getUserCreationTrend = async (): Promise<UserCreationTrend> => {
   const response = await axios.get<UserCreationTrend>('/api/dashboard/admin/user-creation-trend')
+  return response.data
+}
+
+/**
+ * 获取课程总数
+ */
+export const getCourseCount = async (): Promise<number> => {
+  const response = await axios.get<number>('/api/admin/statistics/course-count')
+  return response.data
+}
+
+/**
+ * 获取课程分类分布
+ */
+export const getCourseCategoryDistribution = async (): Promise<CourseDistribution[]> => {
+  const response = await axios.get<CourseDistribution[]>('/api/admin/statistics/course-distribution')
   return response.data
 } 
