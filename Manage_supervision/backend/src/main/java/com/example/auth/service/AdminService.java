@@ -20,6 +20,8 @@ public interface AdminService {
     
     void resetPassword(Long id, String newPassword);
     
+    void deleteUser(Long id);
+    
     // 角色管理
     List<RoleDTO> getAllRoles();
     

@@ -84,6 +84,13 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/users/{id}")
+    @RequireRole("ADMIN")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
     // 角色管理接口
     @GetMapping("/roles")
     @RequireRole("ADMIN")

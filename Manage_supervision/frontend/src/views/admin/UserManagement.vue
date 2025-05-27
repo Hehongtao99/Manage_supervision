@@ -51,7 +51,11 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="userNumber" label="用户编号" width="120" />
         <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="realName" label="真实姓名" width="120" />
+        <el-table-column label="姓名" width="120">
+          <template #default="{ row }">
+            {{ row.realName || row.username }}
+          </template>
+        </el-table-column>
         <el-table-column prop="nickname" label="昵称" width="120" />
         <el-table-column prop="email" label="邮箱" width="180" />
         <el-table-column prop="phone" label="手机号" width="120" />
@@ -65,7 +69,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" fixed="right" width="200">
+        <el-table-column label="操作" fixed="right" width="260">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -87,6 +91,13 @@
               @click="handleToggleStatus(row)"
             >
               {{ row.status === 'active' ? '禁用' : '启用' }}
+            </el-button>
+            <el-button
+              type="danger"
+              link
+              @click="handleDelete(row)"
+            >
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -454,6 +465,28 @@ const handleToggleStatus = async (row: UserProfile) => {
   } catch (error: any) {
     if (error !== 'cancel') {
       ElMessage.error(error.response?.data?.message || '操作失败')
+    }
+  }
+}
+
+const handleDelete = async (row: UserProfile) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除用户"${row.realName || row.username}"吗？删除后无法恢复！`,
+      '警告',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    await axios.delete(`/api/admin/users/${row.id}`)
+    ElMessage.success('删除用户成功')
+    fetchUserList()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || '删除用户失败')
     }
   }
 }

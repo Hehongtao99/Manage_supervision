@@ -237,6 +237,18 @@ public class AdminServiceImpl implements AdminService {
     }
     
     @Override
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userMapper.selectById(id);
+        if (user != null) {
+            // 删除用户角色关联
+            userRoleMapper.deleteUserRoles(id);
+            // 删除用户
+            userMapper.deleteById(id);
+        }
+    }
+    
+    @Override
     public List<RoleDTO> getAllRoles() {
         LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
         List<Role> roles = roleMapper.selectList(queryWrapper);
