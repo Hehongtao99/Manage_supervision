@@ -107,10 +107,11 @@ const handleRoute = (path: string) => {
 .side-menu {
   border-right: none;
   user-select: none;
+  width: 210px; /* 默认宽度 */
 }
 
-.side-menu:not(.el-menu--collapse) {
-  width: 210px;
+.side-menu.el-menu--collapse {
+  width: 64px; /* 折叠时的宽度 */
 }
 
 :deep(.el-menu-item),

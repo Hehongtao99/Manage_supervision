@@ -105,6 +105,9 @@ const userStore = useUserStore()
 const chatStore = useChatStore()
 const isCollapsed = ref(false)
 
+// 调试信息
+console.log('菜单初始状态 - isCollapsed:', isCollapsed.value)
+
 // 未读消息计数
 const unreadCount = computed(() => chatStore.totalUnreadCount)
 
@@ -138,6 +141,7 @@ const navigateToChat = () => {
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
+  console.log('菜单状态切换 - isCollapsed:', isCollapsed.value)
 }
 
 const handleLogout = () => {
@@ -332,19 +336,19 @@ watch(() => userStore.isLoggedIn, async (isLoggedIn) => {
 /* 响应式设计 */
 @media screen and (max-width: 768px) {
   .sidebar-container {
-    width: 64px;
+    width: 210px; /* 保持正常宽度 */
   }
   
   .main-container {
-    margin-left: 64px;
+    margin-left: 210px; /* 保持正常边距 */
   }
   
   .is-collapsed .sidebar-container {
-    width: 0;
+    width: 64px;
   }
   
   .is-collapsed .main-container {
-    margin-left: 0;
+    margin-left: 64px;
   }
 }
 </style> 
