@@ -26,7 +26,7 @@ public class RunningRecord {
     private BigDecimal distance;
     
     /**
-     * 跑步时长，单位：分钟
+     * 跑步时长，单位：秒
      */
     private Integer duration;
     
@@ -40,6 +40,12 @@ public class RunningRecord {
      */
     @TableField("record_date")
     private LocalDate recordDate;
+    
+    /**
+     * 记录时间（精确到秒）
+     */
+    @TableField("record_datetime")
+    private LocalDateTime recordDateTime;
     
     @TableField("create_time")
     private LocalDateTime createTime;
@@ -95,6 +101,14 @@ public class RunningRecord {
     
     public void setRecordDate(LocalDate recordDate) {
         this.recordDate = recordDate;
+    }
+    
+    public LocalDateTime getRecordDateTime() {
+        return recordDateTime;
+    }
+    
+    public void setRecordDateTime(LocalDateTime recordDateTime) {
+        this.recordDateTime = recordDateTime;
     }
     
     public LocalDateTime getCreateTime() {

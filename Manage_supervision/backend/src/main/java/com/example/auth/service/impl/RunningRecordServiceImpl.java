@@ -52,7 +52,20 @@ public class RunningRecordServiceImpl implements RunningRecordService {
         record.setDistance(request.getDistance());
         record.setDuration(request.getDuration());
         record.setPace(request.getPace());
-        record.setRecordDate(request.getRecordDate() != null ? request.getRecordDate() : java.time.LocalDate.now());
+        
+        // 设置记录日期和时间
+        if (request.getRecordDateTime() != null) {
+            record.setRecordDateTime(request.getRecordDateTime());
+            record.setRecordDate(request.getRecordDateTime().toLocalDate());
+        } else if (request.getRecordDate() != null) {
+            record.setRecordDate(request.getRecordDate());
+            record.setRecordDateTime(request.getRecordDate().atStartOfDay());
+        } else {
+            LocalDateTime now = LocalDateTime.now();
+            record.setRecordDateTime(now);
+            record.setRecordDate(now.toLocalDate());
+        }
+        
         record.setCreateTime(LocalDateTime.now());
         record.setUpdateTime(LocalDateTime.now());
         
@@ -226,6 +239,7 @@ public class RunningRecordServiceImpl implements RunningRecordService {
         response.setDuration(record.getDuration());
         response.setPace(record.getPace());
         response.setRecordDate(record.getRecordDate());
+        response.setRecordDateTime(record.getRecordDateTime());
         
         if (record.getCreateTime() != null) {
             response.setCreateTime(record.getCreateTime().format(FORMATTER));

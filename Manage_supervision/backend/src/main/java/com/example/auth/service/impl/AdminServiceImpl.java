@@ -375,9 +375,30 @@ public class AdminServiceImpl implements AdminService {
         
         // 将权限字符串转换为列表
         if (role.getPermissions() != null && !role.getPermissions().isEmpty()) {
-            dto.setPermissions(List.of(role.getPermissions().split(",")));
+            // 处理权限字符串，去除前导逗号和空字符串
+            String permissionsStr = role.getPermissions().trim();
+            if (permissionsStr.startsWith(",")) {
+                permissionsStr = permissionsStr.substring(1);
+            }
+            
+            List<String> permissions = new ArrayList<>();
+            if (!permissionsStr.isEmpty()) {
+                String[] permissionArray = permissionsStr.split(",");
+                for (String permission : permissionArray) {
+                    String trimmedPermission = permission.trim();
+                    if (!trimmedPermission.isEmpty()) {
+                        permissions.add(trimmedPermission);
+                    }
+                }
+            }
+            dto.setPermissions(permissions);
         } else {
             dto.setPermissions(new ArrayList<>());
+        }
+        
+        // 格式化创建时间
+        if (role.getCreateTime() != null) {
+            dto.setCreateTime(role.getCreateTime().format(formatter));
         }
         
         return dto;

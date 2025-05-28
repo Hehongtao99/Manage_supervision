@@ -92,6 +92,7 @@ const roleList = ref<Role[]>([])
 const availablePermissions = [
   'USER_VIEW',
   'USER_EDIT',
+  'USER_DELETE',
   'USER_DISABLE',
   'ROLE_VIEW',
   'ROLE_EDIT',
@@ -105,6 +106,7 @@ const availablePermissions = [
 const permissionLabels = {
   'USER_VIEW': '查看用户',
   'USER_EDIT': '编辑用户',
+  'USER_DELETE': '删除用户',
   'USER_DISABLE': '禁用用户',
   'ROLE_VIEW': '查看角色',
   'ROLE_EDIT': '编辑角色',
@@ -122,6 +124,7 @@ const permissionTree = [
     children: [
       { id: 'USER_VIEW', label: '查看用户' },
       { id: 'USER_EDIT', label: '编辑用户' },
+      { id: 'USER_DELETE', label: '删除用户' },
       { id: 'USER_DISABLE', label: '禁用用户' }
     ]
   },

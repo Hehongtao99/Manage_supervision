@@ -5,16 +5,16 @@ import { getAuthHeader } from '../utils/auth'
 // 类型定义
 export interface RunningRecordRequest {
   distance: number;
-  duration: number;
+  duration: number; // 跑步时长，单位：秒
   pace: string;
-  recordDate?: string;
+  recordDateTime?: string; // 记录时间，格式：YYYY-MM-DD HH:mm:ss
 }
 
 export interface RunningRecordResponse {
   id: number;
   userId: number;
   distance: number;
-  duration: number;
+  duration: number; // 跑步时长，单位：秒
   pace: string;
   calories: number;
   createTime: string;

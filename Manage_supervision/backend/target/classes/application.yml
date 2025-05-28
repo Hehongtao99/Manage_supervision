@@ -18,6 +18,12 @@ spring:
     password: hht500234
     driver-class-name: com.mysql.cj.jdbc.Driver
   
+  # Jackson配置
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
 
 # MyBatis-Plus配置
 mybatis-plus:

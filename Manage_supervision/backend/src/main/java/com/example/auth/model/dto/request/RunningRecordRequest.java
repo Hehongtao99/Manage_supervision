@@ -1,7 +1,9 @@
 package com.example.auth.model.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 跑步记录请求DTO
@@ -14,7 +16,7 @@ public class RunningRecordRequest {
     private BigDecimal distance;
     
     /**
-     * 跑步时长，单位：分钟
+     * 跑步时长，单位：秒
      */
     private Integer duration;
     
@@ -26,7 +28,14 @@ public class RunningRecordRequest {
     /**
      * 记录日期
      */
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate recordDate;
+    
+    /**
+     * 记录时间（精确到秒）
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime recordDateTime;
     
     // Getters and Setters
     
@@ -60,5 +69,13 @@ public class RunningRecordRequest {
     
     public void setRecordDate(LocalDate recordDate) {
         this.recordDate = recordDate;
+    }
+    
+    public LocalDateTime getRecordDateTime() {
+        return recordDateTime;
+    }
+    
+    public void setRecordDateTime(LocalDateTime recordDateTime) {
+        this.recordDateTime = recordDateTime;
     }
 } 
