@@ -27,5 +27,21 @@ export default defineConfig({
   },
   define: {
     global: 'window'
+  },
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: {
+          'element-plus': ['element-plus']
+        }
+      }
+    },
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
+  },
+  optimizeDeps: {
+    include: ['element-plus']
   }
 })

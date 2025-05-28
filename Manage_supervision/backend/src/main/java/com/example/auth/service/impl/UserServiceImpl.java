@@ -11,7 +11,6 @@ import com.example.auth.mapper.RoleMapper;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.mapper.UserRoleMapper;
 import com.example.auth.service.UserService;
-import com.example.auth.service.TeacherStudentService;
 import com.example.auth.util.PasswordUtils;
 import com.example.auth.util.UserNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +44,7 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserNumberGenerator userNumberGenerator;
-    
-    @Autowired
-    private TeacherStudentService teacherStudentService;
+
 
     @Override
     @Transactional
@@ -456,7 +453,7 @@ public class UserServiceImpl implements UserService {
     public List<UserDTO> getStudentsByTeacher(Long teacherId) {
         logger.info("获取教师ID为{}的学生列表", teacherId);
         try {
-            return teacherStudentService.getStudentsByTeacher(teacherId);
+            return null;
         } catch (Exception e) {
             logger.error("获取教师学生列表失败", e);
             return new ArrayList<>();
