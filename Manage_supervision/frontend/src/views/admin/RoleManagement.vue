@@ -16,15 +16,22 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="角色名称" width="150" />
         <el-table-column prop="description" label="描述" />
-        <el-table-column label="权限" width="300">
+        <el-table-column label="权限" width="400">
           <template #default="{ row }">
-            <el-tag
-              v-for="permission in row.permissions"
-              :key="permission"
-              class="permission-tag"
-            >
-              {{ permissionLabels[permission] }}
-            </el-tag>
+            <div class="permissions-container">
+              <el-tag
+                v-for="permission in row.permissions"
+                :key="permission"
+                class="permission-tag"
+                type="primary"
+                size="small"
+              >
+                {{ getPermissionLabel(permission) }}
+              </el-tag>
+              <el-tag v-if="!row.permissions || row.permissions.length === 0" type="info" size="small">
+                无特殊权限
+              </el-tag>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
@@ -57,7 +64,7 @@
             :data="filterPermissionTree(permissionTree, viewForm.permissions)"
             node-key="id"
             :props="{ label: 'label', children: 'children' }"
-            :default-expanded-keys="['user_management', 'role_management', 'system_management', 'student_management']"
+            :default-expanded-keys="['user_management', 'role_management', 'system_management']"
             :render-after-expand="false"
           >
           </el-tree>
@@ -88,35 +95,95 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const roleList = ref<Role[]>([])
 
-// 可用权限列表
+// 可用权限列表 - 适合跑步管理系统
 const availablePermissions = [
   'USER_VIEW',
-  'USER_EDIT',
+  'USER_EDIT', 
   'USER_DELETE',
   'USER_DISABLE',
   'ROLE_VIEW',
   'ROLE_EDIT',
   'ROLE_DELETE',
+  'RUNNER_MANAGEMENT',
+  'RUN_DATA_VIEW',
+  'RUN_DATA_EDIT',
+  'SOCIAL_MANAGEMENT',
   'LOG_VIEW',
-  'SYSTEM_SETTINGS',
-  'STUDENT_MANAGEMENT'
+  'SYSTEM_SETTINGS'
 ]
 
-// 权限名称映射（英文到中文）
+// 权限名称映射（英文到中文）- 跑步管理系统专用，完整覆盖所有可能的权限
 const permissionLabels = {
   'USER_VIEW': '查看用户',
-  'USER_EDIT': '编辑用户',
+  'USER_EDIT': '编辑用户', 
   'USER_DELETE': '删除用户',
   'USER_DISABLE': '禁用用户',
   'ROLE_VIEW': '查看角色',
   'ROLE_EDIT': '编辑角色',
   'ROLE_DELETE': '删除角色',
+  'RUNNER_MANAGEMENT': '跑步者管理',
+  'RUN_DATA_VIEW': '查看跑步数据',
+  'RUN_DATA_EDIT': '编辑跑步数据',
+  'SOCIAL_MANAGEMENT': '社交管理',
   'LOG_VIEW': '查看日志',
   'SYSTEM_SETTINGS': '系统设置',
-  'STUDENT_MANAGEMENT': '跑步爱好者管理'
+  // 兼容旧版本权限名称
+  'RUNNING_MANAGEMENT': '跑步管理',
+  'RUNNING_RECORD': '跑步记录',
+  'SOCIAL_INTERACT': '社交互动',
+  'RUNNING_DATA': '跑步数据',
+  'USER_MANAGEMENT': '用户管理',
+  'ROLE_MANAGEMENT': '角色管理',
+  'SYSTEM_MANAGEMENT': '系统管理',
+  // 其他可能的权限
+  'PROFILE_EDIT': '编辑资料',
+  'FRIEND_MANAGEMENT': '好友管理',
+  'POST_MANAGEMENT': '动态管理',
+  'COMMENT_MANAGEMENT': '评论管理',
+  'DATA_EXPORT': '数据导出',
+  'DATA_IMPORT': '数据导入'
 }
 
-// 权限树形结构
+// 获取权限标签的安全方法
+const getPermissionLabel = (permission: string): string => {
+  // 首先尝试从映射表获取
+  if (permissionLabels[permission]) {
+    return permissionLabels[permission]
+  }
+  
+  // 如果找不到映射，尝试转换为友好的中文显示
+  if (permission && typeof permission === 'string') {
+    // 移除下划线并转换为中文描述
+    const parts = permission.toLowerCase().split('_')
+    const translations = {
+      'user': '用户',
+      'role': '角色', 
+      'system': '系统',
+      'running': '跑步',
+      'runner': '跑步者',
+      'run': '跑步',
+      'data': '数据',
+      'social': '社交',
+      'management': '管理',
+      'view': '查看',
+      'edit': '编辑',
+      'delete': '删除',
+      'create': '创建',
+      'settings': '设置',
+      'log': '日志',
+      'interact': '互动',
+      'record': '记录',
+      'disable': '禁用'
+    }
+    
+    const translatedParts = parts.map(part => translations[part] || part)
+    return translatedParts.join('')
+  }
+  
+  return '未知权限'
+}
+
+// 权限树形结构 - 跑步管理系统
 const permissionTree = [
   {
     id: 'user_management',
@@ -126,6 +193,22 @@ const permissionTree = [
       { id: 'USER_EDIT', label: '编辑用户' },
       { id: 'USER_DELETE', label: '删除用户' },
       { id: 'USER_DISABLE', label: '禁用用户' }
+    ]
+  },
+  {
+    id: 'runner_management', 
+    label: '跑步者管理',
+    children: [
+      { id: 'RUNNER_MANAGEMENT', label: '跑步者管理' },
+      { id: 'RUN_DATA_VIEW', label: '查看跑步数据' },
+      { id: 'RUN_DATA_EDIT', label: '编辑跑步数据' }
+    ]
+  },
+  {
+    id: 'social_management',
+    label: '社交管理', 
+    children: [
+      { id: 'SOCIAL_MANAGEMENT', label: '社交管理' }
     ]
   },
   {
@@ -143,13 +226,6 @@ const permissionTree = [
     children: [
       { id: 'LOG_VIEW', label: '查看日志' },
       { id: 'SYSTEM_SETTINGS', label: '系统设置' }
-    ]
-  },
-  {
-    id: 'student_management',
-    label: '跑步爱好者管理',
-    children: [
-      { id: 'STUDENT_MANAGEMENT', label: '跑步爱好者管理' }
     ]
   }
 ]
@@ -260,9 +336,19 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+.permissions-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+  align-items: flex-start;
+}
+
 .permission-tag {
-  margin-right: 5px;
-  margin-bottom: 5px;
+  margin: 0;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 :deep(.el-dialog__body) {

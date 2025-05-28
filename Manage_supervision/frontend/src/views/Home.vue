@@ -47,7 +47,7 @@
               <h3>{{ userStore.user.name || userStore.user.username }}</h3>
               <p class="user-role">
                 <el-tag type="success" size="small">
-                  {{ userStore.user.roles.includes('ADMIN') ? '管理员' : userStore.user.roles.includes('USER') ? '跑步爱好者' : '教师' }}
+                  {{ userStore.user.roles.includes('ADMIN') ? '管理员' : userStore.user.roles.includes('USER') ? '跑步爱好者' : userStore.user.roles[0] }}
                 </el-tag>
               </p>
               <p class="user-number">编号: {{ userStore.user.userNumber || '未设置' }}</p>
@@ -77,57 +77,12 @@
                   :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'warning' : 'success'"
                   style="margin-right: 5px"
                 >
-                  {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : '教师' }}
+                  {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : role }}
                 </el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="创建时间" />
           </el-table>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 跑步爱好者任务概览 - 只对跑步爱好者显示 -->
-    <el-row style="margin-top: 20px" v-if="userStore.isRunner">
-      <el-col :span="24">
-        <el-card class="task-card">
-          <template #header>
-            <div class="card-header">
-              <h3>我的任务</h3>
-              <el-button type="primary" size="small" @click="$router.push('/task-list')">查看所有任务</el-button>
-            </div>
-          </template>
-          <div class="task-list" v-loading="tasksLoading">
-            <div v-if="myTasks.length === 0" class="empty-tasks">
-              <el-empty description="没有分配给您的任务" :image-size="80">
-                <template #description>
-                  <p>暂无分配给您的任务</p>
-                  <p class="sub-text">任务将由教师分配，请耐心等待</p>
-                </template>
-              </el-empty>
-            </div>
-            <div v-else>
-              <div v-for="(task, index) in myTasks" :key="index" class="task-item">
-                <div class="task-header">
-                  <h4>{{ task.title }}</h4>
-                  <el-tag :type="getStatusType(task.status)" size="small">{{ getChineseStatus(task.status) }}</el-tag>
-                </div>
-                <div class="task-info">
-                  <span class="task-supervisor">教师: {{ task.supervisorName || '未分配' }}</span>
-                  <span class="task-priority" v-if="task.category">
-                    类别: 
-                    <el-tag type="info" size="small">{{ task.category }}</el-tag>
-                  </span>
-                </div>
-                <div class="task-time">
-                  <span v-if="task.endTime">截止日期: {{ task.endTime }}</span>
-                </div>
-                <div class="task-actions">
-                  <el-button type="primary" size="small" @click="$router.push('/task-list')">查看详情</el-button>
-                </div>
-              </div>
-            </div>
-          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -168,7 +123,6 @@ import {
   Calendar, 
   Document
 } from '@element-plus/icons-vue'
-import { getMyTasks } from '../api/task'
 
 // 注册ECharts组件
 use([
@@ -183,22 +137,10 @@ const router = useRouter()
 const userStore = useUserStore()
 const stats = ref<DashboardStats>()
 
-// 跑步爱好者统计数据
-const studentStats = ref({
-  totalTasks: 0,
-  completedTasks: 0
-})
-
-// 跑步爱好者任务数据
-const myTasks = ref([])
-const tasksLoading = ref(false)
-
 // 根据用户角色获取仪表盘标题
 const getDashboardTitle = computed(() => {
   if (userStore.isAdmin) {
     return '系统控制台'
-  } else if (userStore.isSupervisor) {
-    return '督导工作台'
   } else {
     return '跑步爱好者首页'
   }
@@ -221,34 +163,6 @@ const fetchDashboardData = async () => {
   }
 }
 
-// 获取跑步爱好者任务数据
-const fetchMyTasks = async () => {
-  if (userStore.isRunner) {
-    tasksLoading.value = true
-    try {
-      const tasks = await getMyTasks()
-      myTasks.value = tasks.slice(0, 3) // 只显示前3个任务
-      updateTaskStats(tasks) // 更新任务统计数据
-    } catch (error) {
-      console.error('Failed to get task data:', error)
-    } finally {
-      tasksLoading.value = false
-    }
-  }
-}
-
-// 更新任务统计数据
-const updateTaskStats = (tasks: any[]) => {
-  if (tasks && tasks.length > 0) {
-    studentStats.value.totalTasks = tasks.length
-    studentStats.value.completedTasks = tasks.filter(task => task.status === '已完成').length
-  } else {
-    // 如果没有任务数据，设置为0
-    studentStats.value.totalTasks = 0
-    studentStats.value.completedTasks = 0
-  }
-}
-
 // 图表配置
 const chartOption = computed(() => ({
   tooltip: {
@@ -257,19 +171,14 @@ const chartOption = computed(() => ({
   },
   legend: {
     orient: 'vertical',
-    left: 'left',
-    formatter: function(name) {
-      // 将USER角色显示为STUDENT
-      return name === 'USER' ? 'STUDENT' : name;
-    }
+    left: 'left'
   },
   series: [
     {
       type: 'pie',
       radius: '50%',
       data: Object.entries(stats.value?.roleDistribution || {}).map(([name, value]) => ({
-        // 将USER角色显示为STUDENT
-        name: name === 'USER' ? 'STUDENT' : name,
+        name,
         value
       })),
       emphasis: {
@@ -331,7 +240,6 @@ const getChineseStatus = (status: string) => {
 
 onMounted(() => {
   fetchDashboardData()
-  fetchMyTasks()
 })
 
 const handleLogout = () => {

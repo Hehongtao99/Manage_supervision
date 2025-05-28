@@ -2,7 +2,6 @@ package com.example.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.auth.model.dto.DashboardStats;
-import com.example.auth.model.dto.SupervisorDashboardDTO;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
 import com.example.auth.mapper.RoleMapper;
@@ -108,40 +107,6 @@ public class DashboardServiceImpl implements DashboardService {
         
         // 只返回系统信息
         stats.setSystemInfo(getSystemInfo());
-        
-        return stats;
-    }
-    
-    @Override
-    public SupervisorDashboardDTO getSupervisorDashboardStats(Long supervisorId) {
-        SupervisorDashboardDTO stats = new SupervisorDashboardDTO();
-        
-        // 获取USER角色
-        Role userRole = roleMapper.findByName("USER");
-        
-        if (userRole != null) {
-            // 查找所有拥有USER角色的用户
-            List<User> runners = userMapper.findByRoleId(userRole.getId());
-            
-            // 设置跑步爱好者总数
-            stats.setStudentCount(runners.size());
-            
-            // 计算今日活跃跑步爱好者数（使用状态字段代替登录时间）
-            int activeTodayCount = (int) runners.stream()
-                .filter(runner -> "active".equals(runner.getStatus()))
-                .count();
-            stats.setActiveToday(activeTodayCount);
-        } else {
-            // 如果没有找到USER角色，设置为0
-            stats.setStudentCount(0);
-            stats.setActiveToday(0);
-        }
-        
-        // 移除待处理任务的计算
-        stats.setPendingTasks(0); // 设置为0或者移除该字段
-        
-        // 移除每周事件的计算（如果它基于任务）
-        stats.setWeeklyEvents(0); // 设置为0或者移除该字段
         
         return stats;
     }

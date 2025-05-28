@@ -48,15 +48,6 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'settings',
-        name: 'Settings',
-        component: () => import('../views/Settings.vue'),
-        meta: {
-          title: '账号设置',
-          requiresAuth: true
-        }
-      },
-      {
         path: 'chat',
         name: 'Chat',
         component: () => import('../views/chat/ChatPage.vue'),

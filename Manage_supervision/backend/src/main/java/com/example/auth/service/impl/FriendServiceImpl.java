@@ -68,10 +68,8 @@ public class FriendServiceImpl implements FriendService {
         // 查询符合条件的用户
         List<User> users = userMapper.searchUsers("%" + keyword.trim() + "%");
         
-        Role supervisorRole = roleMapper.findByName("SUPERVISOR");
         Role adminRole = roleMapper.findByName("ADMIN");
         
-        final Long supervisorRoleId = supervisorRole != null ? supervisorRole.getId() : -1L;
         final Long adminRoleId = adminRole != null ? adminRole.getId() : -1L;
         
         return users.stream()
@@ -85,13 +83,11 @@ public class FriendServiceImpl implements FriendService {
                 List<Role> roles = roleMapper.findRolesByUserId(user.getId());
                 user.setRoles(new HashSet<>(roles));
                 
-                // 过滤掉教师和管理员
-                boolean isSupervisor = roles.stream()
-                    .anyMatch(role -> role.getId().equals(supervisorRoleId));
+                // 过滤掉管理员
                 boolean isAdmin = roles.stream()
                     .anyMatch(role -> role.getId().equals(adminRoleId));
                 
-                return !isSupervisor && !isAdmin;
+                return !isAdmin;
             })
             .map(user -> {
                 Map<String, Object> map = new HashMap<>();

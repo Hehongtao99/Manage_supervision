@@ -249,7 +249,7 @@
           :type="role === 'ADMIN' ? 'danger' : 'success'"
           class="role-tag"
         >
-          {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : '教师' }}
+          {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : role }}
         </el-tag>
       </div>
     </el-card>

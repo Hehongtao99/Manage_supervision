@@ -282,12 +282,10 @@ public class UserServiceImpl implements UserService {
             // 获取所有具有USER角色的用户
             List<User> users = userMapper.findByRoleId(userRole.getId());
             
-            // 排除同时有ADMIN或SUPERVISOR角色的用户
+            // 排除同时有ADMIN角色的用户
             Role adminRole = roleMapper.findByName("ADMIN");
-            Role supervisorRole = roleMapper.findByName("SUPERVISOR");
             
             final List<Long> adminUserIds = new ArrayList<>();
-            final List<Long> supervisorUserIds = new ArrayList<>();
             
             if (adminRole != null) {
                 adminUserIds.addAll(userMapper.findByRoleId(adminRole.getId())
@@ -296,15 +294,8 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList()));
             }
             
-            if (supervisorRole != null) {
-                supervisorUserIds.addAll(userMapper.findByRoleId(supervisorRole.getId())
-                        .stream()
-                        .map(User::getId)
-                        .collect(Collectors.toList()));
-            }
-            
             return users.stream()
-                .filter(user -> !adminUserIds.contains(user.getId()) && !supervisorUserIds.contains(user.getId()))
+                .filter(user -> !adminUserIds.contains(user.getId()))
                 .map(this::convertToRunnerDTO)
                 .collect(Collectors.toList());
         } catch (Exception e) {
@@ -434,47 +425,6 @@ public class UserServiceImpl implements UserService {
         }
     }
     
-    @Override
-    public List<UserDTO> getRunnersBySupervisor(Long supervisorId) {
-        try {
-            // 调用RunnerSupervisorMapper获取该管理员的所有跑步爱好者ID
-            String sql = "SELECT runner_id FROM runner_supervisor_relations WHERE supervisor_id = ? AND status = 'active'";
-            List<Long> runnerIds = jdbcTemplate.queryForList(sql, Long.class, supervisorId);
-            
-            if (runnerIds.isEmpty()) {
-                return new ArrayList<>();
-            }
-            
-            // 批量获取跑步爱好者信息
-            List<User> runners = new ArrayList<>();
-            for (Long runnerId : runnerIds) {
-                User runner = userMapper.selectById(runnerId);
-                if (runner != null) {
-                    runners.add(runner);
-                }
-            }
-            
-            // 转换为DTO
-            return runners.stream()
-                    .map(runner -> {
-                        UserDTO dto = new UserDTO();
-                        dto.setId(runner.getId());
-                        dto.setUsername(runner.getUsername());
-                        dto.setRealName(runner.getRealName());
-                        dto.setUserNumber(runner.getUserNumber());
-                        dto.setEmail(runner.getEmail());
-                        dto.setPhone(runner.getPhone());
-                        dto.setStatus(runner.getStatus());
-                        dto.setAvatar(runner.getAvatar());
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            logger.error("获取管理员的跑步爱好者列表过程中发生异常", e);
-            throw new RuntimeException("获取管理员的跑步爱好者列表失败: " + e.getMessage());
-        }
-    }
-    
     /**
      * 将User实体转换为RunnerDTO
      */
@@ -526,16 +476,5 @@ public class UserServiceImpl implements UserService {
         String sql = "SELECT COUNT(*) FROM running_records WHERE user_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
         return count != null ? count : 0;
-    }
-
-    @Override
-    public List<User> getAllSupervisors() {
-        Role supervisorRole = roleMapper.findByName("SUPERVISOR");
-        if (supervisorRole == null) {
-            logger.warn("未找到SUPERVISOR角色");
-            return new ArrayList<>();
-        }
-        
-        return userMapper.findByRoleId(supervisorRole.getId());
     }
 }

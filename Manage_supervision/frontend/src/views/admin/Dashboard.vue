@@ -30,15 +30,17 @@ const statistics = ref({
   totalUsers: 0,
   activeUsers: 0,
   totalRoles: 0,
-  systemHealth: '正常'
+  systemHealth: '正常',
+  roleDistribution: {
+    ADMIN: 0,
+    USER: 0
+  }
 })
 
 // 用户角色分布数据
 const userRoleDistribution = ref([
   { value: 0, name: '管理员' },
-  { value: 0, name: '教师' },
-  { value: 0, name: '跑步爱好者' },
-  { value: 0, name: '普通用户' }
+  { value: 0, name: '跑步爱好者' }
 ])
 
 // 近7天活跃用户数据
@@ -66,8 +68,8 @@ const pieChartOption = computed(() => ({
     {
       name: '角色分布',
       type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
+      radius: '50%',
+      data: userRoleDistribution.value,
       itemStyle: {
         borderRadius: 10,
         borderColor: '#fff',
@@ -86,8 +88,7 @@ const pieChartOption = computed(() => ({
       },
       labelLine: {
         show: false
-      },
-      data: userRoleDistribution.value
+      }
     }
   ]
 }))
@@ -169,14 +170,16 @@ const mockDashboardData = () => {
     totalUsers: 256,
     activeUsers: 198,
     totalRoles: 4,
-    systemHealth: '正常'
+    systemHealth: '正常',
+    roleDistribution: {
+      ADMIN: 2,
+      USER: 156
+    }
   }
   
   userRoleDistribution.value = [
     { value: 2, name: '管理员' },
-    { value: 18, name: '教师' },
-    { value: 156, name: '跑步爱好者' },
-    { value: 80, name: '普通用户' }
+    { value: 156, name: '跑步爱好者' }
   ]
   
   const today = new Date()
@@ -196,11 +199,11 @@ const mockDashboardData = () => {
   }
   
   // recentActivities.value = [
-  //   { id: 1, user: '李老师', action: '登录了系统', time: '10分钟前' },
+  //   { id: 1, user: '张三', action: '登录了系统', time: '10分钟前' },
   //   { id: 2, user: '王管理员', action: '更新了用户权限', time: '30分钟前' },
-  //   { id: 3, user: '张三', action: '提交了作业', time: '1小时前' },
+  //   { id: 3, user: '李四', action: '更新了个人信息', time: '1小时前' },
   //   { id: 4, user: '系统', action: '执行了自动备份', time: '3小时前' },
-  //   { id: 5, user: '教务处', action: '发布了新通知', time: '1天前' }
+  //   { id: 5, user: '管理处', action: '发布了新通知', time: '1天前' }
   // ]
 }
 

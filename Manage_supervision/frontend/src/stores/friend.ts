@@ -305,8 +305,7 @@ export const useFriendStore = defineStore('friend', {
         const response = await axios.get('/api/friends/search', {
           params: { 
             keyword,
-            excludeAdmin: true,      // 排除管理员用户
-            excludeSupervisor: false // 是否排除教师用户，可以根据需求调整
+            excludeAdmin: true      // 排除管理员用户
           }
         });
         

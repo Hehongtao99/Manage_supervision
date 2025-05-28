@@ -50,9 +50,6 @@
                 <el-dropdown-item @click="$router.push('/profile')">
                   <el-icon><User /></el-icon>个人资料
                 </el-dropdown-item>
-                <el-dropdown-item @click="$router.push('/settings')">
-                  <el-icon><Setting /></el-icon>账号设置
-                </el-dropdown-item>
                 <el-dropdown-item v-if="userStore.isAdmin" @click="$router.push('/admin/dashboard')">
                   <el-icon><Monitor /></el-icon>管理后台
                 </el-dropdown-item>
@@ -86,7 +83,6 @@ import { ElMessageBox } from 'element-plus'
 import {
   Bell,
   User,
-  Setting,
   Monitor,
   SwitchButton,
   CaretBottom

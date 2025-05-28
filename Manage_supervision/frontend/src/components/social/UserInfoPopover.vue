@@ -23,9 +23,9 @@
                 v-for="role in userInfo.roles" 
                 :key="role" 
                 size="small"
-                :type="role === 'ADMIN' ? 'danger' : role === 'SUPERVISOR' ? 'success' : 'info'"
+                :type="role === 'ADMIN' ? 'danger' : 'info'"
               >
-                {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : '教师' }}
+                {{ role === 'USER' ? '跑步爱好者' : role === 'ADMIN' ? '管理员' : role }}
               </el-tag>
             </div>
           </div>

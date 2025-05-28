@@ -10,7 +10,6 @@
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-if="isSupervisor" command="showStudentList">选择跑步爱好者</el-dropdown-item>
                 <el-dropdown-item command="showFriendList">选择好友</el-dropdown-item>
                 <el-dropdown-item command="goToFriendsPage">管理好友</el-dropdown-item>
               </el-dropdown-menu>
@@ -29,38 +28,6 @@
         />
       </div>
     </div>
-
-    <!-- 跑步爱好者选择对话框 -->
-    <el-dialog
-      v-model="showStudentDialog"
-      title="选择跑步爱好者"
-      width="400px"
-    >
-      <el-input
-        v-model="studentSearchKeyword"
-        placeholder="搜索跑步爱好者"
-        prefix-icon="Search"
-        clearable
-        style="margin-bottom: 10px"
-      />
-      
-      <el-table
-        :data="filteredStudents"
-        style="width: 100%; margin-top: 16px;"
-        height="350px"
-        v-loading="loadingStudents"
-      >
-        <el-table-column prop="name" label="姓名" width="120" />
-        <el-table-column prop="studentId" label="学号" width="180" />
-        <el-table-column fixed="right" label="操作" width="120">
-          <template #default="scope">
-            <el-button link type="primary" @click="startChatWithStudent(scope.row)">
-              开始聊天
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-dialog>
     
     <!-- 好友选择对话框 -->
     <el-dialog
@@ -113,13 +80,6 @@ const chatStore = useChatStore();
 const activeConversationId = ref<number | null>(null);
 const loadingConversations = computed(() => chatStore.loadingConversations);
 
-// 跑步爱好者选择对话框
-const showStudentDialog = ref(false);
-const studentSearchKeyword = ref('');
-const students = ref<any[]>([]);
-const filteredStudents = ref<any[]>([]);
-const loadingStudents = ref(false);
-
 // 好友选择对话框
 const showFriendDialog = ref(false);
 const friendSearchKeyword = ref('');
@@ -127,50 +87,13 @@ const friends = ref<any[]>([]);
 const filteredFriends = ref<any[]>([]);
 const loadingFriends = ref(false);
 
-// 检查当前用户是否是教师
-const isSupervisor = computed(() => userStore.isSupervisor);
-// 检查当前用户是否是管理员
-const isAdmin = computed(() => userStore.isAdmin);
-
 // 下拉菜单命令处理
 const handleCommand = (command: string) => {
-  if (command === 'showStudentList') {
-    showStudentDialog.value = true;
-    loadStudents();
-  } else if (command === 'showFriendList') {
+  if (command === 'showFriendList') {
     showFriendDialog.value = true;
     loadFriends();
   } else if (command === 'goToFriendsPage') {
     router.push('/friends');
-  }
-};
-
-// 加载跑步爱好者列表
-const loadStudents = async () => {
-  loadingStudents.value = true;
-  
-  try {
-    const response = await axios.get('/api/supervisor/students');
-    
-    // 添加数据验证
-    if (Array.isArray(response.data)) {
-      students.value = response.data.map(student => ({
-        ...student,
-        name: student.name || 'Unknown Name',
-        studentId: student.studentId || 'Unknown ID'
-      }));
-      filteredStudents.value = students.value;
-    } else {
-      console.error('Student data format error:', response.data);
-      students.value = [];
-      filteredStudents.value = [];
-    }
-  } catch (error) {
-    console.error('Failed to load student list:', error);
-    students.value = [];
-    filteredStudents.value = [];
-  } finally {
-    loadingStudents.value = false;
   }
 };
 
@@ -198,21 +121,6 @@ const loadFriends = async () => {
   }
 };
 
-// 搜索跑步爱好者
-const handleSearch = () => {
-  const keyword = studentSearchKeyword.value.toLowerCase();
-  
-  if (!keyword) {
-    filteredStudents.value = students.value;
-    return;
-  }
-  
-  filteredStudents.value = students.value.filter(student =>
-    student.username.toLowerCase().includes(keyword) ||
-    (student.realName && student.realName.toLowerCase().includes(keyword))
-  );
-};
-
 // 搜索好友
 const handleFriendSearch = () => {
   const keyword = friendSearchKeyword.value.toLowerCase();
@@ -226,22 +134,6 @@ const handleFriendSearch = () => {
     (friend.name && friend.name.toLowerCase().includes(keyword)) ||
     (friend.username && friend.username.toLowerCase().includes(keyword))
   );
-};
-
-// 开始与跑步爱好者聊天
-const startChatWithStudent = async (student: any) => {
-  if (!student || !student.id) {
-    console.error('Student data incomplete, cannot start chat:', student);
-    return;
-  }
-  
-  try {
-    const conversation = await chatStore.getOrCreateConversationWithUser(student.id);
-    activeConversationId.value = conversation.id;
-    showStudentDialog.value = false;
-  } catch (error) {
-    console.error('Failed to start chat:', error);
-  }
 };
 
 // 开始与好友聊天

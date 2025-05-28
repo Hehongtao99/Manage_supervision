@@ -139,25 +139,6 @@ public class UserController {
         }
     }
     
-    @GetMapping("/supervisors")
-    public ResponseEntity<?> getAllSupervisors() {
-        try {
-            List<User> supervisors = userService.getAllSupervisors();
-            // 转换为只包含 ID 和姓名的简单对象列表
-            List<Map<String, Object>> result = supervisors.stream().map(s -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", s.getId());
-                map.put("name", s.getRealName() != null ? s.getRealName() : s.getUsername());
-                return map;
-            }).collect(Collectors.toList());
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            logger.error("获取督导员列表失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "获取督导员列表失败: " + e.getMessage()));
-        }
-    }
-
     /**
      * 获取指定用户的详细信息
      */

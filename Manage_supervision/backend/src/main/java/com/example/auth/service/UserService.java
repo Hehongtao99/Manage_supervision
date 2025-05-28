@@ -21,12 +21,6 @@ public interface UserService {
     RunnerDetailDTO getRunnerDetails(Long id);
     boolean updateRunnerStatus(Long id, String status);
     boolean deleteRunner(Long id);
-    
-    // 管理员管理相关方法
-    List<User> getAllSupervisors();
-
-    // 添加获取管理员跑步爱好者的方法
-    List<UserDTO> getRunnersBySupervisor(Long supervisorId);
 
     /**
      * 获取用户发布的帖子数量
