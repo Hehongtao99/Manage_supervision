@@ -33,10 +33,10 @@
               <el-table-column label="排名" width="80">
                 <template #default="scope">
                   <div class="rank-cell">
-                    <div v-if="scope.row.rank <= 3" class="rank-badge rank-top-{{ scope.row.rank }}">
-                      {{ scope.row.rank }}
+                    <div v-if="scope.$index + 1 <= 3" :class="`rank-badge rank-top-${scope.$index + 1}`">
+                      {{ scope.$index + 1 }}
                     </div>
-                    <span v-else>{{ scope.row.rank }}</span>
+                    <span v-else>{{ scope.$index + 1 }}</span>
                   </div>
                 </template>
               </el-table-column>
@@ -77,10 +77,10 @@
               <el-table-column label="排名" width="80">
                 <template #default="scope">
                   <div class="rank-cell">
-                    <div v-if="scope.row.rank <= 3" class="rank-badge rank-top-{{ scope.row.rank }}">
-                      {{ scope.row.rank }}
+                    <div v-if="scope.$index + 1 <= 3" :class="`rank-badge rank-top-${scope.$index + 1}`">
+                      {{ scope.$index + 1 }}
                     </div>
-                    <span v-else>{{ scope.row.rank }}</span>
+                    <span v-else>{{ scope.$index + 1 }}</span>
                   </div>
                 </template>
               </el-table-column>
@@ -121,10 +121,10 @@
               <el-table-column label="排名" width="80">
                 <template #default="scope">
                   <div class="rank-cell">
-                    <div v-if="scope.row.rank <= 3" class="rank-badge rank-top-{{ scope.row.rank }}">
-                      {{ scope.row.rank }}
+                    <div v-if="scope.$index + 1 <= 3" :class="`rank-badge rank-top-${scope.$index + 1}`">
+                      {{ scope.$index + 1 }}
                     </div>
-                    <span v-else>{{ scope.row.rank }}</span>
+                    <span v-else>{{ scope.$index + 1 }}</span>
                   </div>
                 </template>
               </el-table-column>

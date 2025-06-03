@@ -5,7 +5,6 @@
     width="500px"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
-    @closed="resetForm"
   >
     <el-form ref="formRef" :model="form" label-width="80px">
       <!-- 文本内容 -->
@@ -155,12 +154,31 @@ const submitting = ref(false)
 // 监听post变化，初始化表单数据
 watch(() => props.post, (newPost) => {
   if (newPost) {
+    console.log('编辑对话框接收到的帖子数据:', newPost)
     form.id = newPost.id
     form.content = newPost.content || ''
     form.imageUrls = [...(newPost.imageUrls || [])]
     form.runningRecordId = newPost.runningRecord ? newPost.runningRecord.id : null
+    console.log('设置的跑步记录ID:', form.runningRecordId)
   }
 }, { immediate: true })
+
+// 监听跑步记录数据加载完成，重新设置表单数据
+watch(() => runningRecords.value, (records) => {
+  if (records.length > 0 && props.post && props.post.runningRecord) {
+    // 确保跑步记录ID正确设置
+    form.runningRecordId = props.post.runningRecord.id
+    console.log('跑步记录加载完成，重新设置跑步记录ID:', form.runningRecordId)
+  }
+}, { immediate: true })
+
+// 监听对话框显示状态，当对话框打开时重新加载跑步记录
+watch(() => visible.value, (isVisible) => {
+  if (isVisible) {
+    console.log('对话框打开，重新加载跑步记录')
+    fetchRunningRecords()
+  }
+})
 
 // 获取用户的跑步记录列表
 const fetchRunningRecords = async () => {
@@ -208,7 +226,10 @@ const removeRunningRecord = () => {
 
 // 组件挂载时加载跑步记录
 onMounted(() => {
-  fetchRunningRecords()
+  // 只在跑步记录为空时才加载，避免重复加载
+  if (runningRecords.value.length === 0) {
+    fetchRunningRecords()
+  }
 })
 
 // 处理图片选择
@@ -294,6 +315,10 @@ const resetForm = () => {
 // 关闭对话框
 const closeDialog = () => {
   visible.value = false
+  // 延迟重置表单，确保对话框完全关闭后再重置
+  setTimeout(() => {
+    resetForm()
+  }, 100)
 }
 </script>
 
